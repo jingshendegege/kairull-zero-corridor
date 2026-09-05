@@ -58,6 +58,16 @@ var _serial := 0
 
 
 func _ready() -> void:
+	# WebGL 的屏幕纹理路径成本很高：每个 decal 会进行多次邻域/遮蔽采样，
+	# 长时间战斗中容易触发浏览器的 WebGL context lost。保留血迹贴图，
+	# 在 Web 上关闭高成本融合并降低缓存槽，避免把游戏进程拖垮。
+	if OS.has_feature("web"):
+		max_decals = mini(max_decals, 48)
+		occlusion_enabled = false
+		darkness_enabled = false
+		refraction_enabled = false
+		linear_refraction_enabled = false
+		normal_lighting_enabled = false
 	visible = persistent_enabled
 	_snapshot_texture = load(SNAPSHOT_PATH) as Texture2D
 	if _snapshot_texture == null:
