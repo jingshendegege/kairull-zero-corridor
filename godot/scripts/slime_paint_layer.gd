@@ -106,7 +106,8 @@ func _add_fleck(point: Vector2, surface: Dictionary, hue: Color,
 
 
 func _trim_flecks() -> void:
-	while flecks.size() > MAX_FLECKS:
+	var limit := 300 if OS.has_feature("web") else MAX_FLECKS
+	while flecks.size() > limit:
 		flecks.pop_front()
 
 
@@ -383,7 +384,8 @@ func add_impact_splat(world_position: Vector2, radius: float, slot: int,
 
 
 func _trim_oldest() -> void:
-	while splats.size() > MAX_SPLATS:
+	var limit := 48 if OS.has_feature("web") else MAX_SPLATS
+	while splats.size() > limit:
 		splats.pop_front()
 
 
