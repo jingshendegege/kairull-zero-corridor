@@ -1,0 +1,202 @@
+{
+  "source": "D:\\HermesProjects\\daily\\kairull_h3_game_actions_20260831\\peacekeeper_weapon_v1\\aim_poses\\kairull_peacekeeper_aim_7_directions_codex_v1.png",
+  "method": "connected-component v2",
+  "poses": [
+    {
+      "pivot": {
+        "x": 196.5,
+        "y": 199.3
+      },
+      "muzzle": {
+        "x": 315.7,
+        "y": 45.4
+      },
+      "measured_angle": 52.3,
+      "gun_area": 3773,
+      "elongation": 4.15,
+      "gun_length": 194.6,
+      "name": "up70",
+      "asset": "aim_up70.png",
+      "canvas": [
+        360,
+        460
+      ],
+      "nominal_angle": 70.0,
+      "nominal_error": -17.7,
+      "alpha_bbox": [
+        32,
+        35,
+        342,
+        424
+      ]
+    },
+    {
+      "pivot": {
+        "x": 159.7,
+        "y": 241.3
+      },
+      "muzzle": {
+        "x": 316.0,
+        "y": 119.4
+      },
+      "measured_angle": 38.0,
+      "gun_area": 3841,
+      "elongation": 4.17,
+      "gun_length": 198.2,
+      "name": "up45",
+      "asset": "aim_up45.png",
+      "canvas": [
+        360,
+        460
+      ],
+      "nominal_angle": 45.0,
+      "nominal_error": -7.0,
+      "alpha_bbox": [
+        15,
+        73,
+        344,
+        425
+      ]
+    },
+    {
+      "pivot": {
+        "x": 119.6,
+        "y": 240.3
+      },
+      "muzzle": {
+        "x": 314.6,
+        "y": 195.6
+      },
+      "measured_angle": 12.9,
+      "gun_area": 3829,
+      "elongation": 4.26,
+      "gun_length": 200.0,
+      "name": "up20",
+      "asset": "aim_up20.png",
+      "canvas": [
+        360,
+        460
+      ],
+      "nominal_angle": 20.0,
+      "nominal_error": -7.1,
+      "alpha_bbox": [
+        15,
+        96,
+        344,
+        424
+      ]
+    },
+    {
+      "pivot": {
+        "x": 115.2,
+        "y": 240.8
+      },
+      "muzzle": {
+        "x": 311.6,
+        "y": 240.8
+      },
+      "measured_angle": -0.0,
+      "gun_area": 3156,
+      "elongation": 5.76,
+      "gun_length": 196.4,
+      "name": "forward",
+      "asset": "aim_forward.png",
+      "canvas": [
+        360,
+        460
+      ],
+      "nominal_angle": 0.0,
+      "nominal_error": -0.0,
+      "alpha_bbox": [
+        15,
+        100,
+        344,
+        424
+      ]
+    },
+    {
+      "pivot": {
+        "x": 124.3,
+        "y": 240.9
+      },
+      "muzzle": {
+        "x": 306.7,
+        "y": 301.1
+      },
+      "measured_angle": -18.3,
+      "gun_area": 2649,
+      "elongation": 5.84,
+      "gun_length": 192.1,
+      "name": "down20",
+      "asset": "aim_down20.png",
+      "canvas": [
+        360,
+        460
+      ],
+      "nominal_angle": -20.0,
+      "nominal_error": 1.7,
+      "alpha_bbox": [
+        15,
+        108,
+        344,
+        424
+      ]
+    },
+    {
+      "pivot": {
+        "x": 115.2,
+        "y": 249.8
+      },
+      "muzzle": {
+        "x": 292.7,
+        "y": 329.1
+      },
+      "measured_angle": -24.1,
+      "gun_area": 3571,
+      "elongation": 4.88,
+      "gun_length": 194.3,
+      "name": "down45",
+      "asset": "aim_down45.png",
+      "canvas": [
+        360,
+        460
+      ],
+      "nominal_angle": -45.0,
+      "nominal_error": 20.9,
+      "alpha_bbox": [
+        15,
+        125,
+        344,
+        425
+      ]
+    },
+    {
+      "pivot": {
+        "x": 165.3,
+        "y": 292.0
+      },
+      "muzzle": {
+        "x": 318.8,
+        "y": 363.7
+      },
+      "measured_angle": -25.1,
+      "gun_area": 3628,
+      "elongation": 3.74,
+      "gun_length": 169.4,
+      "name": "down70",
+      "asset": "aim_down70.png",
+      "canvas": [
+        360,
+        460
+      ],
+      "nominal_angle": -70.0,
+      "nominal_error": 44.9,
+      "alpha_bbox": [
+        15,
+        94,
+        327,
+        422
+      ]
+    }
+  ]
+}

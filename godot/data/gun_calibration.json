@@ -1,0 +1,29 @@
+{
+  "asset": "D:/HermesProjects/daily/kairull_h3_game_actions_20260831/peacekeeper_weapon_v1/APPROVED/peacekeeper_pixel_224x96_rgba.png",
+  "canvas": [
+    224,
+    96
+  ],
+  "alpha_bbox": [
+    24,
+    26,
+    199,
+    69
+  ],
+  "pivot": {
+    "x": 72.0,
+    "y": 56.5
+  },
+  "muzzle": {
+    "x": 199.0,
+    "y": 36.0
+  },
+  "muzzle_offset_from_pivot": {
+    "length": 128.64,
+    "angle_deg": 9.17
+  },
+  "axis_angle_deg": 6.07,
+  "elongation": 6.35,
+  "muzzle_side": "right",
+  "method": "PCA major axis + end-thickness muzzle discrimination + grip-protrusion pivot"
+}

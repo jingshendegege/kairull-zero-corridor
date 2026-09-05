@@ -1,0 +1,118 @@
+{
+ "scale": 0.5,
+ "fps": 24,
+ "actions": {
+  "aim": {
+   "file": "grid/aim.png",
+   "frames": 116,
+   "fw": 224,
+   "fh": 255,
+   "crop": [
+    287,
+    35,
+    449,
+    510
+   ],
+   "foot_y": 235.0,
+   "body_cx": 91.5,
+   "cols": 36,
+   "rows": 4
+  },
+  "run": {
+   "file": "grid/run.png",
+   "frames": 124,
+   "fw": 254,
+   "fh": 254,
+   "crop": [
+    251,
+    41,
+    509,
+    508
+   ],
+   "foot_y": 232.0,
+   "body_cx": 109.5,
+   "cols": 32,
+   "rows": 4
+  },
+  "slide_start": {
+   "file": "grid/slide_start.png",
+   "frames": 12,
+   "fw": 257,
+   "fh": 248,
+   "crop": [
+    247,
+    69,
+    514,
+    497
+   ],
+   "foot_y": 218.0,
+   "body_cx": 111.5,
+   "cols": 31,
+   "rows": 1
+  },
+  "slide_loop": {
+   "file": "grid/slide_loop.png",
+   "frames": 24,
+   "fw": 243,
+   "fh": 203,
+   "crop": [
+    245,
+    159,
+    487,
+    407
+   ],
+   "foot_y": 173.0,
+   "body_cx": 112.5,
+   "cols": 33,
+   "rows": 1
+  },
+  "slide_end": {
+   "file": "grid/slide_end.png",
+   "frames": 19,
+   "fw": 232,
+   "fh": 258,
+   "crop": [
+    264,
+    52,
+    465,
+    516
+   ],
+   "foot_y": 226.5,
+   "body_cx": 103.0,
+   "cols": 35,
+   "rows": 1
+  },
+  "melee": {
+   "file": "grid/melee.png",
+   "frames": 112,
+   "fw": 384,
+   "fh": 277,
+   "crop": [
+    238,
+    0,
+    768,
+    555
+   ],
+   "foot_y": 252.5,
+   "body_cx": 116.0,
+   "cols": 21,
+   "rows": 6
+  },
+  "death": {
+   "file": "grid/death.png",
+   "frames": 114,
+   "fw": 264,
+   "fh": 248,
+   "crop": [
+    252,
+    66,
+    528,
+    497
+   ],
+   "foot_y": 219.5,
+   "body_cx": 109.0,
+   "cols": 31,
+   "rows": 4
+  }
+ }
+}

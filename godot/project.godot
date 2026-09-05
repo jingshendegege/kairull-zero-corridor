@@ -1,0 +1,33 @@
+; 凯露尔零号回廊 — Godot 4.7 主线工程
+; 主线入口：3D监控电视菜单，选难度后进入正式第一关“协议检疫站”。
+; 关卡包装 scenes/game.tscn，继续复用角色图集与既有平台运行时。
+; 旧的七档静态枪技术验证保留在 scenes/aim_prototype.tscn，仅作参考。
+
+config_version=5
+
+[application]
+
+config/name="kairull-zero-corridor"
+run/main_scene="res://scenes/surveillance_menu.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+config/icon="res://assets/aim/peacekeeper.png"
+
+[display]
+
+window/size/viewport_width=1360
+window/size/viewport_height=765
+; 像素画：整数缩放 + 最近邻，禁止插值模糊
+window/stretch/mode="viewport"
+window/stretch/aspect="keep"
+window/stretch/scale_mode="integer"
+window/stretch/scale_mode.web="fractional"
+
+[gui]
+
+theme/custom_font="res://NotoSansCJKsc-Regular.otf"
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

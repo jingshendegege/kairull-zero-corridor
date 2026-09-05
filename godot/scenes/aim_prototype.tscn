@@ -1,0 +1,37 @@
+[gd_scene load_steps=4 format=3 uid="uid://baimproto1"]
+
+[ext_resource type="Script" path="res://scripts/aim_prototype.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/aim/pose_forward.png" id="2_pose"]
+[ext_resource type="Script" path="res://scripts/aim_debug_overlay.gd" id="3_overlay"]
+
+[node name="AimPrototype" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="BG" type="ColorRect" parent="."]
+offset_right = 1280.0
+offset_bottom = 720.0
+color = Color(0.0705882, 0.0862745, 0.168627, 1)
+
+[node name="Body" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(420, 400)
+texture = ExtResource("2_pose")
+
+[node name="MuzzleMarker" type="Node2D" parent="."]
+
+[node name="Tracers" type="Node2D" parent="."]
+
+[node name="DebugOverlay" type="Node2D" parent="."]
+script = ExtResource("3_overlay")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="DebugLabel" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 760.0
+offset_bottom = 380.0
+theme_override_colors/font_color = Color(0.85, 0.93, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.7)
+theme_override_constants/outline_size = 4
+text = "loading..."

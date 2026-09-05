@@ -1,0 +1,7 @@
+godot/.godot/
+.build-tools/
+dist/
+*.bak
+*.tmp
+*.log
+node_modules/

@@ -1,0 +1,569 @@
+{
+  "aim_recovery": "reuse_idle",
+  "animations": {
+    "aim": {
+      "fps_hint": 8,
+      "frames": 5,
+      "loop": false,
+      "row": 3
+    },
+    "alert": {
+      "fps_hint": 8,
+      "frames": 4,
+      "loop": false,
+      "row": 1
+    },
+    "death": {
+      "fps_hint": 8,
+      "frames": 6,
+      "loop": false,
+      "row": 5
+    },
+    "fire": {
+      "fps_hint": 14,
+      "frames": 4,
+      "loop": false,
+      "row": 4
+    },
+    "idle": {
+      "fps_hint": 4,
+      "frames": 3,
+      "loop": true,
+      "row": 0
+    },
+    "run": {
+      "fps_hint": 12,
+      "frames": 8,
+      "loop": true,
+      "row": 2
+    }
+  },
+  "canvas_size": [
+    2048,
+    1536
+  ],
+  "baseline_y": 224,
+  "cell_size": [
+    256,
+    256
+  ],
+  "columns": 8,
+  "facing": "right",
+  "pivot_x": 128,
+  "fire_recovery": "reuse_idle",
+  "frames": [
+    {
+      "animation": "idle",
+      "cell_bbox": [
+        55,
+        73,
+        123,
+        151
+      ],
+      "frame": 0,
+      "row": 0,
+      "source_bbox": [
+        54,
+        41,
+        123,
+        151
+      ]
+    },
+    {
+      "animation": "idle",
+      "cell_bbox": [
+        58,
+        72,
+        121,
+        152
+      ],
+      "frame": 1,
+      "row": 0,
+      "source_bbox": [
+        261,
+        40,
+        121,
+        152
+      ]
+    },
+    {
+      "animation": "idle",
+      "cell_bbox": [
+        60,
+        72,
+        123,
+        152
+      ],
+      "frame": 2,
+      "row": 0,
+      "source_bbox": [
+        469,
+        40,
+        123,
+        152
+      ]
+    },
+    {
+      "animation": "alert",
+      "cell_bbox": [
+        54,
+        75,
+        127,
+        149
+      ],
+      "frame": 0,
+      "row": 1,
+      "source_bbox": [
+        53,
+        236,
+        127,
+        149
+      ]
+    },
+    {
+      "animation": "alert",
+      "cell_bbox": [
+        45,
+        75,
+        139,
+        149
+      ],
+      "frame": 1,
+      "row": 1,
+      "source_bbox": [
+        254,
+        236,
+        139,
+        149
+      ]
+    },
+    {
+      "animation": "alert",
+      "cell_bbox": [
+        40,
+        75,
+        150,
+        149
+      ],
+      "frame": 2,
+      "row": 1,
+      "source_bbox": [
+        468,
+        236,
+        150,
+        149
+      ]
+    },
+    {
+      "animation": "alert",
+      "cell_bbox": [
+        47,
+        72,
+        151,
+        152
+      ],
+      "frame": 3,
+      "row": 1,
+      "source_bbox": [
+        685,
+        233,
+        151,
+        152
+      ]
+    },
+    {
+      "animation": "run",
+      "cell_bbox": [
+        32,
+        79,
+        142,
+        145
+      ],
+      "frame": 0,
+      "row": 2,
+      "source_bbox": [
+        35,
+        424,
+        142,
+        145
+      ]
+    },
+    {
+      "animation": "run",
+      "cell_bbox": [
+        24,
+        75,
+        153,
+        149
+      ],
+      "frame": 1,
+      "row": 2,
+      "source_bbox": [
+        204,
+        421,
+        153,
+        149
+      ]
+    },
+    {
+      "animation": "run",
+      "cell_bbox": [
+        24,
+        79,
+        156,
+        145
+      ],
+      "frame": 2,
+      "row": 2,
+      "source_bbox": [
+        369,
+        425,
+        156,
+        145
+      ]
+    },
+    {
+      "animation": "run",
+      "cell_bbox": [
+        20,
+        78,
+        155,
+        146
+      ],
+      "frame": 3,
+      "row": 2,
+      "source_bbox": [
+        535,
+        424,
+        155,
+        146
+      ]
+    },
+    {
+      "animation": "run",
+      "cell_bbox": [
+        17,
+        77,
+        161,
+        147
+      ],
+      "frame": 4,
+      "row": 2,
+      "source_bbox": [
+        700,
+        423,
+        161,
+        147
+      ]
+    },
+    {
+      "animation": "run",
+      "cell_bbox": [
+        24,
+        83,
+        149,
+        141
+      ],
+      "frame": 5,
+      "row": 2,
+      "source_bbox": [
+        858,
+        427,
+        149,
+        141
+      ]
+    },
+    {
+      "animation": "run",
+      "cell_bbox": [
+        39,
+        75,
+        135,
+        149
+      ],
+      "frame": 6,
+      "row": 2,
+      "source_bbox": [
+        1022,
+        421,
+        135,
+        149
+      ]
+    },
+    {
+      "animation": "run",
+      "cell_bbox": [
+        51,
+        78,
+        125,
+        146
+      ],
+      "frame": 7,
+      "row": 2,
+      "source_bbox": [
+        1189,
+        424,
+        125,
+        146
+      ]
+    },
+    {
+      "animation": "aim",
+      "cell_bbox": [
+        52,
+        77,
+        133,
+        147
+      ],
+      "frame": 0,
+      "row": 3,
+      "source_bbox": [
+        49,
+        606,
+        133,
+        147
+      ]
+    },
+    {
+      "animation": "aim",
+      "cell_bbox": [
+        57,
+        81,
+        132,
+        143
+      ],
+      "frame": 1,
+      "row": 3,
+      "source_bbox": [
+        238,
+        609,
+        132,
+        143
+      ]
+    },
+    {
+      "animation": "aim",
+      "cell_bbox": [
+        56,
+        81,
+        138,
+        143
+      ],
+      "frame": 2,
+      "row": 3,
+      "source_bbox": [
+        434,
+        609,
+        138,
+        143
+      ]
+    },
+    {
+      "animation": "aim",
+      "cell_bbox": [
+        51,
+        77,
+        142,
+        147
+      ],
+      "frame": 3,
+      "row": 3,
+      "source_bbox": [
+        645,
+        606,
+        142,
+        147
+      ]
+    },
+    {
+      "animation": "aim",
+      "cell_bbox": [
+        64,
+        77,
+        134,
+        147
+      ],
+      "frame": 4,
+      "row": 3,
+      "source_bbox": [
+        850,
+        606,
+        134,
+        147
+      ]
+    },
+    {
+      "animation": "fire",
+      "cell_bbox": [
+        59,
+        84,
+        135,
+        140
+      ],
+      "frame": 0,
+      "row": 4,
+      "source_bbox": [
+        60,
+        791,
+        135,
+        140
+      ]
+    },
+    {
+      "animation": "fire",
+      "cell_bbox": [
+        56,
+        86,
+        157,
+        138
+      ],
+      "frame": 1,
+      "row": 4,
+      "source_bbox": [
+        251,
+        793,
+        157,
+        138
+      ]
+    },
+    {
+      "animation": "fire",
+      "cell_bbox": [
+        66,
+        83,
+        131,
+        141
+      ],
+      "frame": 2,
+      "row": 4,
+      "source_bbox": [
+        448,
+        790,
+        131,
+        141
+      ]
+    },
+    {
+      "animation": "fire",
+      "cell_bbox": [
+        76,
+        83,
+        126,
+        141
+      ],
+      "frame": 3,
+      "row": 4,
+      "source_bbox": [
+        652,
+        790,
+        126,
+        141
+      ]
+    },
+    {
+      "animation": "death",
+      "cell_bbox": [
+        52,
+        76,
+        123,
+        148
+      ],
+      "frame": 0,
+      "row": 5,
+      "source_bbox": [
+        52,
+        968,
+        123,
+        148
+      ]
+    },
+    {
+      "animation": "death",
+      "cell_bbox": [
+        43,
+        86,
+        152,
+        138
+      ],
+      "frame": 1,
+      "row": 5,
+      "source_bbox": [
+        243,
+        978,
+        152,
+        138
+      ]
+    },
+    {
+      "animation": "death",
+      "cell_bbox": [
+        16,
+        104,
+        187,
+        120
+      ],
+      "frame": 2,
+      "row": 5,
+      "source_bbox": [
+        416,
+        996,
+        187,
+        120
+      ]
+    },
+    {
+      "animation": "death",
+      "cell_bbox": [
+        10,
+        135,
+        190,
+        89
+      ],
+      "frame": 3,
+      "row": 5,
+      "source_bbox": [
+        610,
+        1026,
+        190,
+        89
+      ]
+    },
+    {
+      "animation": "death",
+      "cell_bbox": [
+        8,
+        156,
+        221,
+        68
+      ],
+      "frame": 4,
+      "row": 5,
+      "source_bbox": [
+        808,
+        1051,
+        221,
+        68
+      ]
+    },
+    {
+      "animation": "death",
+      "cell_bbox": [
+        8,
+        161,
+        240,
+        63
+      ],
+      "frame": 5,
+      "row": 5,
+      "source_bbox": [
+        1052,
+        1055,
+        240,
+        63
+      ]
+    }
+  ],
+  "rows": 6,
+  "texture": "atlas.png",
+  "unused_cells_alpha_zero": true
+}

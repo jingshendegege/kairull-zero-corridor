@@ -1,0 +1,150 @@
+{
+ "scale": 0.62,
+ "fps": 24,
+ "actions": {
+  "bat_combo3": {
+   "file": "bat/bat_combo3.png",
+   "frames": 79,
+   "fw": 842,
+   "fh": 572,
+   "cols": 9,
+   "rows": 9,
+   "foot_y": 572.0,
+   "body_cx": 421.0,
+   "crop": [
+    155,
+    2,
+    997,
+    574
+   ]
+  },
+  "bat_jump_start": {
+   "file": "bat/bat_jump_start.png",
+   "frames": 36,
+   "fw": 386,
+   "fh": 524,
+   "cols": 21,
+   "rows": 2,
+   "foot_y": 524.0,
+   "body_cx": 193.0,
+   "crop": [
+    269,
+    2,
+    655,
+    526
+   ]
+  },
+  "bat_fall": {
+   "file": "bat/bat_fall.png",
+   "frames": 19,
+   "fw": 389,
+   "fh": 427,
+   "cols": 21,
+   "rows": 1,
+   "foot_y": 427.0,
+   "body_cx": 194.5,
+   "crop": [
+    268,
+    2,
+    657,
+    429
+   ]
+  },
+  "bat_jump_land": {
+   "file": "bat/bat_jump_land.png",
+   "frames": 26,
+   "fw": 390,
+   "fh": 525,
+   "cols": 21,
+   "rows": 2,
+   "foot_y": 525.0,
+   "body_cx": 195.0,
+   "crop": [
+    267,
+    2,
+    657,
+    527
+   ]
+  },
+  "bat_idle": {
+   "file": "bat/bat_idle.png",
+   "frames": 124,
+   "fw": 352,
+   "fh": 494,
+   "cols": 23,
+   "rows": 6,
+   "foot_y": 494.0,
+   "body_cx": 176.0,
+   "crop": [
+    285,
+    33,
+    637,
+    527
+   ]
+  },
+  "bat_run": {
+   "file": "bat/bat_run.png",
+   "frames": 50,
+   "fw": 451,
+   "fh": 471,
+   "cols": 18,
+   "rows": 3,
+   "foot_y": 471.0,
+   "body_cx": 225.5,
+   "crop": [
+    256,
+    63,
+    707,
+    534
+   ]
+  },
+  "gun_jump_air": {
+   "file": "bat/gun_jump_air.png",
+   "frames": 34,
+   "fw": 461,
+   "fh": 541,
+   "cols": 17,
+   "rows": 2,
+   "foot_y": 541.0,
+   "body_cx": 230.5,
+   "crop": [
+    274,
+    2,
+    735,
+    543
+   ]
+  },
+  "gun_reload": {
+   "file": "bat/gun_reload.png",
+   "frames": 124,
+   "fw": 450,
+   "fh": 475,
+   "cols": 18,
+   "rows": 7,
+   "foot_y": 475.0,
+   "body_cx": 225.0,
+   "crop": [
+    284,
+    67,
+    734,
+    542
+   ]
+  },
+  "gun_idle": {
+   "file": "bat/gun_idle.png",
+   "frames": 124,
+   "fw": 474,
+   "fh": 475,
+   "cols": 17,
+   "rows": 8,
+   "foot_y": 475.0,
+   "body_cx": 237.0,
+   "crop": [
+    260,
+    68,
+    734,
+    543
+   ]
+  }
+ }
+}

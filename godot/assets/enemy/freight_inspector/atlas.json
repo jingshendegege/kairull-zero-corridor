@@ -1,0 +1,61 @@
+{
+  "cell": [
+    128,
+    96
+  ],
+  "baseline_y": 90,
+  "columns": 8,
+  "source_frames": {
+    "idle": 4,
+    "alert": 5,
+    "run": 8,
+    "windup": 4,
+    "attack": 6,
+    "recover": 4,
+    "death": 7
+  },
+  "animations": {
+    "idle": {
+      "row": 0,
+      "frames": 4,
+      "fps": 5.0,
+      "loop": true
+    },
+    "alert": {
+      "row": 1,
+      "frames": 5,
+      "fps": 12.0,
+      "loop": false
+    },
+    "run": {
+      "row": 2,
+      "frames": 8,
+      "fps": 12.0,
+      "loop": true
+    },
+    "windup": {
+      "row": 3,
+      "frames": 4,
+      "fps": 12.0,
+      "loop": false
+    },
+    "attack": {
+      "row": 4,
+      "frames": 6,
+      "fps": 24.0,
+      "loop": false
+    },
+    "recover": {
+      "row": 5,
+      "frames": 4,
+      "fps": 10.0,
+      "loop": false
+    },
+    "death": {
+      "row": 6,
+      "frames": 6,
+      "fps": 9.0,
+      "loop": false
+    }
+  }
+}

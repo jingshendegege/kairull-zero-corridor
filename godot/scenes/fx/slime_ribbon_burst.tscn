@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/slime_ribbon_burst.gd" id="1_ribbon"]
+
+[node name="SlimeRibbonBurst" type="Node2D"]
+script = ExtResource("1_ribbon")

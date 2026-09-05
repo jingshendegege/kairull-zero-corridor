@@ -1,0 +1,86 @@
+{
+ "scale": 1.0,
+ "fps": 24,
+ "actions": {
+  "hero_idle": {
+   "file": "hero/hero_idle.png",
+   "frames": 8,
+   "fw": 148,
+   "fh": 234,
+   "cols": 3,
+   "rows": 3,
+   "foot_y": 234.0,
+   "body_cx": 74.0
+  },
+  "hero_run": {
+   "file": "hero/hero_run.png",
+   "frames": 16,
+   "fw": 198,
+   "fh": 234,
+   "cols": 4,
+   "rows": 4,
+   "foot_y": 234.0,
+   "body_cx": 99.2
+  },
+  "hero_jump": {
+   "file": "hero/hero_jump.png",
+   "frames": 4,
+   "fw": 181,
+   "fh": 234,
+   "cols": 2,
+   "rows": 2,
+   "foot_y": 234.0,
+   "body_cx": 90.5
+  },
+  "hero_hurt": {
+   "file": "hero/hero_hurt.png",
+   "frames": 5,
+   "fw": 172,
+   "fh": 234,
+   "cols": 3,
+   "rows": 2,
+   "foot_y": 234.0,
+   "body_cx": 86.1
+  },
+  "hero_death": {
+   "file": "hero/hero_death.png",
+   "frames": 15,
+   "fw": 254,
+   "fh": 234,
+   "cols": 4,
+   "rows": 4,
+   "foot_y": 234.0,
+   "body_cx": 126.9
+  },
+  "hero_bat1": {
+   "file": "hero/hero_bat1.png",
+   "frames": 27,
+   "fw": 329,
+   "fh": 234,
+   "cols": 6,
+   "rows": 5,
+   "foot_y": 234.0,
+   "body_cx": 164.6
+  },
+  "hero_bat2": {
+   "file": "hero/hero_bat2.png",
+   "frames": 8,
+   "fw": 259,
+   "fh": 234,
+   "cols": 3,
+   "rows": 3,
+   "foot_y": 234.0,
+   "body_cx": 129.6
+  },
+  "hero_bat3": {
+   "file": "hero/hero_bat3.png",
+   "frames": 21,
+   "fw": 338,
+   "fh": 234,
+   "cols": 5,
+   "rows": 5,
+   "foot_y": 234.0,
+   "body_cx": 169.1
+  }
+ }
+}
