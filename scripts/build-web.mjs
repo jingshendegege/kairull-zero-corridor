@@ -1,4 +1,4 @@
-import { mkdirSync, existsSync, copyFileSync, readFileSync } from 'node:fs';
+import { mkdirSync, existsSync, copyFileSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
@@ -42,4 +42,10 @@ copyFileSync(resolve(root, 'web/vibehub-bridge.js'), resolve(root, 'dist/vibehub
 const html = readFileSync(resolve(root, 'dist/index.html'), 'utf8');
 if (!html.includes('https://vibe.lumigrav.space/sdk/v3/vibehub.js')) throw new Error('Missing VibeHub SDK');
 if (!html.includes('vibehub-bridge.js')) throw new Error('Missing VibeHub authentication UI');
+for (const name of readdirSync(resolve(root, 'dist'), { recursive: true })) {
+  const file = resolve(root, 'dist', name);
+  if (statSync(file).isFile() && statSync(file).size > 100 * 1024 * 1024) {
+    throw new Error(`VibeHub single-file limit exceeded: ${name}`);
+  }
+}
 console.log('Web export ready: dist/index.html');
