@@ -26,6 +26,10 @@ window/stretch/scale_mode.web="fractional"
 
 theme/custom_font="res://NotoSansCJKsc-Regular.otf"
 
+[audio]
+
+general/default_playback_type.web=0
+
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0
