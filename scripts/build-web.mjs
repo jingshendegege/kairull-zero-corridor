@@ -39,6 +39,7 @@ if (!godot) {
 run(godot, ['--headless', '--path', resolve(root, 'godot'), '--editor', '--import']);
 run(godot, ['--headless', '--path', resolve(root, 'godot'), '--export-release', 'Web', resolve(root, 'dist/index.html')]);
 copyFileSync(resolve(root, 'web/vibehub-bridge.js'), resolve(root, 'dist/vibehub-bridge.js'));
+copyFileSync(resolve(root, 'web/audio-unlock.js'), resolve(root, 'dist/audio-unlock.js'));
 const html = readFileSync(resolve(root, 'dist/index.html'), 'utf8');
 if (!html.includes('https://vibe.lumigrav.space/sdk/v3/vibehub.js')) throw new Error('Missing VibeHub SDK');
 if (!html.includes('vibehub-bridge.js')) throw new Error('Missing VibeHub authentication UI');
