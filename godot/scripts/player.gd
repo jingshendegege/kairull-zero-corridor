@@ -474,7 +474,7 @@ func _physics_process(dt: float) -> void:
 
 func _collect_input() -> void:
 	keys.clear()
-	for k in [KEY_A, KEY_D, KEY_W, KEY_S, KEY_SHIFT, KEY_CTRL, KEY_K, KEY_R]:
+	for k in [KEY_A, KEY_D, KEY_W, KEY_SPACE, KEY_S, KEY_SHIFT, KEY_CTRL, KEY_K, KEY_R]:
 		if Input.is_key_pressed(k):
 			keys[k] = true
 	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
@@ -500,7 +500,7 @@ func sync_input_after_pause(before: Dictionary) -> void:
 	if auto_input:
 		_collect_input()
 	# 连续方向可直接继续；菜单期间新按的跳/滚/冲/瞄准/鼠标动作要释放，已有动作时序不清空。
-	for code in [KEY_W, KEY_S, KEY_SHIFT, KEY_CTRL, KEY_R, MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]:
+	for code in [KEY_W, KEY_SPACE, KEY_S, KEY_SHIFT, KEY_CTRL, KEY_R, MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]:
 		if keys.has(code) and not before.has(code):
 			_pause_blocked_inputs[code] = true
 	for code in _pause_blocked_inputs:
@@ -1234,14 +1234,17 @@ func _handle_edges() -> void:
 		else:
 			_try_bat()
 	if reloading:
-		if keys.has(KEY_W) and not _prev_keys.has(KEY_W) and (sliding() or on_ground):
+		var jump_pressed := (keys.has(KEY_W) and not _prev_keys.has(KEY_W)) \
+				or (keys.has(KEY_SPACE) and not _prev_keys.has(KEY_SPACE))
+		if jump_pressed and (sliding() or on_ground):
 			_finish_reload_interruption()
 			vy = JUMP          ## 与普通跳跃同速，不能换状态不跳起来
 			on_ground = false
 			set_state("gun_jump_air")
 			return
 
-	var w_pressed := keys.has(KEY_W) and not _prev_keys.has(KEY_W)
+	var w_pressed := (keys.has(KEY_W) and not _prev_keys.has(KEY_W)) \
+			or (keys.has(KEY_SPACE) and not _prev_keys.has(KEY_SPACE))
 	if just.call(KEY_SHIFT):
 		_try_dash()
 		if dashing():
