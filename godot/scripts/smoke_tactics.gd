@@ -39,6 +39,7 @@ var _serial := 0
 var _preview := PackedVector2Array()
 var _preview_impact := Vector2.ZERO
 var _preview_visible := false
+var _web_preview_accum := 0.0
 
 
 func setup(next_level: Node2D, next_doors: Array, next_player: Node2D) -> void:
@@ -133,7 +134,13 @@ func step(dt: float) -> void:
 		var substep := minf(remaining, 1.0 / 60.0)
 		_advance(substep)
 		remaining -= substep
-	update_aim_preview()
+	if OS.has_feature("web"):
+		_web_preview_accum += dt
+		if _web_preview_accum >= 1.0 / 30.0:
+			_web_preview_accum = fmod(_web_preview_accum, 1.0 / 30.0)
+			update_aim_preview()
+	else:
+		update_aim_preview()
 	queue_redraw()
 
 
@@ -277,8 +284,9 @@ func update_aim_preview() -> void:
 	var duration := float(solution["duration"])
 	var previous := origin
 	_preview.append(origin)
-	for index in range(1, 25):
-		var at := duration * float(index) / 24.0
+	var preview_steps := 12 if OS.has_feature("web") else 24
+	for index in range(1, preview_steps + 1):
+		var at := duration * float(index) / float(preview_steps)
 		var point := origin + velocity * at + Vector2(0, 0.5 * GRAVITY * at * at)
 		var impact := _sweep(previous, point)
 		_preview.append(impact["position"])
@@ -382,8 +390,9 @@ func _draw() -> void:
 				local_outline.append(to_local(point))
 			draw_colored_polygon(local_outline, Color(0.40, 0.54, 0.54, opacity * SMOKE_BASE_OPACITY))
 		var horizontal_factor := SMOKE_RADIUS / SMOKE_VISUAL_REFERENCE_RADIUS
-		# 固定17个阶梯边缘团簇，最多68簇；不逐帧生成纹理、材质或全屏模糊。
-		for index in 17:
+		# Web 端减少烟雾团簇数量，避免低端浏览器在移动/瞄准时重复绘制过多多边形。
+		var lobe_count := 9 if OS.has_feature("web") else 17
+		for index in lobe_count:
 			var angle := float(index) * 2.39996 + float(int(cloud["id"]) % 5) * 0.24
 			var radius := sqrt(float(index) / 17.0)
 			var drift := sin(float(cloud["age"]) * 1.2 + index) * 3.0
@@ -397,7 +406,8 @@ func _draw() -> void:
 			var tint := Color(0.40, 0.54, 0.54, (SMOKE_LOBE_OPACITY + (index % 3) * 0.018) * opacity)
 			_draw_pixel_lobe(to_local(position_world).snapped(Vector2(2, 2)), extent, tint, local_outline)
 		# 青白小短线给烟区可读边缘，不把角色或房间抹成一块灰板。
-		for index in 5:
+		var tick_count := 3 if OS.has_feature("web") else 5
+		for index in tick_count:
 			var tick := center + Vector2((-65 + index * 31) * horizontal_factor,
 					-28 + (index % 3) * 23)
 			if not _hard_solid(tick) and _line_open(center, tick):
