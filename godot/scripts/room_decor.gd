@@ -22,6 +22,7 @@ var decor_count := 0          ## 陈设件数（setup 时按布局规划算出�
 
 var _phase := 0.0
 var _animated := false
+var _web_anim_accum := 0.0
 
 
 func setup(p_name: String, p_rect: Rect2i) -> void:
@@ -63,6 +64,11 @@ func _process(dt: float) -> void:
 	if not _animated:
 		set_process(false)
 		return
+	if OS.has_feature("web"):
+		_web_anim_accum += dt
+		if _web_anim_accum < 1.0 / 30.0:
+			return
+		_web_anim_accum = fmod(_web_anim_accum, 1.0 / 30.0)
 	_phase += dt
 	queue_redraw()
 

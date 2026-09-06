@@ -64,6 +64,8 @@ func play(power: float = 1.0, direction: Vector2 = Vector2.RIGHT,
 	current_color = blood_color
 	duration = strong_duration if strong else normal_duration
 	_emission_rate = strong_emission_rate if strong else normal_emission_rate
+	if OS.has_feature("web"):
+		_emission_rate *= 0.55
 	_emit_until = duration * clampf(emission_fraction, 0.2, 0.9)
 	_emit_accumulator = 0.0
 	_emitted_total = 0

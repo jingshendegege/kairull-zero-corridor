@@ -169,7 +169,7 @@ func _make_layer(layer_name: String, particle_count: int, particle_lifetime: flo
 	var particles := CPUParticles2D.new()
 	particles.name = layer_name
 	particles.emitting = false
-	particles.amount = particle_count
+	particles.amount = maxi(4, roundi(float(particle_count) * (0.6 if OS.has_feature("web") else 1.0)))
 	particles.lifetime = particle_lifetime
 	particles.one_shot = true
 	particles.explosiveness = 1.0

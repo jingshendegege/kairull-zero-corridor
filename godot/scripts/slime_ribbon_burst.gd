@@ -95,7 +95,7 @@ func play(power: float, direction: Vector2, seed: int, weak: bool,
 	var shades: Array[Color] = [current_color, current_color.darkened(0.28),
 			current_color.lightened(0.40)]
 	_streams.clear()
-	var stream_count := 3 if weak else 5
+	var stream_count := 2 if weak else (3 if OS.has_feature("web") else 5)
 	# 近战（棒球棍）：扇面收紧、主液柱更长，像被棍头"抽"出去的一束
 	var spread := deg_to_rad((20.0 if _melee else 24.0) if weak \
 			else (22.0 if _melee else 38.0))
@@ -115,7 +115,7 @@ func play(power: float, direction: Vector2, seed: int, weak: bool,
 		})
 
 	_droplets.clear()
-	var droplet_count := 4 if weak else 11
+	var droplet_count := 3 if weak else (6 if OS.has_feature("web") else 11)
 	for i in droplet_count:
 		var speed := rng.randf_range(180.0, 320.0) if weak \
 				else rng.randf_range(260.0, 520.0)

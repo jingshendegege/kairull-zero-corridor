@@ -65,6 +65,7 @@ var stair_semantic_cell_count := 0
 var stair_semantics_valid := false
 
 var _phase := 0.0
+var _web_anim_accum := 0.0
 ## 语义层在setup中深复制，运行时只有灯/屏_phase变化；边界和行合并可安全复用整关。
 ## 缓存完整几何而非裁掉离屏房间，避免换镜头后前景缺失或暗边/设备外延被截断。
 var _value_bounds_cache: Dictionary = {}
@@ -108,6 +109,11 @@ func setup(p_level: CorridorLevel, p_layers: Dictionary, p_ids: Dictionary,
 
 func _process(dt: float) -> void:
 	# 只有告警灯轻微明灭；几何与墙板保持静止，避免整张地图闪烁。
+	if OS.has_feature("web"):
+		_web_anim_accum += dt
+		if _web_anim_accum < 1.0 / 30.0:
+			return
+		_web_anim_accum = fmod(_web_anim_accum, 1.0 / 30.0)
 	_phase = fmod(_phase + dt, TAU)
 	queue_redraw()
 

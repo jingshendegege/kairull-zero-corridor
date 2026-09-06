@@ -210,6 +210,8 @@ func _on_slime_paint_requested(world_position: Vector2, direction: Vector2,
 	var melee_count := clampi(roundi(58.0 + maxf(0.0, effect._power - 1.0) * 20.0),
 			58, 72)
 	var count := melee_count if effect._melee else (12 if weak else 34)
+	if OS.has_feature("web"):
+		count = mini(count, 24 if effect._melee else 16)
 	host.paint_layer.spawn_spatter(world_position, direction,
 			power * (0.5 if weak else 1.0), seed, effect.current_color, count)
 	# 同一时刻冻结主液幕图集帧；管理器独立开关，关闭后旧碎渍逻辑不受影响。

@@ -138,6 +138,10 @@ var pause_controller: Node
 
 
 func _ready() -> void:
+	if OS.has_feature("web"):
+		# 浏览器跟随 requestAnimationFrame；不限制时部分浏览器会持续超采样，
+		# 让战斗特效和 Canvas 重绘挤占主线程。
+		Engine.max_fps = 60
 	# 菜单开局才启用新录像循环，旧 M02/单脚本测试继续使用原接口。
 	timeline_enabled = RUN_SESSION.timeline_enabled and CorridorLevel.active_campaign_mode
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)   ## 系统光标藏起来，全程用自绘准星

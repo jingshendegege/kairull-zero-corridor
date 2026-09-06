@@ -88,8 +88,10 @@ func _ready() -> void:
 
 func _process(_dt: float) -> void:
 	if host != null:
-		position = host.cam_tl
-	queue_redraw()
+		var next_position: Vector2 = host.cam_tl
+		if position != next_position:
+			position = next_position
+			queue_redraw()
 
 
 func _draw() -> void:
