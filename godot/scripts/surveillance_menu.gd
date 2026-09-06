@@ -469,6 +469,11 @@ func _request_run() -> void:
 
 func _request_quit() -> void:
 	quit_requested.emit()
+	# 浏览器 iframe 没有安全的“退出应用”语义；Godot Web quit 可能让宿主
+	# 把游戏视为已关闭，表现为标签页突然消失。Web 端返回开始频道即可。
+	if OS.has_feature("web"):
+		_select_page(PAGE_START)
+		return
 	if not suppress_external_actions:
 		get_tree().quit()
 
