@@ -225,6 +225,8 @@ var db: AtlasDB
 var level: CorridorLevel
 var death_obstacles: Array = [] ## 宿主传入关卡门列表；死亡惯性也必须受独立门体阻挡。
 var moving_platforms: Array = [] ## 动态货梯只扩展脚底支撑，不改变22×52通行盒与受击框。
+var glass_panels: Array = [] ## Independent dynamic walls; burst previews never shatter them.
+var glass_interactions_enabled := true
 var auto_input := true
 var debug_hotkeys_enabled := false ## 默认关K测试自杀；force_death仍供真实伤害/测试调用。
 var _pause_blocked_inputs: Dictionary = {} ## 菜单里新按住的动作必须松开再用，避免继续按钮投烟/挥棒。
@@ -1014,6 +1016,9 @@ func step(dt: float) -> void:
 		_snap_walk_to_stair(horizontal_from_x)
 
 	var was_air := not on_ground
+	position = _sweep_glass_motion(Vector2(horizontal_from_x, position.y), position,
+			dashing() or rolling())
+	var glass_vertical_origin := position
 	if dash_was_active:
 		# 冲刺期间冻结竖直积分：空中保持高度，地面则由 2px 路径主动贴阶。
 		if _dash_follow_ground:
@@ -1064,6 +1069,11 @@ func step(dt: float) -> void:
 			# 空中翻滚落地后可继续贴阶；滚出平台则下一帧保持空中下落。
 			_roll_follow_ground = on_ground
 
+	var glass_resolved := _sweep_glass_motion(glass_vertical_origin, position, dashing() or rolling())
+	if not is_equal_approx(glass_resolved.y, position.y):
+		on_ground = position.y > glass_vertical_origin.y
+		vy = 0.0
+	position = glass_resolved
 	if was_air and on_ground and not dead:
 		air_bat_used = false   ## 落地重置空中挥棍次数
 		_play_land_fx()
@@ -1323,7 +1333,7 @@ func _try_dash() -> void:
 
 
 func _dash_end_x(dir: int, follow_ground: bool) -> float:
-	return _sweep_burst_path(position, dir, DASH_DISTANCE, follow_ground).x
+	return _sweep_burst_path(position, dir, DASH_DISTANCE, follow_ground, true).x
 
 
 ## Ctrl 翻滚：六帧长位移、短暂无敌；地面贴阶、空中随重力下落。
@@ -1338,7 +1348,7 @@ func _try_roll() -> void:
 	elif keys.has(KEY_D) and not keys.has(KEY_A):
 		dir = 1
 	var follow_ground := on_ground
-	var to_x := _sweep_burst_path(position, dir, ROLL_DISTANCE, follow_ground).x
+	var to_x := _sweep_burst_path(position, dir, ROLL_DISTANCE, follow_ground, true).x
 	if absf(to_x - position.x) < DASH_SWEEP_STEP:
 		return
 	if batting():
@@ -1479,7 +1489,7 @@ func _standing_on_stair() -> bool:
 
 ## 冲刺/翻滚/挥棒带步共用路径：地面态贴阶，空中态保持当前 Y。
 func _sweep_burst_path(origin: Vector2, dir: int, dist: float,
-		follow_ground: bool) -> Vector2:
+		follow_ground: bool, preview_burst := false) -> Vector2:
 	if level == null:
 		return origin
 	var target_x := clampf(origin.x + dist * dir, 20.0, level.world_w - 20.0)
@@ -1501,6 +1511,36 @@ func _sweep_burst_path(origin: Vector2, dir: int, dist: float,
 					break
 		if blocked:
 			break
+		if _glass_blocks(candidate, preview_burst or dashing() or rolling(), not preview_burst):
+			break
+		safe = candidate
+	return safe
+
+
+func _glass_blocks(feet: Vector2, burst: bool, apply_contact: bool) -> bool:
+	var body := Rect2(feet - Vector2(w * 0.5, h), Vector2(w, h))
+	for panel in glass_panels:
+		if not is_instance_valid(panel) or not panel.locked or not panel.body_rect().intersects(body):
+			continue
+		if burst and glass_interactions_enabled and not dead:
+			if apply_contact:
+				panel.take_hit(position.x)
+			continue
+		return true
+	return false
+
+
+func _sweep_glass_motion(from: Vector2, to: Vector2, burst: bool) -> Vector2:
+	if glass_panels.is_empty():
+		return to
+	var steps := maxi(1, ceili(from.distance_to(to) / 2.0))
+	var safe := from
+	for index in range(1, steps + 1):
+		var candidate := from.lerp(to, float(index) / steps)
+		if _glass_blocks(candidate, burst, true):
+			if not is_equal_approx(from.x, to.x):
+				vx = 0.0
+			return safe
 		safe = candidate
 	return safe
 

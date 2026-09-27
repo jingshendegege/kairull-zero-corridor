@@ -282,23 +282,23 @@ func _test_smoke_and_sniper() -> void:
 	enemy.position = saved_position
 	enemy._sync_sprite()
 	game._step_tactics(DT)
-	game._step_tactics(1.51)
-	check(sniper.state == "locked" and sniper.shot_count == 0, "井底炮离烟后重新跟踪完整1.5秒才锁定")
+	game._step_tactics(TacticalHazard.SNIPER_TRACK_TIME + 0.01)
+	check(sniper.state == "locked" and sniper.shot_count == 0, "井底炮离烟后重新跟踪完整跟踪时长才锁定")
 	smoke.deploy_cloud(player.position)
 	game._step_tactics(0.2)
 	check(sniper.state == "idle" and sniper.last_target == Vector2.ZERO \
 			and sniper.shot_count == 0 and game.enemy_bullets.is_empty(),
-			"井底炮已锁定的最后半秒也会被烟立即取消，不补发子弹")
+			"井底炮已锁定的最后0.35秒也会被烟立即取消，不补发子弹")
 	smoke.clear_effects()
 	game._step_tactics(DT)
-	game._step_tactics(1.49)
-	check(sniper.state == "warning" and sniper.shot_count == 0, "M05重新出烟1.49秒还未偷锁/偷射")
+	game._step_tactics(TacticalHazard.SNIPER_TRACK_TIME - 0.01)
+	check(sniper.state == "warning" and sniper.shot_count == 0, "M05重新出烟跟踪阈值前0.01秒还未偷锁/偷射")
 	game._step_tactics(0.02)
-	game._step_tactics(0.49)
-	check(sniper.state == "locked" and sniper.shot_count == 0, "新1.5秒结束后还要足额半秒锁向")
+	game._step_tactics(TacticalHazard.SNIPER_LOCK_TIME - 0.01)
+	check(sniper.state == "locked" and sniper.shot_count == 0, "新跟踪结束后还要足额锁向")
 	game._step_tactics(0.02)
 	check(sniper.shot_count == 1 and game.enemy_bullets.size() == 1,
-			"重新完整1.5秒+半秒才经第三关宿主发出一颗高速弹")
+			"重新完整跟踪与锁向才经第三关宿主发出一颗高速弹")
 	game.enemy_bullets.clear()
 
 

@@ -344,20 +344,21 @@ func _test_sniper_and_room_clear() -> void:
 	check(sniper.armed and sniper.state == "warning", "指定难房内可见狙击开始真实跟踪")
 	var original_target: Vector2 = sniper.last_target
 	player.position.x -= 35
-	game._step_tactics(0.95)
+	var flash_start := TacticalHazard.SNIPER_TRACK_TIME + TacticalHazard.SNIPER_LOCK_TIME - TacticalHazard.SNIPER_FLASH_TIME
+	game._step_tactics(flash_start - 0.05)
 	check(sniper.state == "warning" and sniper.last_target != original_target and sniper.shot_count == 0,
-			"前0.95秒持续追踪移动玩家且绝不提前出弹")
+			"闪线前持续追踪移动玩家且绝不提前出弹")
 	game._step_tactics(0.1)
 	check(sniper.aim_line_fast_flashing() and sniper.aim_line_alpha() >= 0.28,
-			"预射末一秒红线快闪但暗相仍可见")
-	game._step_tactics(0.451)
-	check(sniper.state == "locked" and sniper.shot_count == 0, "1.5秒跟踪结束只锁方向不立即射击")
+			"预射末0.6秒红线快闪但暗相仍可见")
+	game._step_tactics(TacticalHazard.SNIPER_TRACK_TIME - flash_start - 0.05 + 0.001)
+	check(sniper.state == "locked" and sniper.shot_count == 0, "完整跟踪结束只锁方向不立即射击")
 	var locked_target: Vector2 = sniper.last_target
 	var locked_direction: Vector2 = sniper.aim_direction
 	player.keys = {MOUSE_BUTTON_RIGHT: true}
 	game._physics_process(0.2)
 	check(sniper.state == "locked" and is_zero_approx(sniper.phase_time) and sniper.shot_count == 0,
-			"真实时停冻结最后半秒狙击锁定，炮不会绕过世界停表开枪")
+			"真实时停冻结最后0.35秒狙击锁定，炮不会绕过世界停表开枪")
 	player.keys.clear()
 	game._advance_time_charge(0.0)
 	player.position.x += 100
@@ -367,16 +368,16 @@ func _test_sniper_and_room_clear() -> void:
 	_cover(player.position)
 	check(sniper.state == "idle" and sniper.last_target == Vector2.ZERO and sniper.trace_end == Vector2.ZERO \
 			and sniper.shot_count == 0 and game.enemy_bullets.is_empty(),
-			"最后半秒已锁定时进烟也立即失锁，清红线与旧目标且取消发射")
+			"最后0.35秒已锁定时进烟也立即失锁，清红线与旧目标且取消发射")
 	game._step_tactics(0.8)
 	check(sniper.state == "idle" and sniper.shot_count == 0, "留在烟内超过旧发射时刻也不会补射")
 	smoke.clear_effects()
 	game._step_tactics(DT)
-	check(sniper.state == "warning" and is_zero_approx(sniper.phase_time), "离烟重新启动完整1.5秒预警，不保留旧半秒")
-	game._step_tactics(1.49)
-	check(sniper.state == "warning" and sniper.shot_count == 0, "重新出烟后1.49秒仍不锁定或开枪")
+	check(sniper.state == "warning" and is_zero_approx(sniper.phase_time), "离烟重新启动完整跟踪时长预警，不保留旧锁定进度")
+	game._step_tactics(TacticalHazard.SNIPER_TRACK_TIME - 0.01)
+	check(sniper.state == "warning" and sniper.shot_count == 0, "重新出烟后跟踪阈值前0.01秒仍不锁定或开枪")
 	game._step_tactics(0.02)
-	check(sniper.state == "locked" and sniper.shot_count == 0, "重新跟踪满1.5秒后才进入新锁定")
+	check(sniper.state == "locked" and sniper.shot_count == 0, "重新跟踪满完整时长后才进入新锁定")
 	# 已存在的烟停在玩家左侧；真实A+右键慢速走入，world dt为0时也必须取消锁定。
 	smoke.deploy_cloud(player.position + Vector2(-400, 0))
 	smoke.step(0.2)
@@ -394,17 +395,17 @@ func _test_sniper_and_room_clear() -> void:
 	game._advance_time_charge(0.0)
 	smoke.clear_effects()
 	game._step_tactics(DT)
-	game._step_tactics(1.51)
-	game._step_tactics(0.49)
-	check(sniper.state == "locked" and sniper.shot_count == 0, "再次离烟重走1.5秒加0.49秒，不能解冻即偷射")
+	game._step_tactics(TacticalHazard.SNIPER_TRACK_TIME + 0.01)
+	game._step_tactics(TacticalHazard.SNIPER_LOCK_TIME - 0.01)
+	check(sniper.state == "locked" and sniper.shot_count == 0, "再次离烟重走完整跟踪和锁向阈值前0.01秒，不能解冻即偷射")
 	game._step_tactics(0.02)
 	check(sniper.shot_count == 1 and sniper.state == "recovery" and game.enemy_bullets.size() == 1,
-			"重新完整1.5秒+半秒流程结束，经宿主只产生一发高速弹")
+			"重新完整跟踪与锁向流程结束，经宿主只产生一发高速弹")
 	if not game.enemy_bullets.is_empty():
 		var shot: Dictionary = game.enemy_bullets[0]
 		check(Vector2(shot.vx, shot.vy).length() >= 2400.0 and shot.damage_type == &"gunshot" and shot.sniper,
 				"机关出弹是真正高速枪击类型而非绕过烟免疫的特殊伤害")
-	game._step_tactics(1.48)
+	game._step_tactics(TacticalHazard.SNIPER_COOLDOWN - 0.02)
 	check(sniper.state == "recovery" and sniper.shot_count == 1, "开枪后1.48秒持续冷却不连射")
 	game._step_tactics(0.03)
 	check(sniper.state == "idle" and sniper.shot_count == 1, "1.5秒冷却结束回空闲，必须重新完整预警")
@@ -413,13 +414,13 @@ func _test_sniper_and_room_clear() -> void:
 	check(sniper.state == "idle", "烟中玩家不被未锁定狙击自动索敌")
 	smoke.clear_effects()
 	game._step_tactics(0.02)
-	check(sniper.state == "warning", "离烟重新看见后从完整1.5秒警告开始")
+	check(sniper.state == "warning", "离烟重新看见后从完整跟踪时长警告开始")
 	game.cam_tl += Vector2(3000, 0)
 	game._step_tactics(DT)
 	check(not sniper.armed and sniper.state == "idle", "离开屏幕取消旧锁定不隔屏狙击")
 	game.cam_tl -= Vector2(3000, 0)
 	game._step_tactics(DT)
-	check(sniper.state == "warning" and is_zero_approx(sniper.phase_time), "再次进入视口不能沿用剩余半秒偷射")
+	check(sniper.state == "warning" and is_zero_approx(sniper.phase_time), "再次进入视口不能沿用剩余锁向时间偷射")
 	var room_index := int(sniper.get_meta("room_index"))
 	var room: Rect2i = game.level.rooms[room_index].rect
 	var changed: Array[Node2D] = []

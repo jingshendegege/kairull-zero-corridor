@@ -44,8 +44,47 @@ func _capture(host: Node2D) -> Dictionary:
 	var paint: SlimePaintLayer = host.paint_layer
 	return {"time": elapsed, "player": host.player.capture_timeline_pose(),
 		"camera": host.cam.position, "camera_tl": host.cam_tl, "enemies": actors, "props": cargo,
+		"traversal": _capture_traversal(host),
 		"bullets": host.enemy_bullets.duplicate(true), "splats": paint.splats.size(),
 		"flecks": paint.flecks.size(), "blood_serial": paint.blood_wall_manager._serial}
+
+func _capture_traversal(host: Node2D) -> Dictionary:
+	var result: Dictionary = {}
+	for property in ["updraft_fans", "dash_nodes", "glass_panels"]:
+		if not property in host:
+			continue
+		var states: Array[Dictionary] = []
+		for object: Node2D in host.get(property):
+			if not is_instance_valid(object):
+				states.append({})
+			elif property == "updraft_fans":
+				states.append({"spin_phase": object.spin_phase, "cooldown_t": object.cooldown_t})
+			elif property == "dash_nodes":
+				states.append({"lit": object.lit, "respawn_remaining": object.respawn_remaining,
+					"visual_phase": object.visual_phase})
+			else:
+				states.append(object.capture_timeline_state())
+		result[property] = states
+	return result
+
+func _apply_traversal(host: Node2D, states: Dictionary) -> void:
+	# Replay is a silent pose restore: never advance clocks, launch, refill, or shatter again.
+	for property in ["updraft_fans", "dash_nodes", "glass_panels"]:
+		if not property in host or not states.has(property):
+			continue
+		var objects: Array = host.get(property)
+		var poses: Array = states[property]
+		for index in mini(objects.size(), poses.size()):
+			var object: Node2D = objects[index]
+			var pose: Dictionary = poses[index]
+			if not is_instance_valid(object) or pose.is_empty():
+				continue
+			if property == "glass_panels":
+				object.apply_timeline_state(pose)
+			else:
+				for field: String in pose:
+					object.set(field, pose[field])
+				object.queue_redraw()
 
 func apply_rewind(host: Node2D, progress: float) -> void:
 	if frames.is_empty():
@@ -138,6 +177,7 @@ func apply_rewind(host: Node2D, progress: float) -> void:
 			prop._trail.clear()
 			prop._hint.visible = false
 		prop.queue_redraw()
+	_apply_traversal(host, nearest.get("traversal", {}))
 	host.enemy_bullets = nearest["bullets"].duplicate(true)
 	var paint: SlimePaintLayer = host.paint_layer
 	paint.splats.resize(mini(paint.splats.size(), int(nearest["splats"])))

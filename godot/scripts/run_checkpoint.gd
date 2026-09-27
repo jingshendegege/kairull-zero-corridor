@@ -12,6 +12,9 @@ static func enemy_key(enemy: Node2D) -> Vector2i:
 static func hazard_key(hazard: Node2D) -> String:
 	return "%s:%d:%d" % [hazard.hazard_type, roundi(hazard.position.x), roundi(hazard.position.y)]
 
+static func glass_key(panel: Node2D) -> String:
+	return String(panel.get_meta("checkpoint_key", "glass:%d:%d" % [roundi(panel.position.x), roundi(panel.position.y)]))
+
 static func capture(host: Node2D, config: Dictionary, at: Vector2) -> Dictionary:
 	var defeated: Array[Vector2i] = []
 	for enemy: Node2D in host.minions:
@@ -26,13 +29,18 @@ static func capture(host: Node2D, config: Dictionary, at: Vector2) -> Dictionary
 	for hazard: Node2D in host.tactical_hazards:
 		if hazard.dead or hazard.cleared_disabled:
 			hazards[hazard_key(hazard)] = {"dead": hazard.dead, "disabled": hazard.cleared_disabled}
+	var glass: Dictionary = {}
+	if "glass_panels" in host:
+		for panel: Node2D in host.glass_panels:
+			if is_instance_valid(panel):
+				glass[glass_key(panel)] = panel.broken
 	var pickups: Array[Vector2] = []
 	if host.smoke_tactics != null:
 		for pickup: Dictionary in host.smoke_tactics.pickups:
 			pickups.append(pickup.position)
 	return {"schema": 1, "signature": signature(), "id": String(config.id), "spawn": at,
 		"room_index": int(config.room_index), "name": String(host.level.rooms[int(config.room_index)].name),
-		"defeated": defeated, "spent_props": spent_props, "hazards": hazards,
+		"defeated": defeated, "spent_props": spent_props, "hazards": hazards, "glass": glass,
 		"smoke_pickups": pickups, "carried_smoke": host.player.carried_smoke,
 		"visited_rooms": host._visited_rooms.duplicate(true), "frontier": host._campaign_frontier,
 		"elapsed": host._run_elapsed}
@@ -72,6 +80,18 @@ static func restore(host: Node2D, state: Dictionary) -> bool:
 			hazard.deactivate_cleared()
 		# 复原器械不走take_hit，不能再触发爆音/击杀/彩血。
 		hazard.queue_redraw()
+	# Panels preserve checkpoint progress; temporary traversal resources always refill.
+	# Missing fields keep older snapshots/test hosts compatible with the original schema.
+	if "glass_panels" in host:
+		var glass: Dictionary = state.get("glass", {})
+		for panel: Node2D in host.glass_panels:
+			if is_instance_valid(panel):
+				panel.restore_broken(bool(glass.get(glass_key(panel), false)))
+	for property in ["updraft_fans", "dash_nodes"]:
+		if property in host:
+			for object: Node2D in host.get(property):
+				if is_instance_valid(object):
+					object.reset_transient()
 	if host.smoke_tactics != null:
 		for index in range(host.smoke_tactics.pickups.size() - 1, -1, -1):
 			var pickup: Dictionary = host.smoke_tactics.pickups[index]

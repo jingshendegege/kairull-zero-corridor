@@ -23,6 +23,9 @@ const ENEMY_BULLET_SWEEP_STEP := 4.0 ## 敌弹每次最多推进4px，避免大d
 const DEATH_INERTIA_SCRIPT := preload("res://scripts/death_inertia.gd")
 const SMOKE_TACTICS_SCRIPT := preload("res://scripts/smoke_tactics.gd")
 const TACTICAL_HAZARD_SCRIPT := preload("res://scripts/tactical_hazard.gd")
+const UPDRAFT_FAN_SCRIPT := preload("res://scripts/updraft_fan.gd")
+const GLASS_PANEL_SCRIPT := preload("res://scripts/glass_panel.gd")
+const DASH_NODE_SCRIPT := preload("res://scripts/dash_node.gd")
 const FREIGHT_LIFT_SCRIPT := preload("res://scripts/freight_lift.gd")
 const MAX_CORPSE_IMPACTS := 32
 @export var corpse_impact_enabled := true ## 可单独回退尸体腾空/回弹，不动原击退和击杀音。
@@ -92,6 +95,9 @@ var debug_overlay: GameDebugOverlay
 var hud: GameHud
 var smoke_tactics: Node2D
 var tactical_hazards: Array[Node2D] = [] ## 器械不混入小兵清场计数，也不套彩血和尸体惯性。
+var updraft_fans: Array[Node2D] = []
+var glass_panels: Array[Node2D] = []
+var dash_nodes: Array[Node2D] = []
 var moving_lifts: Array[Node2D] = [] ## 单向货梯单独管理，不能被误判成炮塔或房门。
 
 var camera_trauma := 0.0
@@ -498,6 +504,20 @@ func _setup_tactics() -> void:
 		hud.show_msg("烟雾弹已拾取 · 按住 R 瞄准，左键投出"))
 	for config: Dictionary in CorridorLevel.active_tactical_objects:
 		var raw: Array = config.get("pos", [0, 0])
+		if String(config.type) in ["updraft_fan", "glass_panel", "dash_node"]:
+			var object_script: Script = {"updraft_fan": UPDRAFT_FAN_SCRIPT,
+					"glass_panel": GLASS_PANEL_SCRIPT, "dash_node": DASH_NODE_SCRIPT}[String(config.type)]
+			var object: Node2D = object_script.new()
+			object.name = String(config.get("id", config.type))
+			add_child(object)
+			object.setup(config)
+			match String(config.type):
+				"updraft_fan": updraft_fans.append(object)
+				"dash_node": dash_nodes.append(object)
+				"glass_panel":
+					glass_panels.append(object)
+					object.shattered.connect(_on_glass_shattered)
+			continue
 		if String(config.type) == "smoke_pickup":
 			smoke_tactics.spawn_pickup(Vector2(raw[0], raw[1]))
 			continue
@@ -523,8 +543,13 @@ func _setup_tactics() -> void:
 	for enemy: Node2D in minions:
 		if enemy is GruntGunner or enemy is FreightInspector:
 			enemy.vision_blocker = Callable(smoke_tactics, "blocks_segment")
+		if "door_blockers" in enemy:
+			enemy.door_blockers = _world_blockers()
 	player.moving_platforms = moving_lifts
+	player.glass_panels = glass_panels
 	player.death_obstacles = _world_blockers()
+	for lift: Node2D in moving_lifts:
+		lift.door_blockers = doors + glass_panels
 	smoke_tactics.doors = _world_blockers()
 	for hazard: Node2D in tactical_hazards:
 		hazard.door_blockers = _world_blockers()
@@ -545,6 +570,13 @@ func _room_index_for_id(id: String) -> int:
 func _step_tactics(dt: float) -> void:
 	if smoke_tactics == null:
 		return
+	if _m06_interactions_active() and dt > 0.0:
+		for fan: Node2D in updraft_fans:
+			fan.advance(dt, player)
+		for node: Node2D in dash_nodes:
+			node.advance(dt, player)
+		for panel: Node2D in glass_panels:
+			panel.advance(dt)
 	for lift: Node2D in moving_lifts:
 		lift.advance(dt)
 		lift.carry_rider(player)
@@ -579,7 +611,7 @@ func _on_tactical_projectile(origin: Vector2, velocity: Vector2, damage_type: St
 
 func _on_tactical_sound(event: StringName) -> void:
 	if event == &"sniper_lock":
-		play_sfx("empty") # 锁定时一个机械卡扣；半秒后独立的强枪声才代表真正出弹。
+		play_sfx("empty") # 锁定机械卡扣；0.35秒后独立枪声才代表出弹。
 	else:
 		play_action(event)
 
@@ -632,6 +664,7 @@ func _refresh_smoke_cover() -> void:
 
 func _cargo_targets() -> Array:
 	var result := _enemies()
+	result.append_array(glass_panels)
 	for hazard: Node2D in tactical_hazards:
 		if is_instance_valid(hazard) and not hazard.dead and hazard.hazard_type == "auto_sniper":
 			result.append(hazard)
@@ -642,7 +675,52 @@ func _world_blockers() -> Array:
 	# 电梯的钢台面挡实体弹/抛投/尸体，但不加入按清敌数开关的RoomDoor数组。
 	var result: Array = doors.duplicate()
 	result.append_array(moving_lifts)
+	result.append_array(glass_panels)
 	return result
+
+
+func _m06_interactions_active() -> bool:
+	return is_instance_valid(player) and not player.dead and not level_cleared \
+			and not (pause_controller != null and pause_controller.active) \
+			and not get_tree().paused \
+			and not (timeline_enabled and (time_charge.active or time_phase != "playing"))
+
+
+func _on_glass_shattered(panel: Node2D) -> void:
+	player.hitstop = maxf(player.hitstop, 0.05)
+	add_camera_shake((player.position - panel.body_rect().get_center()).normalized(), 0.18)
+	play_action("glass_break")
+
+
+func _on_player_enemy_killed(enemy: Node2D) -> void:
+	if CorridorLevel.active_kill_refresh_dash and is_instance_valid(enemy) and enemy.dead \
+			and is_instance_valid(player) and not player.dead:
+		player.dash_cooldown_t = 0.0
+
+
+func _resolve_glass_enemy_movement(enemy: Node2D, before: Vector2) -> void:
+	if enemy.dead or glass_panels.is_empty():
+		return
+	var after := enemy.position
+	var body: Rect2 = enemy.body_rect()
+	var offset := body.position - after
+	var horizontal := _sweep_glass_enemy_axis(before, Vector2(after.x, before.y), offset, body.size)
+	enemy.position = _sweep_glass_enemy_axis(horizontal, Vector2(horizontal.x, after.y), offset, body.size)
+	if not is_equal_approx(enemy.position.y, after.y) and "vy" in enemy:
+		enemy.vy = 0.0
+
+
+func _sweep_glass_enemy_axis(before: Vector2, after: Vector2, offset: Vector2, size: Vector2) -> Vector2:
+	var steps := maxi(1, ceili(before.distance_to(after) / 2.0))
+	var safe := before
+	for index in range(1, steps + 1):
+		var candidate := before.lerp(after, float(index) / steps)
+		var bounds := Rect2(candidate + offset, size)
+		for panel: Node2D in glass_panels:
+			if panel.locked and panel.body_rect().intersects(bounds):
+				return safe
+		safe = candidate
+	return safe
 
 
 ## 生成一个互动物件并注册进命中/步进循环（测试也可直接调用补道具）
@@ -670,9 +748,15 @@ func _spawn_prop(kind: String, pos: Vector2) -> Node2D:
 	return pr
 
 
-## 仅复位新货箱，保留原版重置不复活已清敌人/爆炸桶/CRT 的语义。
+## 旧快速重试复位货箱与跑酷物件；已清敌人/爆炸桶/CRT 仍沿用原版语义。
 func _reset_bat_cargo() -> void:
 	_bat_prop_origin_valid = false
+	for fan: Node2D in updraft_fans:
+		fan.reset_transient()
+	for node: Node2D in dash_nodes:
+		node.reset_transient()
+	for panel: Node2D in glass_panels:
+		panel.restore_broken(false)
 	for prop: Node2D in props:
 		if is_instance_valid(prop) and prop is PropBatCargo:
 			prop.reset_to_spawn()
@@ -693,6 +777,9 @@ func _on_bat_cargo_impacted(cargo: PropBatCargo, target: Node2D, direction: Vect
 	play_action("cargo_impact")
 	if target == null or not is_instance_valid(target) or target.dead:
 		return
+	if target.get_script() == GLASS_PANEL_SCRIPT:
+		target.take_hit(center.x, 1)
+		return
 	if target.get_script() == TACTICAL_HAZARD_SCRIPT:
 		target.take_hit(center.x, 1)
 		return  # 自动狙击是可击毁器械，只出金属反馈，不喷生物血/不计小兵。
@@ -705,6 +792,7 @@ func _on_bat_cargo_impacted(cargo: PropBatCargo, target: Node2D, direction: Vect
 	_start_enemy_knockback(target, direction, maxi(1, cargo.launch_stage), lethal,
 			target.position.x - before_x)
 	if lethal:
+		_on_player_enemy_killed(target)
 		play_action("enemy_kill")
 		paint_layer.blood_pool(impact, 1.0, 0, burst.current_color.darkened(0.15))
 	else:
@@ -732,6 +820,8 @@ func _on_barrel_exploded(barrel: PropBarrel) -> void:
 		if m.body_rect().get_center().distance_to(center) > PropBarrel.KILL_RADIUS:
 			continue
 		if m.take_hit(center.x, 1) and m.dead:
+			if bool(barrel.get_meta("player_ignited", false)):
+				_on_player_enemy_killed(m)
 			play_action("enemy_kill")
 			_start_corpse_impact(m, 1, signf(m.position.x - center.x))
 			var dir: Vector2 = (m.body_rect().get_center() - center).normalized()
@@ -744,7 +834,8 @@ func _on_barrel_exploded(barrel: PropBarrel) -> void:
 	for pr in props:
 		if pr is PropBarrel and pr != barrel and not pr.dead:
 			if pr.body_rect().get_center().distance_to(center) <= PropBarrel.KILL_RADIUS:
-				pr.take_hit(center.x, 1, PropBarrel.CHAIN_FUSE)
+				if pr.take_hit(center.x, 1, PropBarrel.CHAIN_FUSE):
+					pr.set_meta("player_ignited", bool(barrel.get_meta("player_ignited", false)))
 
 
 ## CRT 碎裂：低音玻璃碎响 + 小青渍（碎屑与闪白由 CRT 节点自绘）
@@ -813,7 +904,8 @@ func _physics_process(dt: float) -> void:
 						and absf(player.position.y - pr.position.y) < 48.0
 			pr.step(dt)
 			if pr is PropBatCargo and pr.flying:
-				pr.advance(dt, level, _cargo_targets(), _world_blockers())
+				# Glass is a cargo target, so its exact 2px collision emits a break.
+				pr.advance(dt, level, _cargo_targets(), doors + moving_lifts)
 	# 敌人推进 + 近战火拼判定（过关后冻结活体 AI，已死亡者仍播完倒地收尾）
 	if not level_cleared:
 		for m in minions:
@@ -826,7 +918,9 @@ func _physics_process(dt: float) -> void:
 						m._anim_clock += dt
 						m._sync_sprite()
 					continue
+				var before_move: Vector2 = m.position
 				m.step(dt)
+				_resolve_glass_enemy_movement(m, before_move)
 				# 新近战兵只用短攻击盒有效窗；旧敌人保留原身体碰撞兼容分支。
 				if m.has_method("attack_active") and m.has_method("attack_rect"):
 					if m.attack_active() and m.attack_rect().intersects(_player_hurtbox()):
@@ -837,7 +931,9 @@ func _physics_process(dt: float) -> void:
 				if timeline_enabled and player.dead:
 					return  # 致死信号已冻结世界，不再推进同帧排在后面的敌人/弹道。
 		if red_boss != null:
+			var before_move: Vector2 = red_boss.position
 			red_boss.step(dt)
+			_resolve_glass_enemy_movement(red_boss, before_move)
 			if red_boss.attack_active() and not red_boss.dead:
 				if red_boss.body_rect().intersects(_player_hurtbox()):
 					player.take_damage(1, red_boss.position.x)
@@ -862,6 +958,7 @@ func _physics_process(dt: float) -> void:
 				if e.take_hit(b["x"], 1):
 					var force_direction := Vector2(b["vx"], b["vy"]).normalized()
 					if e.dead:
+						_on_player_enemy_killed(e)
 						play_sfx("gkill%d" % (randi() % 4 + 1))
 						play_sfx("slime_death")
 						# 受力方向取致命子弹速度；关底 Boss 使用更大液爆强度。
@@ -1411,9 +1508,12 @@ func _enemy_knockback_blocked(target: Node2D, step_x: float, lethal: bool,
 			candidate.end.y - 4.0]:
 		if level.solid_at(probe_x, probe_y) and not level.is_platform(probe_x, probe_y):
 			return true
-	for door in doors:
+	for door in _world_blockers():
 		if is_instance_valid(door) and door.locked \
 				and door.body_rect().intersects(candidate):
+			if lethal and door.get_script() == GLASS_PANEL_SCRIPT:
+				door.take_hit(target.position.x)
+				continue
 			return true
 	if require_support and not level.solid_at(probe_x, candidate.end.y + 4.0):
 		return true
@@ -1473,7 +1573,21 @@ func _update_corpse_impacts(dt: float) -> void:
 		var motion: RefCounted = entry.motion
 		var body: Rect2 = target.body_rect()
 		# 倒地帧比站立宽，沿用原26px横向留边；根坐标飞行、阴影投地，美术不再二次抬升。
-		var contact: bool = motion.advance(dt, level, body.size.x * 0.5 + 26.0, body.size.y, _world_blockers())
+		var contact := false
+		var remaining := maxf(0.0, dt)
+		while remaining > 0.000001 and motion.active:
+			var tick := minf(remaining, 1.0 / 120.0)
+			var previous: Vector2 = motion.position
+			# The solver keeps solid-wall ordering; only actual travel can break glass.
+			contact = motion.advance(tick, level, body.size.x * 0.5 + 26.0,
+					body.size.y, doors + moving_lifts) or contact
+			var start_body := Rect2(previous - Vector2(body.size.x * 0.5 + 26.0, body.size.y),
+					Vector2(body.size.x + 52.0, body.size.y))
+			var swept := start_body.merge(Rect2(start_body.position + motion.position - previous, start_body.size))
+			for panel: Node2D in glass_panels:
+				if panel.locked and panel.body_rect().intersects(swept):
+					panel.take_hit(previous.x)
+			remaining -= tick
 		target.position = motion.position
 		target.set_corpse_ground(motion.ground_y, motion.ground_valid)
 		if contact and fx_layer != null:
@@ -1531,12 +1645,16 @@ func _on_player_bat_swung(hitbox: Rect2, stage: int) -> void:
 			_start_enemy_knockback(e, force_direction, stage, lethal,
 					e.position.x - before_hit_x)
 			if lethal:
+				_on_player_enemy_killed(e)
 				play_action("enemy_kill")
 				paint_layer.blood_pool(impact_point, 1.0, 0,
 						burst.current_color.darkened(0.15))
 			else:
 				play_action("body_hit")
 			add_camera_shake(force_direction, 0.55)
+	for panel: Node2D in glass_panels:
+		if _m06_interactions_active() and panel.locked and panel.body_rect().intersects(hitbox):
+			hit_any = panel.take_hit(player.position.x) or hit_any
 	for hazard: Node2D in tactical_hazards:
 		if is_instance_valid(hazard) and not hazard.dead and hazard.body_rect().intersects(hitbox):
 			hit_any = hazard.take_hit(player.position.x, 1) or hit_any
@@ -1558,6 +1676,7 @@ func _on_player_bat_swung(hitbox: Rect2, stage: int) -> void:
 			var c: Vector2 = pr.body_rect().get_center()
 			fx.append({"x": c.x, "y": c.y, "life": 0.16, "kind": "spark"})
 			if pr is PropBarrel:
+				pr.set_meta("player_ignited", true)
 				play_action("metal_impact")
 				add_camera_shake(Vector2(player.face, 0.0), 0.25)
 	if hit_any:
@@ -1624,6 +1743,7 @@ func _advance_time_charge(dt: float) -> void:
 
 
 func _set_player_time_focus(active: bool) -> void:
+	player.glass_interactions_enabled = not active
 	if player.has_method("set_time_focus"):
 		player.set_time_focus(active)
 	if active == _focus_presented:
@@ -1934,6 +2054,8 @@ func _setup_music() -> void:
 
 
 func _exit_tree() -> void:
+	# Same lifetime as boot configuration, without editing another owner's boot files.
+	CorridorLevel.active_kill_refresh_dash = false
 	if is_instance_valid(music) and music.get_parent() != self and not _keep_music_on_exit:
 		# 返回菜单/退出或普通卸载停止音乐；死亡重开只交接引用，音乐不重置。
 		music.stop()

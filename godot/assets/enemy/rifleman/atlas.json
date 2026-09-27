@@ -1,0 +1,391 @@
+{
+  "canvas_size": [
+    1024,
+    672
+  ],
+  "cell_size": [
+    128,
+    112
+  ],
+  "columns": 8,
+  "baseline_y": 105,
+  "pivot_x": 64,
+  "facing": "right",
+  "animations": {
+    "idle": {
+      "frames": 3,
+      "loop": true,
+      "fps_hint": 2,
+      "row": 0
+    },
+    "alert": {
+      "frames": 4,
+      "loop": false,
+      "fps_hint": 8,
+      "row": 1
+    },
+    "run": {
+      "frames": 8,
+      "loop": true,
+      "fps_hint": 10,
+      "row": 2
+    },
+    "aim": {
+      "frames": 5,
+      "loop": false,
+      "fps_hint": 8,
+      "row": 3
+    },
+    "fire": {
+      "frames": 4,
+      "loop": false,
+      "fps_hint": 14,
+      "row": 4
+    },
+    "death": {
+      "frames": 6,
+      "loop": false,
+      "fps_hint": 8,
+      "row": 5
+    }
+  },
+  "frames": [
+    {
+      "animation": "idle",
+      "frame": 0,
+      "row": 0,
+      "cell_bbox": [
+        45,
+        12,
+        55,
+        93
+      ]
+    },
+    {
+      "animation": "idle",
+      "frame": 1,
+      "row": 0,
+      "cell_bbox": [
+        45,
+        12,
+        54,
+        93
+      ]
+    },
+    {
+      "animation": "idle",
+      "frame": 2,
+      "row": 0,
+      "cell_bbox": [
+        46,
+        12,
+        53,
+        93
+      ]
+    },
+    {
+      "animation": "alert",
+      "frame": 0,
+      "row": 1,
+      "cell_bbox": [
+        45,
+        12,
+        55,
+        93
+      ]
+    },
+    {
+      "animation": "alert",
+      "frame": 1,
+      "row": 1,
+      "cell_bbox": [
+        46,
+        12,
+        54,
+        93
+      ]
+    },
+    {
+      "animation": "alert",
+      "frame": 2,
+      "row": 1,
+      "cell_bbox": [
+        46,
+        12,
+        55,
+        93
+      ]
+    },
+    {
+      "animation": "alert",
+      "frame": 3,
+      "row": 1,
+      "cell_bbox": [
+        46,
+        12,
+        56,
+        93
+      ]
+    },
+    {
+      "animation": "run",
+      "frame": 0,
+      "row": 2,
+      "cell_bbox": [
+        38,
+        17,
+        59,
+        88
+      ]
+    },
+    {
+      "animation": "run",
+      "frame": 1,
+      "row": 2,
+      "cell_bbox": [
+        43,
+        13,
+        54,
+        92
+      ]
+    },
+    {
+      "animation": "run",
+      "frame": 2,
+      "row": 2,
+      "cell_bbox": [
+        46,
+        12,
+        50,
+        93
+      ]
+    },
+    {
+      "animation": "run",
+      "frame": 3,
+      "row": 2,
+      "cell_bbox": [
+        37,
+        15,
+        60,
+        90
+      ]
+    },
+    {
+      "animation": "run",
+      "frame": 4,
+      "row": 2,
+      "cell_bbox": [
+        31,
+        18,
+        66,
+        87
+      ]
+    },
+    {
+      "animation": "run",
+      "frame": 5,
+      "row": 2,
+      "cell_bbox": [
+        36,
+        14,
+        62,
+        91
+      ]
+    },
+    {
+      "animation": "run",
+      "frame": 6,
+      "row": 2,
+      "cell_bbox": [
+        46,
+        13,
+        52,
+        92
+      ]
+    },
+    {
+      "animation": "run",
+      "frame": 7,
+      "row": 2,
+      "cell_bbox": [
+        44,
+        15,
+        54,
+        90
+      ]
+    },
+    {
+      "animation": "aim",
+      "frame": 0,
+      "row": 3,
+      "cell_bbox": [
+        46,
+        12,
+        56,
+        93
+      ]
+    },
+    {
+      "animation": "aim",
+      "frame": 1,
+      "row": 3,
+      "cell_bbox": [
+        46,
+        12,
+        56,
+        93
+      ]
+    },
+    {
+      "animation": "aim",
+      "frame": 2,
+      "row": 3,
+      "cell_bbox": [
+        46,
+        12,
+        57,
+        93
+      ]
+    },
+    {
+      "animation": "aim",
+      "frame": 3,
+      "row": 3,
+      "cell_bbox": [
+        46,
+        12,
+        57,
+        93
+      ]
+    },
+    {
+      "animation": "aim",
+      "frame": 4,
+      "row": 3,
+      "cell_bbox": [
+        46,
+        12,
+        58,
+        93
+      ]
+    },
+    {
+      "animation": "fire",
+      "frame": 0,
+      "row": 4,
+      "cell_bbox": [
+        46,
+        12,
+        57,
+        93
+      ]
+    },
+    {
+      "animation": "fire",
+      "frame": 1,
+      "row": 4,
+      "cell_bbox": [
+        45,
+        11,
+        66,
+        94
+      ]
+    },
+    {
+      "animation": "fire",
+      "frame": 2,
+      "row": 4,
+      "cell_bbox": [
+        46,
+        11,
+        56,
+        94
+      ]
+    },
+    {
+      "animation": "fire",
+      "frame": 3,
+      "row": 4,
+      "cell_bbox": [
+        46,
+        12,
+        57,
+        93
+      ]
+    },
+    {
+      "animation": "death",
+      "frame": 0,
+      "row": 5,
+      "cell_bbox": [
+        43,
+        14,
+        50,
+        91
+      ]
+    },
+    {
+      "animation": "death",
+      "frame": 1,
+      "row": 5,
+      "cell_bbox": [
+        26,
+        23,
+        63,
+        82
+      ]
+    },
+    {
+      "animation": "death",
+      "frame": 2,
+      "row": 5,
+      "cell_bbox": [
+        11,
+        51,
+        85,
+        54
+      ]
+    },
+    {
+      "animation": "death",
+      "frame": 3,
+      "row": 5,
+      "cell_bbox": [
+        10,
+        66,
+        87,
+        39
+      ]
+    },
+    {
+      "animation": "death",
+      "frame": 4,
+      "row": 5,
+      "cell_bbox": [
+        10,
+        65,
+        87,
+        40
+      ]
+    },
+    {
+      "animation": "death",
+      "frame": 5,
+      "row": 5,
+      "cell_bbox": [
+        10,
+        66,
+        87,
+        39
+      ]
+    }
+  ],
+  "aim_recovery": "reuse_idle",
+  "fire_recovery": "reuse_idle",
+  "source": "tools/art/enemy3d/rifleman.py（原创 Blender 基本体模型，3D→像素）",
+  "muzzle_world": [
+    36.4,
+    -62.2
+  ]
+}

@@ -83,7 +83,7 @@ func _run() -> void:
 	voice_index = game._sfx_idx
 	game._on_tactical_sound(&"sniper_lock")
 	check(game._sfx_pool[voice_index].stream.resource_path == "res://assets/sfx/gun/10_gunshot_empty.wav",
-			"最后半秒锁定有独立机械卡扣，与开枪分离")
+			"最后0.35秒锁定有独立机械卡扣，与开枪分离")
 	await create_timer(0.20).timeout
 	var boot := current_scene
 	current_scene = null

@@ -14,8 +14,9 @@ const AIM_RED := Color("#ff5867")
 const STEEL := Color("#384b57")
 const DARK := Color("#15212b")
 const TRACE_STEP := 4.0
-const SNIPER_TRACK_TIME := 1.5 ## 跟踪时间减半；之后仍保留独立0.5秒锁定反应窗。
-const SNIPER_LOCK_TIME := 0.5
+const SNIPER_TRACK_TIME := 0.9 ## 跟踪0.9秒；之后保留独立0.35秒锁向反应窗。
+const SNIPER_LOCK_TIME := 0.35
+const SNIPER_FLASH_TIME := 0.6 ## 预射最后0.6秒：跟踪末0.25秒 + 全部锁向。
 const SNIPER_COOLDOWN := 1.5 ## 用户指定射后1.5秒冷却，不影响光栅/压机节拍。
 const PRESS_PLATE_H := 24.0
 
@@ -84,7 +85,7 @@ func setup(config: Dictionary, collision_level: Node, doors: Array = []) -> void
 			recovery_duration = maxf(1.35, float(config.get("recovery", 1.35)))
 		_:
 			hazard_type = "auto_sniper"
-			# 用户确定新节奏：跟踪3秒→锁向半秒→一枪→冷却3秒，旧地图参数不能缩短。
+			# 用户确定新节奏：跟踪0.9秒→锁向0.35秒→一枪→冷却1.5秒，旧地图参数不能缩短。
 			warning_duration = SNIPER_TRACK_TIME
 			active_duration = 0.08
 			recovery_duration = SNIPER_COOLDOWN
@@ -144,7 +145,7 @@ func advance(dt: float, player: Node2D, smoke_obscured := false) -> void:
 	if "dead" in player and player.dead:
 		return
 	if hazard_type == "auto_sniper" and smoke_obscured and state in ["warning", "locked"]:
-		# 烟雾遮断目标也取消最后半秒锁定：清除旧目标与红线，出烟重走完整3秒+0.5秒。
+		# 烟雾遮断目标也取消最后0.35秒锁定：清除旧目标与红线，出烟重走完整0.9秒+0.35秒。
 		# 这是视线失效而非计时推进；时停中走入已有烟也须立即失锁，不能解冻后偷射。
 		_change_state("idle")
 		last_target = Vector2.ZERO
@@ -179,7 +180,7 @@ func _advance_sniper(dt: float, player: Node2D, smoke_obscured: bool) -> void:
 				_change_state("locked")
 				sound_requested.emit(&"sniper_lock")
 		"locked":
-			# 跟踪结束后另等0.5s，弹道和last_target固定；烟雾由advance入口统一取消锁定。
+			# 跟踪结束后另等0.35s，弹道和last_target固定；烟雾由advance入口统一取消锁定。
 			trace_end = _ray_end(muzzle_position(), aim_direction, detection_range)
 			phase_time += dt
 			if phase_time >= SNIPER_LOCK_TIME:
@@ -246,16 +247,16 @@ func muzzle_position() -> Vector2:
 
 
 func aim_line_fast_flashing() -> bool:
-	# 总预射3.5s中，最后1s闪线：跟踪末0.5s + 锁向0.5s；绝不闪整个屏幕。
+	# 总预射1.25s中，最后0.6s闪线：跟踪末0.25s + 锁向0.35s；绝不闪整个屏幕。
 	return hazard_type == "auto_sniper" and (state == "locked" \
-		or (state == "warning" and phase_time >= SNIPER_TRACK_TIME - 0.5))
+		or (state == "warning" and phase_time >= SNIPER_TRACK_TIME + SNIPER_LOCK_TIME - SNIPER_FLASH_TIME))
 
 
 func aim_line_alpha() -> float:
 	if not aim_line_fast_flashing():
 		return 0.70
 	var prefire_time := phase_time if state == "warning" else SNIPER_TRACK_TIME + phase_time
-	var half_cycles := int(floor((prefire_time - (SNIPER_TRACK_TIME - 0.5)) * 12.0))
+	var half_cycles := int(floor((prefire_time - (SNIPER_TRACK_TIME + SNIPER_LOCK_TIME - SNIPER_FLASH_TIME)) * 12.0))
 	# 6Hz明暗交替，暗相保留28%红线，玩家始终看得清已锁定弹道。
 	return 0.95 if half_cycles % 2 == 0 else 0.28
 

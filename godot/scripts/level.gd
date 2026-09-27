@@ -320,6 +320,7 @@ static var active_next_scene := ""
 static var active_campaign_mode := false
 static var active_restart_scene := ""
 static var active_tactical_objects: Array = [] ## 烟雾补给/机关/稀疏狙击，均来自地图元数据。
+static var active_kill_refresh_dash := false ## Opt-in level rule; game exit clears it with boot lifetime.
 static var active_checkpoints: Array = [] ## 每关唯一中段点及前置清房条件；与遭遇唤醒边界分开。
 static var active_encounter_boundaries: Array = [] ## 只隔离敌人唤醒区，不创建记录点或补血。
 static var active_encounter_policy := "" ## 第三关自由上下探索，用本层邻近唤醒，不套横向房序门槛。

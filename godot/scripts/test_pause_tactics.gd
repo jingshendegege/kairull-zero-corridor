@@ -246,19 +246,21 @@ func _test_sniper_phase() -> void:
 	_place(sniper.position + sniper.direction * 300.0)
 	game._step_tactics(.001)
 	check(sniper.state == "warning", "真实当前房/视口/LOS允许狙击开始跟踪")
-	sniper.phase_time = 1.0 # fixture只安排跟踪中段；暂停/恢复由真实SceneTree处理。
+	var tracking_phase := TacticalHazard.SNIPER_TRACK_TIME * 2.0 / 3.0
+	sniper.phase_time = tracking_phase # fixture只安排跟踪中段；暂停/恢复由真实SceneTree处理。
 	await _pause_wall_clock("狙击warning")
 	await create_timer(.05, true).timeout
-	check(sniper.state == "warning" and sniper.phase_time > 1.0 and sniper.phase_time < 1.14,
+	check(sniper.state == "warning" and sniper.phase_time > tracking_phase and sniper.phase_time < tracking_phase + 0.14,
 		"恢复后狙击跟踪只推进实际恢复帧")
 	sniper._track(game.player)
 	sniper._change_state("locked")
-	sniper.phase_time = .15
+	var locked_phase := TacticalHazard.SNIPER_LOCK_TIME * 0.3
+	sniper.phase_time = locked_phase
 	var old_shots: int = sniper.shot_count
 	await _pause_wall_clock("狙击locked")
 	await create_timer(.05, true).timeout
-	check(sniper.state == "locked" and sniper.phase_time > .15 and sniper.phase_time < .30 \
-		and sniper.shot_count == old_shots, "锁向半秒不被暂停墙钟耗完，恢复后不抢先出弹")
+	check(sniper.state == "locked" and sniper.phase_time > locked_phase and sniper.phase_time < locked_phase + .15 \
+		and sniper.shot_count == old_shots, "锁向时间不被暂停墙钟耗完，恢复后不抢先出弹")
 
 
 func _test_time_stop_release() -> void:

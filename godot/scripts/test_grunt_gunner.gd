@@ -3,8 +3,11 @@ extends SceneTree
 ## 跑法：godot --headless --path godot --script scripts/test_grunt_gunner.gd
 
 const GUNNER_SCRIPT := preload("res://scripts/grunt.gd")
-const ATLAS_PATH := "res://assets/enemy/grunt/atlas.png"
-const META_PATH := "res://assets/enemy/grunt/atlas.json"
+const ATLAS_PATH := GUNNER_SCRIPT.ATLAS_PATH
+const META_PATH := GUNNER_SCRIPT.META_PATH
+const CW := GUNNER_SCRIPT.CELL.x
+const CH := GUNNER_SCRIPT.CELL.y
+const BASE := int(GUNNER_SCRIPT.BASELINE_Y)
 const FRAME_COUNTS := [3, 4, 8, 5, 4, 6]
 const ANIMATION_NAMES := ["idle", "alert", "run", "aim", "fire", "death"]
 
@@ -31,8 +34,8 @@ func _run() -> void:
 	var atlas := Image.new()
 	var png_error := atlas.load_png_from_buffer(FileAccess.get_file_as_bytes(ATLAS_PATH))
 	ok(png_error == OK, "源 PNG 可解码", str(png_error))
-	ok(not atlas.is_empty() and atlas.get_size() == Vector2i(2048, 1536),
-			"图集为 2048x1536（8x6 个 256 格）", str(atlas.get_size()))
+	ok(not atlas.is_empty() and atlas.get_size() == Vector2i(8 * CW, 6 * CH),
+			"图集为 8x6 个 %dx%d 格" % [CW, CH], str(atlas.get_size()))
 	ok(atlas.get_format() in [Image.FORMAT_RGBA8, Image.FORMAT_RGBAF,
 			Image.FORMAT_RGBAH, Image.FORMAT_RGBA4444], "图集含 Alpha 通道")
 	var bytes := atlas.get_data()
@@ -52,8 +55,8 @@ func _run() -> void:
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(META_PATH))
 	var meta: Dictionary = parsed as Dictionary if parsed is Dictionary else {}
 	var cell_size: Array = meta.get("cell_size", []) as Array
-	ok(not meta.is_empty() and cell_size.size() == 2 and int(cell_size[0]) == 256
-			and int(cell_size[1]) == 256 and int(meta.get("baseline_y", -1)) == 224,
+	ok(not meta.is_empty() and cell_size.size() == 2 and int(cell_size[0]) == CW
+			and int(cell_size[1]) == CH and int(meta.get("baseline_y", -1)) == BASE,
 			"元数据格尺寸与脚底基线正确")
 	var animations: Dictionary = meta.get("animations", {}) as Dictionary
 	var counts_ok := true
@@ -65,23 +68,23 @@ func _run() -> void:
 	ok(counts_ok, "六行动画帧数为 3/4/8/5/4/6")
 	var unused_clear := true
 	var active_cells_valid := true
-	var minimum_margin := 256
+	var minimum_margin := CW
 	for row in FRAME_COUNTS.size():
 		for column in FRAME_COUNTS[row]:
-			var active_cell := atlas.get_region(Rect2i(column * 256, row * 256, 256, 256))
+			var active_cell := atlas.get_region(Rect2i(column * CW, row * CH, CW, CH))
 			var used := active_cell.get_used_rect()
-			if used.size == Vector2i.ZERO or used.end.y != 224:
+			if used.size == Vector2i.ZERO or used.end.y != BASE:
 				active_cells_valid = false
 			else:
 				minimum_margin = mini(minimum_margin, used.position.x)
 				minimum_margin = mini(minimum_margin, used.position.y)
-				minimum_margin = mini(minimum_margin, 256 - used.end.x)
-				minimum_margin = mini(minimum_margin, 256 - used.end.y)
+				minimum_margin = mini(minimum_margin, CW - used.end.x)
+				minimum_margin = mini(minimum_margin, CH - used.end.y)
 		for column in range(FRAME_COUNTS[row], 8):
-			var cell := atlas.get_region(Rect2i(column * 256, row * 256, 256, 256))
+			var cell := atlas.get_region(Rect2i(column * CW, row * CH, CW, CH))
 			if cell.get_used_rect().size != Vector2i.ZERO:
 				unused_clear = false
-	ok(active_cells_valid, "30 个有效格均非空且脚底统一为 y=224")
+	ok(active_cells_valid, "30 个有效格均非空且脚底统一为 y=%d" % BASE)
 	ok(minimum_margin >= 2, "有效帧为 2 texel 描边保留安全透明边距", str(minimum_margin))
 	ok(unused_clear, "18 个未使用格完全透明")
 
@@ -156,7 +159,7 @@ func _run() -> void:
 	ok(enemy.take_hit(player.position.x, 1) and enemy.dead and enemy.state == "dead",
 			"球棒一击进入死亡状态")
 	ok(enemy.debug_animation_name() == "death"
-			and int(enemy._sprite.region_rect.position.y) == 5 * 256,
+			and int(enemy._sprite.region_rect.position.y) == 5 * CH,
 			"死亡切到第六行首帧")
 	# 正式球棒链会用约 0.3s hitstop 锁住 AI、同时持续推动尸体；倒地动画不能随之冻结。
 	enemy.hitstop = 0.30
@@ -169,9 +172,10 @@ func _run() -> void:
 	for index in range(enemy.DEATH_TICKS + 12):
 		enemy.step(1.0 / 60.0)
 	ok(enemy.debug_animation_frame() == 5, "六帧死亡动画播放完后停在末帧")
-	ok(not enemy._rim.visible and enemy.corpse_extent() == 96.0
-			and enemy._sprite.scale.x < enemy.SCALE,
-			"尸体摘轮廓光并压到 96px 最长边")
+	# 1:1 像素美术的侧躺尸体本身只有 88px 长，不再缩小（缩放 ≤ 站姿，最长边不超过 96px 站高）。
+	ok(not enemy._rim.visible and enemy.corpse_extent() <= enemy.CORPSE_LONGEST
+			and enemy.corpse_extent() <= 96.0 and enemy._sprite.scale.x <= enemy.SCALE,
+			"尸体摘轮廓光且最长边不超过 96px 站高")
 	ok(not enemy.take_hit(player.position.x, 1), "尸体不会重复结算命中")
 
 	enemy.free()
