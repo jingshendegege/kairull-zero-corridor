@@ -23,7 +23,20 @@ func setup(config: Dictionary) -> void:
 
 func reset_transient() -> void:
 	cooldown_t = 0.0
+	_player_grounded_on_fan = false
+	_player_airborne = false
 	queue_redraw()
+
+
+## 2026-09-28 触发规则（Claude，全关实走验收后调整）：站在扇面上起跳、或从空中落到扇面上才弹射；
+## 平地走过/冲刺/翻滚掠过不触发——地面路线不会被强制弹起，弹射完全由玩家决定。
+## 只比较上一帧与本帧的玩家状态，与 game/player 的推进先后无关。
+var _player_grounded_on_fan := false
+var _player_airborne := false
+
+
+func _over_fan(player: Node2D) -> bool:
+	return absf(player.position.x - position.x) <= width * 0.5
 
 
 func advance(dt: float, player: Node2D) -> void:
@@ -31,21 +44,31 @@ func advance(dt: float, player: Node2D) -> void:
 		return
 	cooldown_t = maxf(0.0, cooldown_t - dt)
 	spin_phase = fposmod(spin_phase + dt * TAU * 3.0, TAU)
-	if cooldown_t <= 0.0 and player.on_ground and player.vy >= 0.0 \
-			and absf(player.position.y - position.y) <= 1.0 \
-			and absf(player.position.x - position.x) <= width * 0.5:
-		# Player adds gravity before displacement. Half a 60Hz gravity step compensates
-		# the discrete apex loss (about 10px at height 288) without changing its physics.
-		player.vy = -(sqrt(2.0 * KairullPlayer.GRAV * launch_height) + KairullPlayer.GRAV * 0.5)
-		player.on_ground = false
-		# A ground burst must stop snapping to the floor after launch. Dash keeps its
-		# existing brief vertical freeze, then uses the preserved upward velocity.
-		if "_dash_follow_ground" in player:
-			player._dash_follow_ground = false
-		if "_roll_follow_ground" in player:
-			player._roll_follow_ground = false
-		cooldown_t = RETRIGGER_COOLDOWN
+	var grounded_here: bool = player.on_ground and absf(player.position.y - position.y) <= 1.0 and _over_fan(player)
+	var jumped_off: bool = _player_grounded_on_fan and not player.on_ground and player.vy < 0.0 			and _over_fan(player) and position.y - player.position.y <= 32.0
+	var landed: bool = _player_airborne and grounded_here and player.vy >= 0.0
+	if cooldown_t <= 0.0 and (jumped_off or landed):
+		_launch(player)
+		grounded_here = false
+	_player_grounded_on_fan = grounded_here
+	_player_airborne = not player.on_ground
 	queue_redraw()
+
+
+func _launch(player: Node2D) -> void:
+	# 顶点从扇面算起：起跳帧已上升的几像素不计入，弹射高度稳定为 launch_height。
+	# Player adds gravity before displacement. Half a 60Hz gravity step compensates
+	# the discrete apex loss (about 10px at height 288) without changing its physics.
+	var remaining := maxf(0.0, launch_height - (position.y - player.position.y))
+	player.vy = -(sqrt(2.0 * KairullPlayer.GRAV * remaining) + KairullPlayer.GRAV * 0.5)
+	player.on_ground = false
+	# A ground burst must stop snapping to the floor after launch. Dash keeps its
+	# existing brief vertical freeze, then uses the preserved upward velocity.
+	if "_dash_follow_ground" in player:
+		player._dash_follow_ground = false
+	if "_roll_follow_ground" in player:
+		player._roll_follow_ground = false
+	cooldown_t = RETRIGGER_COOLDOWN
 
 
 func _draw() -> void:

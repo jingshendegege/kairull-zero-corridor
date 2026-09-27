@@ -31,10 +31,12 @@ func place(c: int, row: int) -> void:
 func tick(keys: Dictionary) -> void:
 	player.keys = keys
 	player.step(DT)
-	var before: float = player.vy
+	# 扇的冷却从 0 变为重触发冷却即一次弹射（起跳弹射时本帧普通跳已先让 vy<0，不能再用 vy 符号计数）
+	var idle: Array = game.updraft_fans.map(func(f: Node2D) -> bool: return f.cooldown_t <= 0.0)
 	game._step_tactics(DT)
-	if before >= 0.0 and player.vy < 0.0:
-		fan_launches += 1
+	for index in game.updraft_fans.size():
+		if idle[index] and game.updraft_fans[index].cooldown_t > 0.0:
+			fan_launches += 1
 
 func go(c: int, row: int, jump := false) -> bool:
 	var target := Vector2(c * 32 + 16, row * 32 - .1)
@@ -56,7 +58,9 @@ func fan_route(id: String, target_c: int, target_row: int) -> void:
 	var fan: Node2D = game.get_node(id)
 	place(floori(fan.position.x / 32), floori(fan.position.y / 32))
 	tick({})
-	check(fan_launches == 1 and player.vy < 0.0, id + " launches from actual floor")
+	check(fan_launches == 0 and player.on_ground, id + " standing on the fan does not launch")
+	tick({KEY_W: true})
+	check(fan_launches == 1 and player.vy < KairullPlayer.JUMP - 2.0, id + " jumping off the fan launches")
 	var apex: float = player.position.y
 	var landed := false
 	for frame in 150:

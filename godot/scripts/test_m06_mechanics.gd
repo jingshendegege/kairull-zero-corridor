@@ -118,13 +118,41 @@ func _run() -> void:
 	quit(int(failed > 0))
 
 
+## 2026-09-28 规则调整：站在扇面上起跳或从空中落到扇面上才弹射；平地走过不触发。
+func _jump_off_fan() -> void:
+	player.keys = {KEY_W: true}
+	player.step(DT)
+	player.keys = {}
+	game._step_tactics(DT)
+
+
+func _is_boosted() -> bool:
+	return player.vy < KairullPlayer.JUMP - 2.0
+
+
 func _test_fan() -> void:
 	_place(fan.position.x)
 	fan.reset_transient()
 	player.dash_cooldown_t = 0.8
 	game._step_tactics(DT)
-	check(player.vy < 0.0 and not player.on_ground, "fan launches grounded player")
-	check(is_equal_approx(player.dash_cooldown_t, 0.8), "fan neither consumes nor refreshes dash")
+	check(player.vy == 0.0 and player.on_ground, "standing/walking on a fan does not launch")
+	for step_index in 10:
+		player.keys = {KEY_D: true}
+		player.step(DT)
+		game._step_tactics(DT)
+	player.keys = {}
+	check(player.on_ground and not _is_boosted(), "walking across the fan does not launch")
+	_place(fan.position.x)
+	player.dash_cooldown_t = 0.8
+	game._step_tactics(DT)
+	player.keys = {KEY_W: true}
+	player.step(DT)
+	player.keys = {}
+	var cooldown_before_launch: float = player.dash_cooldown_t
+	game._step_tactics(DT)
+	check(_is_boosted() and not player.on_ground, "jumping off the fan launches")
+	check(cooldown_before_launch > 0.0 and is_equal_approx(player.dash_cooldown_t, cooldown_before_launch),
+			"fan neither consumes nor refreshes dash")
 	var minimum_y := player.position.y
 	for tick in 100:
 		player.step(DT)
@@ -137,16 +165,20 @@ func _test_fan() -> void:
 	_place(fan.position.x)
 	fan.reset_transient()
 	game._step_tactics(DT)
-	player.on_ground = true
-	player.vy = 0.0
-	game._step_tactics(0.24)
-	check(player.vy == 0.0 and player.on_ground, "same fan cannot retrigger within 0.25 seconds")
-	game._step_tactics(0.011)
-	check(player.vy < 0.0 and not player.on_ground, "fan becomes reusable after 0.25 seconds")
+	_jump_off_fan()
+	_place(fan.position.x)
+	game._step_tactics(0.19)
+	_jump_off_fan()
+	check(not _is_boosted(), "same fan cannot retrigger within 0.25 seconds")
+	_place(fan.position.x)
+	game._step_tactics(0.1)
+	_jump_off_fan()
+	check(_is_boosted(), "fan becomes reusable after 0.25 seconds")
 	_place(fan.position.x + fan.width * 0.5 + 1.0)
 	fan.reset_transient()
 	game._step_tactics(DT)
-	check(player.vy == 0.0, "fan uses feet center and configured width")
+	_jump_off_fan()
+	check(not _is_boosted(), "fan uses feet center and configured width")
 	_place(fan.position.x, FLOOR_Y - 100.0)
 	player.on_ground = false
 	game._step_tactics(DT)
@@ -193,7 +225,7 @@ func _test_frozen_world() -> void:
 	check(not node.lit and is_equal_approx(node.respawn_remaining, 1.5), "time-stop freezes node respawn")
 	player.keys.clear()
 	game._physics_process(DT)
-	check(not game.time_charge.active and player.vy < 0.0 and node.respawn_remaining < 1.5,
+	check(not game.time_charge.active and fan.spin_phase != phase and node.respawn_remaining < 1.5,
 			"release time-stop resumes fan and node simulation")
 	_place(fan.position.x)
 	fan.reset_transient()
