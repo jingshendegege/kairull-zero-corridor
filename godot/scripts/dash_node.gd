@@ -54,11 +54,12 @@ func _draw() -> void:
 	_draw_visuals()
 
 
+## 像素精灵（tools/art/m06/build_m06_props.py）：5 帧 32×32，0–3 脉动、4 熄灭。
+const SHEET := preload("res://assets/maps/m06/dash_node.png")
+
+
 func _draw_visuals() -> void:
-	var tint := Color("#80eee1") if lit else Color("#344b55")
-	var pulse := 1.0 + sin(visual_phase) * 0.08
-	draw_arc(Vector2.ZERO, RADIUS * pulse, 0.0, TAU, 24, tint, 1.5)
+	var frame := 4
 	if lit:
-		draw_circle(Vector2.ZERO, 10.0, Color(0.3, 0.85, 0.8, 0.16))
-	var points := PackedVector2Array([Vector2(2, -8), Vector2(-4, 1), Vector2(1, 1), Vector2(-2, 8), Vector2(5, -2), Vector2(0, -2)])
-	draw_colored_polygon(points, tint)
+		frame = int(floor(visual_phase / TAU * 4.0)) % 4
+	draw_texture_rect_region(SHEET, Rect2(-16.0, -16.0, 32.0, 32.0), Rect2(frame * 32, 0, 32, 32))

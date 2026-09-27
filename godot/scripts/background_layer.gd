@@ -59,6 +59,18 @@ const CFG_QUARANTINE := [
 	{"color": "#05070b"},
 ]
 
+## 04 排风脊线：室外夜空三层视差（tools/art/m06/build_m06_backgrounds.py，3px 像素块）。
+##   L0 夜空 factor 0 固定整屏（768 ≥ 765 视野高，任何镜头高度都不露底色）
+##   L1 远景城市/冷却塔 0.2：地面房间镜头 tl.y≈419 时地平线落在画面约 70% 高
+##   L2 中景工业屋顶 0.45：屋顶线在地面房间约画面 80% 高
+##   末尾平涂色层只是占位：多层配置的末层保留给前景实例，本关用 QuarantineArchitecture 前景，不绘制它。
+const CFG_M06 := [
+	{"file": "res://assets/bg/m06/M06_L0_sky.png", "factor": 0.0, "mirror": false, "base": 0.0},
+	{"file": "res://assets/bg/m06/M06_L1_far.png", "factor": 0.2, "mirror": true, "base": -18.0},
+	{"file": "res://assets/bg/m06/M06_L2_mid.png", "factor": 0.45, "mirror": true, "base": 102.0},
+	{"color": "#05070b"},
+]
+
 ## 场景实例化前可整体换配置（渲染测试/后续关卡用），为空用默认 CFG。
 static var active_cfg: Array = []
 

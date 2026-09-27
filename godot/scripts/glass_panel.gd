@@ -76,13 +76,17 @@ func _draw() -> void:
 	_draw_visuals()
 
 
+## 像素精灵（tools/art/m06/build_m06_props.py）：完好玻璃 32×128；碎片两种 6×6。
+const PANEL_TEX := preload("res://assets/maps/m06/glass_panel.png")
+const SHARD_TEX := preload("res://assets/maps/m06/glass_shards.png")
+
+
 func _draw_visuals() -> void:
 	if not broken:
-		draw_rect(Rect2(Vector2.ZERO, size), Color(0.45, 0.78, 0.82, 0.62))
-		draw_rect(Rect2(Vector2.ZERO, size), Color("#abdfe4"), false, 2.0)
-		for y in range(12, int(size.y), 24):
-			draw_line(Vector2(5, y), Vector2(size.x - 5, y - 8), Color("#d6f3ee"), 1.0)
+		draw_texture_rect(PANEL_TEX, Rect2(Vector2.ZERO, size), false)
+	var index := 0
 	for bit: Dictionary in shards:
-		var tint := Color("#b9edf2")
-		tint.a = clampf(float(bit.life) / SHARD_LIFETIME, 0.0, 1.0)
-		draw_line(bit.p, bit.p + Vector2(3, -5), tint, 2.0)
+		var fade := clampf(float(bit.life) / SHARD_LIFETIME, 0.0, 1.0)
+		var src := Rect2(6 * (index % 2), 0, 6, 6)
+		draw_texture_rect_region(SHARD_TEX, Rect2(Vector2(bit.p).round(), Vector2(6, 6)), src, Color(1, 1, 1, fade))
+		index += 1

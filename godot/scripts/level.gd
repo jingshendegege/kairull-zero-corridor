@@ -26,6 +26,8 @@ const M04_CHRONO_DATA := preload("res://generated/m04_chrono_freight_data.gd")
 const MAP_M04_CHRONO_FREIGHT := M04_CHRONO_DATA.MAP_TEXT
 const M05_VERTICAL_DATA := preload("res://generated/m05_vertical_freight_data.gd")
 const MAP_M05_VERTICAL_FREIGHT := M05_VERTICAL_DATA.MAP_TEXT
+const M06_DATA := preload("res://generated/m06_exhaust_ridge_data.gd")
+const MAP_M06_EXHAUST_RIDGE := M06_DATA.MAP_TEXT
 
 const TS := 32
 

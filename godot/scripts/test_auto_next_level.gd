@@ -34,19 +34,19 @@ func _run() -> void:
 	game.music.play(7.0)
 	await create_timer(.15).timeout
 	var music_id: int = game.music.get_instance_id()
-	check(SESSION.next_scene_after("res://scenes/old_prototype.tscn").is_empty(),"旧试作不被强行接入三关流程")
-	for index in 3:
+	check(SESSION.next_scene_after("res://scenes/old_prototype.tscn").is_empty(),"旧试作不被强行接入四关流程")
+	for index in SESSION.LEVEL_SCENES.size():
 		var source: String = SESSION.LEVEL_SCENES[index]
 		check(CorridorLevel.active_restart_scene == source,"实际处于第%d关"%(index+1))
 		check(game.player.hp == 1 and SESSION.difficulty == "zero", "跨关保留武士零1血难度")
-		var expected_music := "res://assets/bgm/m04_chrono_freight_0906.mp3" if index == 1 else "res://assets/bgm/m02_oldtown.mp3"
+		var expected_music := "res://assets/bgm/m04_chrono_freight_0906.mp3" if index in [1, 3] else "res://assets/bgm/m02_oldtown.mp3"
 		check(game.music.stream.resource_path == expected_music and game.music.get_meta("track_path") == expected_music,
-				"三关音乐依次为第一关原曲/9月6日/第一关原曲")
+				"四关音乐依次为第一关原曲/9月6日/第一关原曲/9月6日")
 		check(game._checkpoint_index == -1 and SESSION.checkpoint.is_empty(),"新关检查点未激活，不继承旧关存档")
 		var count := 0
 		for enemy: Node2D in game.minions:
 			count += int(not enemy.dead)
-		check(count == [20,38,52][index],"新关完整生成自己的敌人")
+		check(count == [20,38,52,26][index],"新关完整生成自己的敌人")
 		# 激活当前关中段点，验证自动换关只清这份旧存档。
 		var config: Dictionary = CorridorLevel.active_checkpoints[0]
 		for enemy: Node2D in game.minions:
@@ -69,8 +69,8 @@ func _run() -> void:
 		game._process(0.0)
 		check(game.victory_transition.fade_progress == 1.0 and not game._transitioning,"渐黑完成时仍留出白字停顿")
 		game.victory_transition.advance(.7)
-		if index < 2:
-			check(game.victory_transition.prompt_text().contains("下一关"),"前两关提示自动接续而非Enter重玩")
+		if index + 1 < SESSION.LEVEL_SCENES.size():
+			check(game.victory_transition.prompt_text().contains("下一关"),"非最终关提示自动接续而非Enter重玩")
 			await snapshot("%d-通关黑底白字.png"%(index+1))
 			var enter := InputEventKey.new()
 			enter.keycode = KEY_ENTER
@@ -117,7 +117,7 @@ func _run() -> void:
 		else:
 			game.victory_transition.advance(10.0)
 			game._process(0.0)
-			check(not game._transitioning and game.victory_next_scene().is_empty(),"第三关不跳回第一关或旧试作")
+			check(not game._transitioning and game.victory_next_scene().is_empty(),"第四关不跳回第一关或旧试作")
 			check(game.victory_transition.prompt_text().contains("重新挑战") \
 					and game._can_restart_campaign(),"最终关保留重玩和暂停菜单")
 	current_scene.free()

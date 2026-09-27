@@ -1,5 +1,5 @@
 extends SceneTree
-## 三关真实入口→解锁中段点→死亡短回放→change_scene重建；局部摆位只用于设置测试条件。
+## 四关真实入口→解锁中段点→死亡短回放→change_scene重建；局部摆位只用于设置测试条件。
 const SESSION := preload("res://scripts/run_session.gd")
 const SNAPSHOT := preload("res://scripts/run_checkpoint.gd")
 var passed := 0
@@ -36,9 +36,9 @@ func _run() -> void:
 	SESSION.begin_run("invalid")
 	check(SESSION.difficulty == "easy" and SESSION.max_health() == 5, "无效难度安全回简单")
 	for index in SESSION.LEVEL_SCENES.size():
-		await _test_map(index, SESSION.DIFFICULTIES[index])
+		await _test_map(index, SESSION.DIFFICULTIES[index % SESSION.DIFFICULTIES.size()])
 	SESSION.reset_for_tests()
-	check(CorridorLevel.active_checkpoints.is_empty(), "三入口卸载都清active_checkpoints静态量")
+	check(CorridorLevel.active_checkpoints.is_empty(), "四入口卸载都清active_checkpoints静态量")
 	print("RUN_CHECKPOINT_RESULT: %d PASS / %d FAIL" % [passed, failed])
 	quit(int(failed > 0))
 
@@ -89,7 +89,7 @@ func _test_map(index: int, mode: String) -> void:
 			to_clear.append(enemy)
 		elif later_enemy == null:
 			later_enemy = enemy
-	check(to_clear.size() == [10,22,24][index], prefix + "解锁前置是半程10/22/24敌")
+	check(to_clear.size() == [10,22,24,12][index], prefix + "解锁前置是半程10/22/24/12敌")
 	for enemy in to_clear:
 		enemy.dead = true
 	to_clear[-1].dead = false

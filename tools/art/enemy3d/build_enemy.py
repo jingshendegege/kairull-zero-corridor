@@ -53,7 +53,7 @@ SPECS = {
         },
         "ground_snap": "all",
         "extra": {"source": "tools/art/enemy3d/loader.py（原创 Blender 基本体模型，3D→像素）",
-                  "attack_active_frames": [1, 2, 3]},
+                  "attack_active_frames": [1, 2, 3, 4, 5]},
     },
 }
 

@@ -221,13 +221,13 @@ class MonitorCanvas extends Control:
 			draw_circle(Vector2(enemy_x, 213), 3, Color(RED, 0.85))
 		_text(Vector2(42, 86), "CAM / " + SESSION.LEVEL_NAMES[level_choice], 15, PAPER)
 		_text(Vector2(430, 86), "SIGNAL  87%", 12, accent)
-		# 三张关卡卡片都在开始频道内；切关卡和切频道是两套明确导航。
+		# 所有关卡卡片都在开始频道内；切关卡和切频道是两套明确导航。
 		for index in SESSION.LEVEL_SCENES.size():
-			var card := Rect2(38 + index * 188, 219, 176, 43)
+			var card := SurveillanceMenu.level_card_rect(index)
 			var chosen := index == level_choice
 			draw_rect(card, Color("#122830") if chosen else Color("#09191f"))
 			draw_rect(card, Color(accent, 0.9 if chosen else 0.3), false, 2)
-			_text(card.position + Vector2(8, 27), SESSION.LEVEL_NAMES[index], 15, PAPER if chosen else MUTED)
+			_text(card.position + Vector2(8, 27), SESSION.LEVEL_NAMES[index], 14, PAPER if chosen else MUTED)
 		var button := START_BUTTON
 		draw_rect(button, Color(accent, 0.18 if focused else 0.08))
 		draw_rect(button, Color(accent, 0.95 if focused else 0.35), false, 3)
@@ -516,7 +516,9 @@ func _handle_mouse_click(screen_position: Vector2) -> void:
 
 
 static func level_card_rect(index: int) -> Rect2:
-	return Rect2(38 + index * 188, 219, 176, 43)
+	var gap := 8.0
+	var width := (564.0 - gap * (SESSION.LEVEL_SCENES.size() - 1)) / SESSION.LEVEL_SCENES.size()
+	return Rect2(38 + index * (width + gap), 219, width, 43)
 
 
 static func difficulty_card_rect(index: int) -> Rect2:

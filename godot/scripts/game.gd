@@ -556,6 +556,8 @@ func _setup_tactics() -> void:
 	if hud != null:
 		if CorridorLevel.active_encounter_policy == "same_floor_nearby":
 			hud.show_msg("垂直货运井 · 井底起步，逐层上攀 · 中枢检查点 / 塔冠撤离")
+		elif CorridorLevel.active_encounter_policy == "linear_flow":
+			hud.show_msg("排风脊线 · 踩排风扇弹射 · 冲刺/翻滚撞碎玻璃 · 击杀刷新冲刺")
 		else:
 			hud.show_msg("时差货运场 · 按住 R＋左键投烟 · 高光栅可低身翻滚")
 

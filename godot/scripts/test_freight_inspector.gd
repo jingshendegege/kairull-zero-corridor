@@ -36,7 +36,7 @@ func _run() -> void:
 	for name in expected:
 		counts_ok = counts_ok and int(meta["animations"][name]["frames"]) == expected[name]
 	ok(counts_ok, "实际使用帧为 4/5/8/4/6/4/6")
-	# 新美术：每张有效帧都贴同一脚底线，挥击有效画面帧与逻辑窗对应（tick 2–6 → 画面第 1–3 帧）。
+	# 新美术：每张有效帧都贴同一脚底线，挥击有效画面帧与逻辑窗对应（tick 2–6 → 画面第 1–5 帧）。
 	var grounded := true
 	for record: Dictionary in meta["frames"]:
 		var bbox: Array = record["cell_bbox"]
@@ -45,7 +45,14 @@ func _run() -> void:
 	var active_frames: Array = []
 	for value in meta.get("attack_active_frames", []):
 		active_frames.append(int(value))   # JSON 数字解析为 float，按整数比较
-	ok(active_frames == [1, 2, 3], "挥击有效画面帧标注为 1–3")
+	var expected_active: Array = []
+	for tick in range(FREIGHT_SCRIPT.ATTACK_ACTIVE_FROM, FREIGHT_SCRIPT.ATTACK_ACTIVE_TO + 1):
+		var progress := float(tick) / float(FREIGHT_SCRIPT.ATTACK_TICKS - 1)
+		var visual := mini(int(meta["animations"]["attack"]["frames"]) - 1,
+				floori(progress * int(meta["animations"]["attack"]["frames"])))
+		if not expected_active.has(visual):
+			expected_active.append(visual)
+	ok(active_frames == expected_active, "挥击有效画面帧标注与逻辑有效窗一致", str(active_frames))
 
 	print("== 货运巡检员状态机 ==")
 	CorridorLevel.active_map = CorridorLevel.MAP_M03_ZERO_FREIGHT

@@ -2,7 +2,7 @@
 
 运行：blender -b --factory-startup -P loader.py -- <输出目录>
 动画与帧数与 freight_inspector.gd 合同一致：idle 4 / alert 5 / run 8 / windup 4 / attack 6 / recover 4 / death 6。
-alert/recover 在游戏里只显示首帧与末帧；attack 逻辑 8 tick、有效窗 tick 2–6 对应画面第 1–3 帧的挥击。
+alert/recover 在游戏里只显示首帧与末帧；attack 逻辑 8 tick、有效窗 tick 2–6 对应画面第 1–5 帧（挥击 + 砸地）。
 双手用两段 IK 贴住钩柄；前摇/挥击时钩尖炽热发光（危险预告）。
 """
 from __future__ import annotations
@@ -234,7 +234,7 @@ def main() -> None:
     for anim in wanted:
         for i in range(ANIMS[anim]):
             R.pose(POSES[anim](i))
-            hot = anim == "windup" and i >= 2 or anim == "attack" and i <= 3
+            hot = anim == "windup" and i >= 2 or anim == "attack"   # 攻击整行发光：覆盖逻辑有效窗 tick2–6 → 画面 1–5
             R.set_visible(["hook_hot", "hook_hot2"], hot)
             R.render_pair(out, f"{anim}_{i}")
     R.write_parts(out, {"anims": {a: ANIMS[a] for a in wanted}, "res": [R.RES_X, R.RES_Y],

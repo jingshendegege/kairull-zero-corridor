@@ -16,6 +16,9 @@ DEFAULTS = {
         "cell": [278, 26], "required_clear_rooms": [1, 2, 3, 5, 6, 7]},
     "M05_VerticalFreight": {"id": "m05_hub_after_lower", "room_index": 0,
         "cell": [71, 50], "required_clear_rooms": [3, 4, 5, 6, 7, 8]},
+    # 04 排风脊线：中继检修站，前三个战斗房（扇阵/天窗廊/冷却塔）全清后启用
+    "M06_ExhaustRidge": {"id": "m06_relay_mid", "room_index": 4,
+        "cell": [150, 34], "required_clear_rooms": [1, 2, 3]},
 }
 
 

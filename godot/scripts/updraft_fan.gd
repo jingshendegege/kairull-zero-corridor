@@ -52,13 +52,13 @@ func _draw() -> void:
 	_draw_visuals()
 
 
+## 像素精灵（tools/art/m06/build_m06_props.py）：4 帧 64×16，扇心 x=32，y=0 贴地表。
+const SHEET := preload("res://assets/maps/m06/fan_sheet.png")
+
+
 func _draw_visuals() -> void:
-	draw_rect(Rect2(-width * 0.5, 0.0, width, 10.0), Color("#263d48"))
-	draw_rect(Rect2(-width * 0.5 + 3.0, 1.0, width - 6.0, 6.0), Color("#101f29"))
-	for index in 4:
-		var angle := spin_phase + float(index) * TAU / 4.0
-		var blade := Vector2(cos(angle) * width * 0.35, sin(angle) * 3.0)
-		draw_line(Vector2(0, 4), Vector2(0, 4) + blade, Color("#9ac6d0"), 2.0)
+	var frame := int(floor(spin_phase / TAU * 8.0)) % 4
+	draw_texture_rect_region(SHEET, Rect2(-32.0, -2.0, 64.0, 16.0), Rect2(frame * 64, 0, 64, 16))
 	for index in 5:
 		var x := lerpf(-width * 0.4, width * 0.4, float(index) / 4.0)
 		var rise := fposmod(spin_phase / TAU * 36.0 + float(index) * 9.0, 36.0)

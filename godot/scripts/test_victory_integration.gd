@@ -1,7 +1,8 @@
 extends SceneTree
 ## 真实出口接入胜利白字/慢黑幕，完成后Enter必须清存点重新开局，音乐仍连续。
 const SESSION := preload("res://scripts/run_session.gd")
-const SCENE := "res://scenes/m05_vertical_freight.tscn" # 最终关才保留Enter重玩，前两关另验自动接续。
+# 最终关才保留Enter重玩，前面各关另验自动接续；新增第四关后取菜单关卡表的最后一关，不写死场景。
+var SCENE: String = SESSION.LEVEL_SCENES[SESSION.LEVEL_SCENES.size() - 1]
 var passed := 0
 var failed := 0
 var game: Node2D

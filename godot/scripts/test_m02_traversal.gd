@@ -78,8 +78,9 @@ func _run() -> void:
 	ok(not g_corpse._rim.visible, "尸体摘掉亮青轮廓光（rim 只给活体威胁）")
 	ok(g_corpse._shadow.scale == GruntGunner.CORPSE_SHADOW_SCALE,
 		"尸体接触阴影跟随横躺宽度", str(g_corpse._shadow.scale))
-	ok(g_corpse._sprite.scale.x < GruntGunner.SCALE,
-		"尸体缩放独立于站姿 SCALE 且更小", str(g_corpse._sprite.scale))
+	# 2026-09-28 步枪兵为 1:1 像素美术，侧躺尸体本身不超过 96px，不再缩小（缩小会糊像素）。
+	ok(g_corpse._sprite.scale.x <= GruntGunner.SCALE and g_corpse.corpse_extent() <= GruntGunner.CORPSE_LONGEST,
+		"尸体缩放不大于站姿 SCALE，最长边不超过上限", str(g_corpse._sprite.scale))
 
 	ok(player._outline != null and player._halo != null,
 		"玩家可读性层存在（Outline 描边 + Halo 背晕）")
