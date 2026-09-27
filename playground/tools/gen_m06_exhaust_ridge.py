@@ -66,6 +66,7 @@ ROOM_TABLE = [
     ("pump_arena", "封锁泵站", "pump_arena", "main", [272, 15, 42, 21]),
     ("extraction", "撤离塔吊", "extraction_crane", "connector", [314, 25, 15, 11]),
 ]
+BRIDGE_SEGMENTS = [(217, 221), (230, 235), (244, 249)]
 SKY_ROOMS = {"roof_hatch", "fan_array", "skylight_gallery", "cooling_towers", "relay_station",
              "sniper_mast", "sky_bridge", "pump_arena", "extraction"}
 ROOMS = [{"room_id": rid, "display_name": name, "decor_profile": prof, "role": role, "rect": rect,
@@ -90,8 +91,8 @@ ENTITIES = [
     (120, 24, 4), (138, 23, 3), (118, 34, 3), (134, 34, 4),
     # 狙击桅杆：近战、玻璃后枪手、桅杆脚枪手
     (164, 34, 3), (174, 34, 4), (194, 34, 4), (161, 34, 5),
-    # 高空索桥：桥段连杀（近战/枪手/近战）+ 桥下基座两名
-    (231, 13, 3), (243, 13, 4), (254, 13, 3), (236, 19, 4), (248, 19, 3),
+    # 高空索桥：三段桥（缺口 8 格需冲刺）上近战/枪手连杀 + 桥下基座三名
+    (232, 13, 3), (246, 13, 4), (236, 19, 4), (248, 19, 3), (254, 19, 3),
     # 封锁泵站（终局竞技场）：六名混合 + 出口侧房门
     (280, 34, 3), (290, 34, 4), (298, 34, 3), (306, 34, 4), (288, 28, 4), (303, 28, 3), (284, 34, 5),
     (311, 34, 6),
@@ -133,8 +134,8 @@ def tactical_metadata() -> list[dict]:
              "purpose": "磨砂检疫玻璃：挡视线/子弹，冲刺或翻滚撞碎穿过",
              "solutions": ["冲刺/翻滚破窗突入，玻璃后敌人来不及反应", "挥棒敲碎，或从下层绕行"]}, c, top + 1)
     # 冲刺节点：悬空，冲刺冷却中触碰即刷新
-    nodes = [("node_towers_1", 108.5, 26.5), ("node_towers_2", 125.5, 24.0), ("node_bridge_1", 226.5, 12.5),
-             ("node_bridge_2", 238.0, 12.5), ("node_bridge_3", 249.0, 12.5), ("node_shaft", 213.5, 14.0)]
+    nodes = [("node_towers_1", 108.5, 26.5), ("node_towers_2", 125.5, 24.0), ("node_bridge_1", 226.0, 12.5),
+             ("node_bridge_2", 240.0, 12.5), ("node_bridge_3", 252.0, 10.5), ("node_shaft", 213.5, 14.0)]
     for nid, cx, cy in nodes:
         add({"id": nid, "type": "dash_node", "pos": [px(cx), px(cy)], "respawn": 2.0,
              "purpose": "空中续冲：跨越需要二次冲刺的缺口",
@@ -220,8 +221,9 @@ def seed_document() -> dict:
     plat(210, 213, 26)
     plat(204, 208, 23)
     plat(209, 215, 20)
-    # R8 高空索桥：基座地面 row20；上层桥段 row14（需冲刺连杀的缺口），每段下方备用台阶
-    for bx0, bx1 in [(218, 222), (230, 233), (242, 245), (252, 257)]:
+    # R8 高空索桥：基座地面 row20；上层三段桥 row14，缺口 8 格（超出普通跳远 ≈6.6 格，需起跳+空中冲刺），
+    # 桥面 5–6 格留足落地挥棒空间；每段下方备用台阶可普通攀上
+    for bx0, bx1 in BRIDGE_SEGMENTS:
         plat(bx0, bx1, 14)
         plat(bx0 - 3, bx0 - 1, 17)
     # R9 坠落通道：两级缓降台
