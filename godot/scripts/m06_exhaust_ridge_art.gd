@@ -53,6 +53,7 @@ func setup(host: Node2D) -> void:
 func _draw() -> void:
 	if game == null:
 		return
+	_draw_facade_below()
 	for shaft: Array in SHAFTS:
 		_draw_shaft(shaft)
 	_draw_gallery_interior()
@@ -68,6 +69,23 @@ func _draw() -> void:
 		draw_texture(tex, Vector2(float(prop[1]), float(prop[2]) - tex.get_height()).round())
 	for bx: float in [40.0 * TS, 147.0 * TS, 196.0 * TS, 257.0 * TS, 313.0 * TS]:
 		draw_texture_rect_region(BEACON, Rect2(bx, GROUND - 6.0, 6, 6), Rect2(0, 0, 6, 6))
+
+
+func _draw_facade_below() -> void:
+	# 世界底边（row37）以下：屋顶所在楼体的深色立面，避免低机位房间在地面下露出浅色天空
+	var width := 330.0 * TS
+	var top := 36.0 * TS
+	draw_rect(Rect2(-TS * 4.0, top, width + TS * 8.0, 640.0), Color("#080c14"))
+	var x := 24.0
+	var i := 0
+	while x < width:
+		for row in 4:
+			if (i * 7 + row * 3) % 5 == 0:
+				draw_rect(Rect2(x, top + 56.0 + row * 72.0, 12, 18), Color("#16263a"))
+			elif (i * 11 + row) % 9 == 0:
+				draw_rect(Rect2(x, top + 56.0 + row * 72.0, 12, 18), Color("#3b3322"))
+		x += 44.0
+		i += 1
 
 
 func _draw_shaft(s: Array) -> void:
