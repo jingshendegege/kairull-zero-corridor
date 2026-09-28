@@ -13,7 +13,8 @@ const RHYTHM_WINDOW := 0.20      ## 出手判定窗（秒）；漏判 = 过线�
 const LANE_FOOT := 36.0          ## 音符中心离主角脚底的高度（两层相同）；上层脚底 = 隔板顶面
 const DUAL_GAP := 0.12          ## 双键音符：上下两次按键允许的最大间隔（秒）
 const HEAVY_FLY_TIME := 0.6     ## 双键音符被击飞到 Boss 的弧线时长
-const HIT_SFX := preload("res://assets/sfx/beat_hit.wav")   ## 统一击打音效（tools/audio/beat_hit_sfx.py）
+## 统一击打音效：用户选定原版第一个球棒命中声（06_bat_hit_normal，原增益 +3.5dB），所有音符同一采样、不随机
+const HIT_SFX := preload("res://assets/sfx/06_bat_hit_normal.wav")
 const PLAYER_OFFSET := -34.0     ## 主角站在判定环左侧，挥棒扫过判定环
 var host: Node2D
 var config: Dictionary
@@ -531,7 +532,7 @@ func _press_dual(lane: String) -> BeatNote:
 	return null
 
 
-## 统一击打音效：所有音符同一个采样；双键音符只降一点音调、加音量（不换音色）。
+## 统一击打音效：所有音符同一个原版采样、同一音调；双键音符只再响 1.5dB。
 func _play_hit(heavy: bool) -> void:
 	if _hit_voices.is_empty():
 		for i in 4:
@@ -541,7 +542,7 @@ func _play_hit(heavy: bool) -> void:
 			_hit_voices.append(voice)
 	var voice := _hit_voices[_hit_voice_i]
 	_hit_voice_i = (_hit_voice_i + 1) % _hit_voices.size()
-	voice.pitch_scale = 0.9 if heavy else 1.0
-	voice.volume_db = 0.0 if heavy else -3.0
+	voice.pitch_scale = 1.0
+	voice.volume_db = 5.0 if heavy else 3.5
 	voice.play()
 

@@ -231,19 +231,34 @@ def main() -> None:
                 last_heavy_bar = bar
             else:
                 notes.append({"beat": beat, "lane": lane, "kind": "normal"})
-        if sec in ("drop", "finale") and bar % 2 == 1:
-            # 炸弹放在"没有打击"的八分音符空位（不打的东西就放在没声音的地方），上下层交替，同层前后十六分位无音符
-            lane = "air" if (bar // 2) % 2 else "ground"
-            for e in (14, 10, 6, 2, 15, 11, 7, 3):
+        # 炸弹"时不时"混入（用户要求）：主歌/蓄力每 4 小节、高潮/终段每 2 小节一颗，上下层交替。
+        # 优先放在没有鼓点的八分位；找不到就放在该层前后八分音符内无音符的位置（保证来得及换层躲开）。
+        every = {"intro": 0, "verse": 4, "build": 4, "drop": 2, "finale": 2}[sec]
+        if every and bar % every == every - 1:
+            lane = "air" if (bar // every) % 2 else "ground"
+            best = None
+            for e in (14, 10, 6, 2, 12, 8, 4):
                 k = bar * 16 + e
                 beat = bar * 4 + e / 4.0
                 h = slot_hits.get(k, {})
-                quiet = max(h.get("kick", 0.0), h.get("snare", 0.0), h.get("cymbal", 0.0)) < 0.3   # 没有鼓点（吉他声不算）
-                clear = all(not (n["lane"] == lane and abs(n["beat"] - beat) <= 0.25) and n["beat"] != beat
-                            for n in notes if abs(n["beat"] - beat) < 1)
-                if quiet and clear:
-                    notes.append({"beat": beat, "lane": lane, "kind": "bomb"})
+                clear = all(abs(n["beat"] - beat) > 0.5 for n in notes
+                            if (n["lane"] == lane or n["kind"] == "heavy") and abs(n["beat"] - beat) < 1)
+                if not clear:
+                    continue
+                quiet = max(h.get("kick", 0.0), h.get("snare", 0.0), h.get("cymbal", 0.0)) < 0.3
+                if quiet:
+                    best = beat
                     break
+                if best is None:
+                    best = beat
+            if best is None:
+                # 高密度段没有空位：放在小节最后一个反拍，并让出该层前后八分音符内的音符（双键附近不放）
+                beat = bar * 4 + 3.5
+                if all(abs(n["beat"] - beat) > 0.5 for n in notes if n["kind"] == "heavy"):
+                    notes = [n for n in notes if not (n["lane"] == lane and abs(n["beat"] - beat) <= 0.5)]
+                    best = beat
+            if best is not None:
+                notes.append({"beat": best, "lane": lane, "kind": "bomb"})
     # 同层十六分音符连打只保留在 finale；其他段落同层间隔 < 八分音符的去掉较弱的后一个
     notes.sort(key=lambda n: (n["beat"], n["lane"]))
     kept = []

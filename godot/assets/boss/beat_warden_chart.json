@@ -627,6 +627,11 @@
    "kind": "normal"
   },
   {
+   "beat": 110.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
    "beat": 111.0,
    "lane": "air",
    "kind": "normal"
@@ -747,9 +752,9 @@
    "kind": "normal"
   },
   {
-   "beat": 127.0,
+   "beat": 127.5,
    "lane": "air",
-   "kind": "normal"
+   "kind": "bomb"
   },
   {
    "beat": 128.0,
@@ -872,6 +877,11 @@
    "kind": "normal"
   },
   {
+   "beat": 143.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
    "beat": 144.0,
    "lane": "air",
    "kind": "normal"
@@ -978,11 +988,6 @@
   },
   {
    "beat": 157.5,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 159.0,
    "lane": "air",
    "kind": "normal"
   },
@@ -1102,6 +1107,11 @@
    "kind": "normal"
   },
   {
+   "beat": 175.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
    "beat": 176.0,
    "lane": "ground",
    "kind": "normal"
@@ -1198,11 +1208,6 @@
   },
   {
    "beat": 189.5,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 191.0,
    "lane": "air",
    "kind": "normal"
   },
@@ -1317,6 +1322,11 @@
    "kind": "normal"
   },
   {
+   "beat": 205.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
    "beat": 206.5,
    "lane": "ground",
    "kind": "normal"
@@ -1397,6 +1407,11 @@
    "kind": "normal"
   },
   {
+   "beat": 215.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
    "beat": 215.75,
    "lane": "air",
    "kind": "normal"
@@ -1457,14 +1472,9 @@
    "kind": "normal"
   },
   {
-   "beat": 223.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
    "beat": 223.5,
    "lane": "air",
-   "kind": "normal"
+   "kind": "bomb"
   },
   {
    "beat": 223.5,
@@ -1602,6 +1612,11 @@
    "kind": "normal"
   },
   {
+   "beat": 239.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
    "beat": 240.0,
    "lane": "air",
    "kind": "normal"
@@ -1655,6 +1670,11 @@
    "beat": 247.0,
    "lane": "air",
    "kind": "normal"
+  },
+  {
+   "beat": 247.5,
+   "lane": "ground",
+   "kind": "bomb"
   },
   {
    "beat": 247.75,
@@ -1732,6 +1752,11 @@
    "kind": "normal"
   },
   {
+   "beat": 255.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
    "beat": 256.0,
    "lane": "air",
    "kind": "normal"
@@ -1797,12 +1822,7 @@
    "kind": "normal"
   },
   {
-   "beat": 263.0,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 263.75,
+   "beat": 263.5,
    "lane": "ground",
    "kind": "bomb"
   },
@@ -1867,9 +1887,14 @@
    "kind": "normal"
   },
   {
-   "beat": 271.75,
+   "beat": 271.5,
    "lane": "air",
    "kind": "bomb"
+  },
+  {
+   "beat": 272.0,
+   "lane": "air",
+   "kind": "normal"
   },
   {
    "beat": 272.0,
@@ -1979,7 +2004,7 @@
   {
    "beat": 287.5,
    "lane": "air",
-   "kind": "normal"
+   "kind": "bomb"
   },
   {
    "beat": 287.5,
@@ -2085,6 +2110,11 @@
    "beat": 303.5,
    "lane": "air",
    "kind": "normal"
+  },
+  {
+   "beat": 303.5,
+   "lane": "ground",
+   "kind": "bomb"
   },
   {
    "beat": 304.0,
@@ -2228,13 +2258,13 @@
   },
   {
    "beat": 318.5,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 318.75,
    "lane": "air",
    "kind": "bomb"
+  },
+  {
+   "beat": 318.5,
+   "lane": "ground",
+   "kind": "normal"
   },
   {
    "beat": 320.0,
@@ -2355,6 +2385,11 @@
    "beat": 332.75,
    "lane": "ground",
    "kind": "normal"
+  },
+  {
+   "beat": 333.5,
+   "lane": "air",
+   "kind": "bomb"
   },
   {
    "beat": 333.5,
@@ -2480,6 +2515,11 @@
    "beat": 348.0,
    "lane": "air",
    "kind": "normal"
+  },
+  {
+   "beat": 349.0,
+   "lane": "air",
+   "kind": "bomb"
   },
   {
    "beat": 350.0,
@@ -2612,6 +2652,11 @@
    "kind": "normal"
   },
   {
+   "beat": 359.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
    "beat": 360.0,
    "lane": "air",
    "kind": "normal"
@@ -2697,24 +2742,14 @@
    "kind": "normal"
   },
   {
-   "beat": 366.5,
-   "lane": "air",
-   "kind": "bomb"
-  },
-  {
-   "beat": 367.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 367.25,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
    "beat": 367.25,
    "lane": "ground",
    "kind": "normal"
+  },
+  {
+   "beat": 367.5,
+   "lane": "air",
+   "kind": "bomb"
   },
   {
    "beat": 368.0,
@@ -2814,7 +2849,7 @@
   {
    "beat": 375.5,
    "lane": "ground",
-   "kind": "normal"
+   "kind": "bomb"
   },
   {
    "beat": 376.5,
@@ -2902,9 +2937,9 @@
    "kind": "normal"
   },
   {
-   "beat": 383.0,
+   "beat": 383.5,
    "lane": "air",
-   "kind": "normal"
+   "kind": "bomb"
   },
   {
    "beat": 383.5,
@@ -2987,7 +3022,7 @@
    "kind": "normal"
   },
   {
-   "beat": 389.75,
+   "beat": 389.5,
    "lane": "ground",
    "kind": "bomb"
   },
@@ -3102,11 +3137,6 @@
    "kind": "normal"
   },
   {
-   "beat": 399.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
    "beat": 399.25,
    "lane": "ground",
    "kind": "normal"
@@ -3114,7 +3144,7 @@
   {
    "beat": 399.5,
    "lane": "air",
-   "kind": "normal"
+   "kind": "bomb"
   },
   {
    "beat": 400.0,
@@ -3212,9 +3242,9 @@
    "kind": "normal"
   },
   {
-   "beat": 407.0,
+   "beat": 407.5,
    "lane": "ground",
-   "kind": "normal"
+   "kind": "bomb"
   },
   {
    "beat": 408.0,
@@ -3305,7 +3335,7 @@
  "loop_from_beat": 208,
  "loop_to_beat": 416,
  "song_seconds": 167.614,
- "boss_hp": 591,
+ "boss_hp": 580,
  "note_damage": {
   "normal": 1,
   "heavy": 3,
