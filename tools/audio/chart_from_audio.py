@@ -7,7 +7,8 @@
   3. 速度：全频起音包络自相关，在 --bpm 附近（±15%）找峰；相位：按拍网格累加起音强度取最大。
   4. 段落：每 4 小节的 RMS 能量排序 → 低能量=intro/verse，渐强=build，高能量=drop，最后一段高能量=finale。
   5. 音符：只在真实打击处放——FFT 分频 3ms 包络找瞬态，量化到十六分网格（偏差 ≤40ms），
-     底鼓 → ground，军鼓/镲 → air，只有吉他重音时交替；每小节按段落设上限（不凑数）；
+     音符放在真实打击时刻（不吸附网格）；底鼓 → ground，军鼓/重镲 → air；每小节按段落设上限（不凑数）；
+     陷阱：炸弹每 2 小节、导弹（替换强拍音符）主歌每 4 / 高潮每 2 小节；
      每两小节首拍的强起音 → heavy（运行时为上下同时按的双键音符，同拍其他音符让位）；drop/finale 的空拍按固定图样放 bomb（与前后音符留出换层时间）。
   6. 谱面合同与 beat_warden_song.py 相同（bpm/offset_sec/sections/notes/loop/boss_hp…），运行时无需改动。
 """
@@ -190,12 +191,20 @@ def main() -> None:
     if devs:
         grid0 += float(np.median(devs))
     slot_hits: dict[int, dict[str, float]] = {}
+    slot_time: dict[int, tuple[float, float]] = {}      # 网格位 → (最强鼓点的真实时刻, 强度)
     for name, (times, strength) in bands.items():
         for t, st in zip(times, strength):
             k = int(round((t - grid0) / q))
             if k >= 0 and abs(t - (grid0 + k * q)) <= 0.04:
                 cur = slot_hits.setdefault(k, {})
                 cur[name] = max(cur.get(name, 0.0), st)
+                if name != "guitar" and st > slot_time.get(k, (0.0, -1.0))[1]:
+                    slot_time[k] = (t, st)
+
+    def exact_beat(k: int) -> float:
+        """该网格位上真实鼓点的拍位（精确到 1ms 级），没有鼓点时退回网格。"""
+        t = slot_time.get(k, (grid0 + k * q, 0.0))[0]
+        return round((t - grid0) / spb, 4)
     cap = {"intro": 4, "verse": 6, "build": 7, "drop": 8, "finale": 10}
     sixteenth_ok = {"intro": 1.1, "verse": 1.1, "build": 0.9, "drop": 0.7, "finale": 0.45}   # 十六分位所需强度
     notes = []
@@ -210,31 +219,29 @@ def main() -> None:
                 continue
             beat = bar * 4 + e / 4.0
             g = h.get("kick", 0.0)
-            a = max(h.get("snare", 0.0), h.get("cymbal", 0.0) * 0.9)
+            a = max(h.get("snare", 0.0), h.get("cymbal", 0.0) if h.get("cymbal", 0.0) >= 0.6 else 0.0)
             gt = h.get("guitar", 0.0)
             if e % 2 == 1 and max(g, a) < sixteenth_ok[sec]:
                 continue                                  # 十六分位只收足够强的打击
             bonus = 0.15 if e % 4 == 0 else 0.05 if e % 2 == 0 else 0.0
             if e == 0 and sec != "intro" and bar - last_heavy_bar >= 2 and g >= 0.55 and h.get("cymbal", 0.0) >= 0.5:
-                cands.append((9.0, beat, "dual"))         # 镲 + 底鼓同时砸下的小节首拍 → 双键
+                cands.append((9.0, k, "dual"))            # 镲 + 底鼓同时砸下的小节首拍 → 双键
                 continue
             if g >= 0.35:
-                cands.append((g + bonus, beat, "ground"))
+                cands.append((g + bonus, k, "ground"))
             if a >= 0.35:
-                cands.append((a + bonus, beat, "air"))
-            if g < 0.35 and a < 0.35 and gt >= 0.6:       # 只有吉他重音：按拍位交替上下层
-                cands.append((gt * 0.8 + bonus, beat, "ground" if e % 8 < 4 else "air"))
+                cands.append((a + bonus, k, "air"))
         cands.sort(key=lambda c: -c[0])
         chosen = cands[:cap[sec]]
-        for _score, beat, lane in chosen:
+        for score, k, lane in chosen:
             if lane == "dual":
-                notes.append({"beat": beat, "lane": "ground", "kind": "heavy"})
+                notes.append({"beat": exact_beat(k), "lane": "ground", "kind": "heavy"})
                 last_heavy_bar = bar
             else:
-                notes.append({"beat": beat, "lane": lane, "kind": "normal"})
+                notes.append({"beat": exact_beat(k), "lane": lane, "kind": "normal", "_score": score})
         # 炸弹"时不时"混入（用户要求）：主歌/蓄力每 4 小节、高潮/终段每 2 小节一颗，上下层交替。
         # 优先放在没有鼓点的八分位；找不到就放在该层前后八分音符内无音符的位置（保证来得及换层躲开）。
-        every = {"intro": 0, "verse": 4, "build": 4, "drop": 2, "finale": 2}[sec]
+        every = {"intro": 0, "verse": 2, "build": 2, "drop": 2, "finale": 2}[sec]
         if every and bar % every == every - 1:
             lane = "air" if (bar // every) % 2 else "ground"
             best = None
@@ -260,6 +267,17 @@ def main() -> None:
                     best = beat
             if best is not None:
                 notes.append({"beat": best, "lane": lane, "kind": "bomb"})
+        m_every = {"intro": 0, "verse": 4, "build": 4, "drop": 2, "finale": 2}[sec]
+        if m_every and bar % m_every == 0:
+            # 导弹（用户要求"导弹/飞弹替换一些音符"）：选本小节第 2 拍以后最强的普通音符改成导弹——
+            # 导弹落在强拍上，躲开时正好卡着重音；同层前后八分音符内的音符让位，双键附近不放。
+            pool = [n for n in notes if n["kind"] == "normal" and bar * 4 + 1 <= n["beat"] < bar * 4 + 4]
+            pool = [n for n in pool if all(abs(m["beat"] - n["beat"]) > 0.5 for m in notes if m["kind"] == "heavy")]
+            if pool:
+                pick = max(pool, key=lambda n: n.get("_score", 0.0))
+                notes = [n for n in notes if n is pick
+                         or not (n["lane"] == pick["lane"] and abs(n["beat"] - pick["beat"]) <= 0.5)]
+                pick["kind"] = "missile"
     # 同层十六分音符连打只保留在 finale；其他段落同层间隔 < 八分音符的去掉较弱的后一个
     notes.sort(key=lambda n: (n["beat"], n["lane"]))
     kept = []
@@ -270,6 +288,8 @@ def main() -> None:
             continue
         kept.append(n)
     notes = kept
+    for n in notes:
+        n.pop("_score", None)
     # 双键音符：同拍及前后八分音符位的其他音符让位（炸弹除外离得够远）
     heavy_beats = {n["beat"] for n in notes if n["kind"] == "heavy"}
     notes = [n for n in notes if n["kind"] == "heavy" or all(abs(n["beat"] - hb) > 0.5 for hb in heavy_beats)]
@@ -287,7 +307,7 @@ def main() -> None:
     finale_blocks = [i for i, l in enumerate(labels) if l == "finale"]
     loop_to = (finale_blocks[-1] + 1) * 16 if finale_blocks else beats_total - (beats_total % 4)
     loop_to = min(loop_to, beats_total - (beats_total % 4))
-    damage = sum(3 if n["kind"] == "heavy" else 0 if n["kind"] == "bomb" else 1 for n in notes)
+    damage = sum(3 if n["kind"] == "heavy" else 0 if n["kind"] in ("bomb", "missile") else 1 for n in notes)
     chart = {"bpm": round(bpm, 3), "offset_sec": round(grid0, 4), "beats_per_bar": 4, "note_speed_px": 520,
              "sections": sections, "notes": notes, "rushes": rushes, "loop_from_beat": drop_from, "loop_to_beat": loop_to,
              "song_seconds": round(dur, 3), "boss_hp": int(round(damage * args.hp_ratio / max(0.2, 1.0 - args.hp_ratio * len(rushes) * 0.15))),
@@ -295,7 +315,7 @@ def main() -> None:
              "music": args.music,
              "source": f"tools/audio/chart_from_audio.py 由 {Path(args.audio).name} 自动生成（节拍/段落/音符均来自音频分析）"}
     Path(args.out).write_text(json.dumps(chart, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
-    kinds = {k: sum(1 for n in notes if n["kind"] == k) for k in ("normal", "heavy", "bomb")}
+    kinds = {k: sum(1 for n in notes if n["kind"] == k) for k in ("normal", "heavy", "bomb", "missile")}
     print(f"CHART_OK rushes={rushes} bpm={bpm:.2f} offset={grid0:.3f}s dur={dur:.1f}s beats={beats_total} notes={len(notes)} {kinds} "
           f"boss_hp={chart['boss_hp']} sections={[(s['name'], s['from_beat']) for s in sections]}")
 

@@ -370,6 +370,49 @@ def note_bomb() -> Image.Image:
     return img
 
 
+def note_missile() -> Image.Image:
+    """导弹（2026-09-28 新陷阱）：机头朝左（向主角飞来）；红色弹头 + 钢灰弹体 + 黄黑警示环 + 尾翼 + 喷口，
+    白色外描边保证在红黑舞台上醒目；尾焰由运行时绘制。"""
+    w, h = 54, 24
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    px = img.load()
+    cy = h // 2
+    for x in range(4, 46):                                     # 弹体
+        half = 5 if x > 12 else max(1, int((x - 3) * 5 / 9))      # 机头锥形
+        for y in range(cy - half, cy + half + 1):
+            t = (y - (cy - half)) / max(1, 2 * half)
+            if x <= 12:
+                col = "#ff6a4a" if t < 0.35 else "#e0200e" if t < 0.75 else "#8a1208"
+            else:
+                col = "#e8ecf2" if t < 0.3 else "#a8b0bc" if t < 0.7 else "#626a76"
+            px[x, y] = hx(col)
+    for x in range(20, 26):                                    # 黄黑警示环
+        for y in range(cy - 5, cy + 6):
+            px[x, y] = hx("#ffd26a" if (x + y) % 4 < 2 else "#1a1a1a")
+    for fx in range(38, 47):                                   # 尾翼
+        span = (fx - 37) // 2 + 1
+        for y in range(cy - 5 - span, cy - 5):
+            px[fx, y] = hx("#8a1208")
+        for y in range(cy + 6, cy + 6 + span):
+            px[fx, y] = hx("#8a1208")
+    for y in range(cy - 3, cy + 4):                            # 喷口
+        px[46, y] = hx("#2a2a30")
+        px[47, y] = hx("#2a2a30")
+    solid = {(x, y) for y in range(h) for x in range(w) if px[x, y][3]}
+    for (x, y) in list(solid):                                 # 墨色描边 + 外圈白描边
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < w and 0 <= ny < h and (nx, ny) not in solid:
+                px[nx, ny] = hx(ROCK_INK)
+    solid2 = {(x, y) for y in range(h) for x in range(w) if px[x, y][3]}
+    for (x, y) in list(solid2):
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < w and 0 <= ny < h and (nx, ny) not in solid2:
+                px[nx, ny] = hx("#ffffff", 190)
+    return img
+
+
 def judge_ring() -> Image.Image:
     img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
     px = img.load()
@@ -583,7 +626,7 @@ def main() -> None:
              "note_bomb.png": note_bomb(), "judge_ring.png": judge_ring(), "note_burst.png": note_burst(),
              "stage_lightbar.png": lightbar(), "stage_led_mask.png": stage_led_mask(),
              "stage_speaker.png": stage_speaker(), "stage_woofer.png": stage_woofer(), "stage_spot.png": stage_spot(),
-             "stage_neon.png": stage_neon()}
+             "stage_neon.png": stage_neon(), "note_missile.png": note_missile()}
     items["note_normal_air.png"] = wings(items["note_normal.png"], 12, "#ffb040", "#b8300e")   # 火焰小翼
     items["note_bomb_air.png"] = wings(items["note_bomb.png"], 16, "#ffb0f4", "#a0108a")
     for name, img in items.items():

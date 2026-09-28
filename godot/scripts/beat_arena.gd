@@ -4,7 +4,7 @@ class_name BeatArena
 const CONDUCTOR := preload("res://scripts/beat_conductor.gd")
 const WARDEN := preload("res://scripts/beat_warden.gd")
 const NOTE := preload("res://scripts/beat_note.gd")
-const COLORS := {"normal": Color("5fe6f0"), "heavy": Color("f0b44a"), "bomb": Color("ff2ad8")}
+const COLORS := {"normal": Color("5fe6f0"), "heavy": Color("f0b44a"), "bomb": Color("ff2ad8"), "missile": Color("ff9a3f")}
 ## 2026-09-28 用户试玩反馈：自由移动+挥棒不好用 → 改为喵斯快跑式双轨。
 ## 倒数开始后主角锁定在判定线前原地奔跑（场景由 m07_beat_stage_fx 向左滚动）：
 ## W/↑ 上到隔板上层并挥棒，S/↓ 回地面下层并挥棒；按一次就停在该层，直到按另一个键切换。
@@ -284,6 +284,8 @@ func spawn_note(event: Dictionary) -> BeatNote:
 	add_child(note)
 	notes.append(note)
 	boss.fire(note.lane)
+	if note.kind == "missile":   # 发射声：原版枪声压低，提示有导弹来袭
+		_play_stream(host._sfx.get("shot1"), 0.7, -9.0)
 	return note
 
 func _on_swing_started(_stage: int) -> void:
@@ -306,7 +308,7 @@ func _contact_note(note: BeatNote) -> void:
 	if not note.bat_contact(swing, conductor.time):
 		return
 	_burst(note.position, note.kind)
-	if note.kind == "bomb":
+	if note.kind in ["bomb", "missile"]:
 		host.player.take_damage(1, note.position.x)
 	else:
 		if note.reflected:
@@ -364,7 +366,9 @@ func _advance_notes(dt: float) -> void:
 				break
 			if note.body_rect().intersects(host.player.hurtbox_rect()):
 				note.spent = true
-				_burst(note.position, note.kind)
+				_burst(note.position, note.kind, 1.8 if note.kind == "missile" else 1.0)
+				if note.kind == "missile" and host.has_method("add_camera_shake"):
+					host.add_camera_shake(Vector2.LEFT, 0.35)
 				host.player.take_damage(1, note.position.x)
 				if host.player.dead:
 					return
@@ -375,7 +379,7 @@ func _advance_notes(dt: float) -> void:
 				break
 		if not note.spent and not note.reflected:
 			note.position = destination
-		if rhythm_lock and note.kind == "bomb" and not note.contacted and not note.spent \
+		if rhythm_lock and note.kind in ["bomb", "missile"] and not note.contacted and not note.spent \
 				and conductor.time >= note.hit_time:
 			note.contacted = true
 			if player_lane == note.lane:
@@ -384,7 +388,7 @@ func _advance_notes(dt: float) -> void:
 				host.player.take_damage(1, note.position.x)
 				if host.player.dead:
 					return
-		if not note.contacted and not note.missed and note.kind != "bomb" \
+		if not note.contacted and not note.missed and note.kind not in ["bomb", "missile"] \
 				and conductor.time - note.hit_time > (RHYTHM_WINDOW if rhythm_lock else 0.150):
 			note.missed = true
 			show_rating("Miss", note.lane)
@@ -557,7 +561,7 @@ func rhythm_press(lane: String) -> BeatNote:
 	var best: BeatNote = null
 	var best_error := INF
 	for note: BeatNote in notes:
-		if note.spent or note.reflected or note.contacted or note.kind in ["bomb", "heavy"] or note.lane != lane:
+		if note.spent or note.reflected or note.contacted or note.kind in ["bomb", "heavy", "missile"] or note.lane != lane:
 			continue
 		var error := conductor.time - note.hit_time
 		if absf(error) <= RHYTHM_WINDOW and absf(error) < absf(best_error):

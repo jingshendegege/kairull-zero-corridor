@@ -19,6 +19,8 @@ var _slow_time := 0.0
 var dual_press := {"air": -INF, "ground": -INF}   ## 双键音符两层各自的按键时刻
 var fly_from := Vector2.ZERO
 var fly_t := -1.0                                  ## >= 0 时按击飞弧线飞向 Boss
+const MISSILE_SPEED := 1.6                         ## 导弹比普通音符快 1.6 倍，从画面右侧外飞入，仍准点到达判定线
+const MISSILE_WARN_X := 2200.0                     ## 预警「!」画在该层 Boss 身前（世界 x），不被 Boss 挡住
 var _lane_ys := Vector2.ZERO                       ## (上层 y, 下层 y)，用于画双键连接光柱
 var _slow_x := 0.0
 
@@ -30,6 +32,23 @@ func setup(event: Dictionary, config: Dictionary, note_speed: float, now: float)
 	speed = note_speed
 	judge_x = float(config.judge_x)
 	position.y = float(config["lane_" + lane + "_y"])
+	if kind == "missile":
+		speed = note_speed * MISSILE_SPEED
+		scale = Vector2.ONE * 1.3   # 导弹放大，飞行中更醒目
+		var flame := Node2D.new()
+		flame.name = "Flame"
+		flame.show_behind_parent = true
+		var fmat := CanvasItemMaterial.new()
+		fmat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		flame.material = fmat
+		flame.draw.connect(_draw_missile_flame.bind(flame))
+		add_child(flame)
+		var warn := Node2D.new()
+		warn.name = "Warn"
+		warn.top_level = true
+		warn.position = Vector2(MISSILE_WARN_X, position.y)
+		warn.draw.connect(_draw_missile_warn.bind(warn))
+		add_child(warn)
 	if kind == "bomb":
 		scale = Vector2.ONE * 1.25   # 炸弹放大，配合光环更醒目
 		var glow := Node2D.new()
@@ -76,6 +95,31 @@ func _process(_dt: float) -> void:
 		var glow := get_node_or_null("BombGlow")
 		if glow != null:
 			glow.queue_redraw()
+	elif kind == "missile" and not spent:
+		for child_name in ["Flame", "Warn"]:
+			var node := get_node_or_null(child_name)
+			if node != null:
+				node.queue_redraw()
+
+
+## 导弹尾焰：喷口在右侧，橙黄火舌向右拖出并快速闪烁。
+func _draw_missile_flame(flame: Node2D) -> void:
+	var f := 0.75 + 0.25 * sin(Time.get_ticks_msec() * 0.08)
+	var base := Vector2(texture.get_width() * 0.5 - 6, 0)
+	flame.draw_colored_polygon(PackedVector2Array([base + Vector2(0, -6), base + Vector2(34 * f, 0), base + Vector2(0, 6)]), Color(1.0, 0.45, 0.1, 0.7))
+	flame.draw_colored_polygon(PackedVector2Array([base + Vector2(0, -3), base + Vector2(18 * f, 0), base + Vector2(0, 3)]), Color(1.0, 0.95, 0.6, 0.9))
+
+
+## 导弹预警：在该层右侧边缘闪红色「!」，导弹飞过后消失。
+func _draw_missile_warn(warn: Node2D) -> void:
+	if spent or position.x < MISSILE_WARN_X - 30.0:
+		return
+	if fmod(Time.get_ticks_msec() / 1000.0, 0.2) > 0.12:
+		return
+	warn.draw_colored_polygon(PackedVector2Array([Vector2(0, -22), Vector2(20, 14), Vector2(-20, 14)]), Color("0a0606"))
+	warn.draw_colored_polygon(PackedVector2Array([Vector2(0, -17), Vector2(15, 11), Vector2(-15, 11)]), Color("ff2a1a"))
+	warn.draw_rect(Rect2(-2, -9, 4, 11), Color.WHITE)
+	warn.draw_rect(Rect2(-2, 5, 4, 4), Color.WHITE)
 
 
 func body_rect() -> Rect2:
@@ -90,7 +134,7 @@ func bat_contact(swing: int, now: float) -> bool:
 		return false
 	last_swing = swing
 	contacted = true
-	if kind == "bomb":
+	if kind in ["bomb", "missile"]:
 		spent = true
 	elif kind == "heavy" and not cracked:
 		cracked = true
@@ -103,6 +147,9 @@ func bat_contact(swing: int, now: float) -> bool:
 	return true
 
 func _sync_texture() -> void:
+	if kind == "missile":
+		texture = load(ART + "note_missile.png")
+		return
 	var suffix := "_air" if lane == "air" and kind != "heavy" else ""
 	if cracked:
 		suffix = "_cracked"
