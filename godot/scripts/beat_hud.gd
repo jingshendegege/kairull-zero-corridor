@@ -73,6 +73,9 @@ var _last_combo := 0
 var _last_swing := 0
 var _key_flash := {"air": 0.0, "ground": 0.0}
 var _result_time := -1.0
+var _damage_pops: Array[Dictionary] = []
+var _perfect_time := 0.0
+var _last_perfect := false
 var _t := 0.0
 
 
@@ -87,6 +90,7 @@ func setup(host: Node2D, beat_arena: Node2D) -> void:
 	add_child(canvas)
 	_lag_hp = float(arena.boss.max_hp)
 	arena.rated.connect(_on_rated)
+	arena.damage_popped.connect(_on_damage)
 	visible = false
 
 
@@ -97,6 +101,15 @@ func _on_rated(value: String, lane: String) -> void:
 	_popups.append({"value": value, "world": Vector2(float(arena.config.judge_x), y), "life": 0.55})
 	if _popups.size() > 6:
 		_popups.pop_front()
+
+
+## 伤害跳字：从击中点弹出；一档小而淡，逐档变大、变浓、变夸张，终结一击最大并带光晕。
+func _on_damage(amount: int, world: Vector2, tier: int) -> void:
+	_damage_pops.append({"amount": amount, "world": world, "tier": tier, "life": [0.5, 0.65, 0.8, 1.2][tier],
+		"max": [0.5, 0.65, 0.8, 1.2][tier], "rot": randf_range(-0.25, 0.25) if tier >= 2 else 0.0,
+		"drift": randf_range(-30.0, 30.0)})
+	if _damage_pops.size() > 24:
+		_damage_pops.pop_front()
 
 
 func _process(dt: float) -> void:
@@ -144,6 +157,13 @@ func _process(dt: float) -> void:
 		_key_flash[lane] = maxf(0.0, _key_flash[lane] - step * 5.0)
 	for pop: Dictionary in _popups:
 		pop.life -= step
+	for pop: Dictionary in _damage_pops:
+		pop.life -= dt
+	_damage_pops = _damage_pops.filter(func(pop: Dictionary) -> bool: return pop.life > 0.0)
+	if arena.perfect_counter and not _last_perfect:
+		_perfect_time = 1.4
+	_last_perfect = arena.perfect_counter
+	_perfect_time = maxf(0.0, _perfect_time - dt)
 	_popups = _popups.filter(func(pop: Dictionary) -> bool: return pop.life > 0.0)
 	canvas.queue_redraw()
 
@@ -159,6 +179,7 @@ func _draw_hud() -> void:
 		_draw_lane_keys()
 		_draw_popups()
 		_draw_rush(size)
+		_draw_damage_pops()
 	if _result_time >= 0.0:
 		_draw_result(size)
 
@@ -339,9 +360,55 @@ func _draw_rush(size: Vector2) -> void:
 		canvas.draw_rect(Rect2(x0, 200, bar_w * ratio, 4), Color("ffd84a"))
 		var font: Font = game.hud.get_theme_font()
 		canvas.draw_string(font, Vector2(x0, 240), "连打反击！任意攻击键（W/S/↑/↓/左键）", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("fff2d0"))
+		var dmg_ratio := clampf(float(arena.counter_damage) / float(maxi(1, arena.counter_cap)), 0.0, 1.0)
+		canvas.draw_rect(Rect2(x0 - 4, 258, bar_w + 8, 16), INK)
+		canvas.draw_rect(Rect2(x0, 261, bar_w * dmg_ratio, 10), Color("ff2a1a"))
+		for i in range(1, 4):
+			canvas.draw_rect(Rect2(x0 + bar_w * i / 4.0 - 1, 261, 2, 10), INK)
+		var lv := "POWER LV.%d" % (arena.counter_tier + 1)
+		_px_text(lv, Vector2(x0 + bar_w + 16, 256), 3.0, [Color("fff2d0"), Color("ffb040"), Color("ff3a1a")][arena.counter_tier])
 		if arena.counter_hits > 0:
 			var txt := "x%d HIT" % arena.counter_hits
-			_px_text(txt, Vector2((size.x - txt.length() * 6.0 * 5.0) * 0.5, 262), 5.0, Color.WHITE)
+			_px_text(txt, Vector2((size.x - txt.length() * 6.0 * 5.0) * 0.5, 284), 5.0, Color.WHITE)
+	if _perfect_time > 0.0:
+		var ptxt := "PERFECT COUNTER!"
+		var pw := ptxt.length() * 6.0 * 6.0
+		var bounce := 1.0 + 0.25 * maxf(0.0, _perfect_time - 1.1) / 0.3
+		canvas.draw_set_transform(Vector2(size.x * 0.5, 170), 0.0, Vector2.ONE * bounce)
+		_px_text(ptxt, Vector2(-pw * 0.5, -21), 6.0, Color(Color("ffd84a"), clampf(_perfect_time / 0.3, 0.0, 1.0)))
+		canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+func _draw_damage_pops() -> void:
+	# 档位外观：像素大小 / 颜色（由淡到浓）/ 描边粗细
+	var px_by_tier := [2.0, 3.0, 4.5, 7.0]
+	var col_by_tier := [Color(1.0, 0.9, 0.88, 0.55), Color("ffb060"), Color("ff3a1a"), Color("ffd84a")]
+	for pop: Dictionary in _damage_pops:
+		var tier: int = pop.tier
+		var t: float = 1.0 - pop.life / pop.max
+		var text := str(pop.amount) + ("!" if tier == 3 else "")
+		var px: float = px_by_tier[tier]
+		# 弹出放大：二档起有过冲回弹，终结一击先放大再收
+		var pop_scale := 1.0
+		if tier >= 1:
+			pop_scale = 1.0 + (0.6 if tier >= 2 else 0.35) * maxf(0.0, 1.0 - t * 6.0)
+		var at := _screen(pop.world) + Vector2(pop.drift * t, -40.0 * t - (20.0 if tier == 3 else 0.0))
+		if tier >= 2:   # 三档与终结：落地抖动
+			at += Vector2(randf_range(-2, 2), randf_range(-2, 2)) * (1.0 - t)
+		var alpha := clampf(pop.life / 0.25, 0.0, 1.0)
+		var w := text.length() * 6.0 * px - px
+		canvas.draw_set_transform(at, pop.rot, Vector2.ONE * pop_scale)
+		if tier == 3:   # 终结：金色光晕
+			canvas.draw_rect(Rect2(-w * 0.5 - 12, -7 * px * 0.5 - 10, w + 24, 7 * px + 20), Color(1.0, 0.7, 0.1, 0.25 * alpha))
+		var outline: float = [0.0, 1.0, 2.0, 3.0][tier]
+		if outline > 0.0:
+			for o: Vector2 in [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1), Vector2(-1, -1), Vector2(1, 1), Vector2(-1, 1), Vector2(1, -1)]:
+				_px_text(text, Vector2(-w * 0.5, -7 * px * 0.5) + o * outline, px, Color(INK, alpha))
+		var col: Color = col_by_tier[tier]
+		_px_text(text, Vector2(-w * 0.5, -7 * px * 0.5), px, Color(col, col.a * alpha))
+		if tier >= 2:   # 高光：数字上半截更亮
+			canvas.draw_rect(Rect2(-w * 0.5, -7 * px * 0.5, w, px), Color(1, 1, 0.8, 0.35 * alpha))
+		canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func _draw_result(size: Vector2) -> void:

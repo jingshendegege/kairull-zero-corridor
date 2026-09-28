@@ -1307,11 +1307,6 @@
    "kind": "normal"
   },
   {
-   "beat": 211.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
    "beat": 212.0,
    "lane": "ground",
    "kind": "heavy"
@@ -2022,11 +2017,6 @@
    "kind": "normal"
   },
   {
-   "beat": 307.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
    "beat": 308.5,
    "lane": "air",
    "kind": "normal"
@@ -2379,16 +2369,6 @@
   {
    "beat": 347.0,
    "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 355.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 355.0,
-   "lane": "ground",
    "kind": "normal"
   },
   {
@@ -3130,7 +3110,7 @@
  "loop_from_beat": 208,
  "loop_to_beat": 416,
  "song_seconds": 167.614,
- "boss_hp": 604,
+ "boss_hp": 874,
  "note_damage": {
   "normal": 1,
   "heavy": 3,

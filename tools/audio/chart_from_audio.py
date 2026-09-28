@@ -128,6 +128,7 @@ def main() -> None:
     ap.add_argument("--bpm", type=float, default=150.0)
     ap.add_argument("--out", default=str(ROOT / "godot/assets/boss/beat_warden_chart.json"))
     ap.add_argument("--music", default="res://assets/bgm/beat_warden.ogg")
+    # Boss 血量：音符伤害 × hp_ratio，并计入每次冲刺反击最多打掉 15%（HP = r·音符伤害 / (1 − r·次数·0.15)）
     ap.add_argument("--hp-ratio", type=float, default=0.85,
                     help="Boss 血量 = 单遍可造成伤害 × 该系数；0.85 让打得准的玩家在终段（露核 ×2）完成击杀")
     args = ap.parse_args()
@@ -274,23 +275,22 @@ def main() -> None:
     notes = [n for n in notes if n["kind"] == "heavy" or all(abs(n["beat"] - hb) > 0.5 for hb in heavy_beats)]
     notes.sort(key=lambda n: (n["beat"], n["lane"]))
     # 冲刺反击（用户设计的新机制）：进入高潮/终段的首拍，Boss 提前 4 拍预警 + 冲刺，到拍触发时停反击。
-    # 同一时间窗 [B-4, B+3) 内不放音符（冲刺 + 子弹时间反击期间专心打 Boss）。
+    # 同一时间窗 [B-4, B+4) 内不放音符（冲刺 + 3 秒子弹时间反击 + 击退期间专心打 Boss）。
     rushes = []
     for sec_ in sections:
         b = float(sec_["from_beat"])
         if sec_["name"] in ("drop", "finale") and b >= 8 and (not rushes or b - rushes[-1] >= 40):
             rushes.append(b)
-    notes = [n for n in notes if not any(rb - 4.0 <= n["beat"] < rb + 3.0 for rb in rushes)]
+    notes = [n for n in notes if not any(rb - 4.0 <= n["beat"] < rb + 4.0 for rb in rushes)]
     drop_from = next((s["from_beat"] for s in sections if s["name"] == "drop"), 0)
     # 循环终点 = 最后一个 finale 块的末尾（不把歌曲收尾的急停段落循环进去）
     finale_blocks = [i for i, l in enumerate(labels) if l == "finale"]
     loop_to = (finale_blocks[-1] + 1) * 16 if finale_blocks else beats_total - (beats_total % 4)
     loop_to = min(loop_to, beats_total - (beats_total % 4))
     damage = sum(3 if n["kind"] == "heavy" else 0 if n["kind"] == "bomb" else 1 for n in notes)
-    damage += len(rushes) * 12 * 2          # 每次反击约 12 下 × 2 血
     chart = {"bpm": round(bpm, 3), "offset_sec": round(grid0, 4), "beats_per_bar": 4, "note_speed_px": 520,
              "sections": sections, "notes": notes, "rushes": rushes, "loop_from_beat": drop_from, "loop_to_beat": loop_to,
-             "song_seconds": round(dur, 3), "boss_hp": int(round(damage * args.hp_ratio)),
+             "song_seconds": round(dur, 3), "boss_hp": int(round(damage * args.hp_ratio / max(0.2, 1.0 - args.hp_ratio * len(rushes) * 0.15))),
              "note_damage": {"normal": 1, "heavy": 3, "bomb": 0}, "finale_core_multiplier": 2,
              "music": args.music,
              "source": f"tools/audio/chart_from_audio.py 由 {Path(args.audio).name} 自动生成（节拍/段落/音符均来自音频分析）"}

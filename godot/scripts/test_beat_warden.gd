@@ -335,9 +335,23 @@ func _run() -> void:
 		"arriving at attack range starts bullet time (music keeps playing, not paused)")
 	check(absf(arena.boss.position.x - (game.player.position.x + BeatArena.RUSH_REACH)) < 1.0, "boss stops at attack reach")
 	var hp_before := arena.boss.hp
-	for i in 5:
+	var pops := []
+	arena.damage_popped.connect(func(amount: int, _w: Vector2, tier: int) -> void: pops.append([amount, tier]))
+	arena.counter_hit()
+	arena.counter_hit()   # 顿帧中 → 进缓冲，不立即出手
+	check(arena.counter_hits == 1 and arena._counter_buffer == 1, "presses during hit-stop are buffered, not lost")
+	arena.step(0.06)
+	check(arena.counter_hits == 2, "buffered press fires as soon as the hit-stop ends")
+	for i in 3:
 		arena.counter_hit()
-	check(arena.boss.hp == hp_before - 5 * BeatArena.COUNTER_DAMAGE and arena.counter_hits == 5, "each counter hit damages the boss")
+		arena.step(0.06)
+	check(arena.boss.hp == hp_before - 5 * 2 and arena.counter_hits == 5 and pops.size() == 5 and pops[0] == [2, 0],
+		"tier-1 counter hits deal 2 and pop small damage numbers")
+	for i in 2:
+		arena.counter_hit()
+		arena.step(0.06)
+	check(arena.counter_hits == 7 and pops[-1] == [5, 1] and is_equal_approx(arena._hitstop, 0.07),
+		"7th hit enters tier 2 (5 dmg, heavier hit-stop)")
 	for i in 20:
 		arena.step(1.0 / 60.0)
 	check(is_equal_approx(c.rate, BeatArena.SLOWMO_RATE) and is_equal_approx(c.music.pitch_scale, BeatArena.SLOWMO_RATE),
@@ -346,20 +360,41 @@ func _run() -> void:
 	clock_time += 0.5
 	arena.step(0.5)
 	check(absf((c.time - slow_start) - 0.5 * BeatArena.SLOWMO_RATE) < 0.001, "chart advances at 0.3x during the counter window")
-	arena.step(0.8)
-	check(arena.rush_state == "knockback", "after 1.5s the boss is knocked back")
+	arena.step(2.0)
+	check(arena.rush_state == "knockback" and not arena.perfect_counter, "after the 3s limit the boss is knocked back")
+	check(arena.counter_damage == mini(17 + BeatArena.FINISHER_DAMAGE, arena.counter_cap) and pops[-1][1] == 3,
+		"time-out still ends with an automatic knockback finisher")
 	clock_time += 0.25
 	arena.step(0.25)
 	check(c.rate > BeatArena.SLOWMO_RATE and c.rate < 1.0, "speed ramps back up during the knockback")
 	arena.step(0.3)
 	check(arena.rush_state == "" and arena.boss.position == home and arena.boss.rotation == 0.0 and c.rate == 1.0
 		and c.music.pitch_scale == 1.0, "boss lands back at its post and music is back to normal speed")
+	var hits_after := arena.counter_hits
 	arena.counter_hit()
-	check(arena.counter_hits == 5, "attack keys outside the counter window do not hit the boss")
+	check(arena.counter_hits == hits_after, "attack keys outside the counter window do not hit the boss")
 	clock_time = c.seconds(38.0)
 	c.time = c.seconds(38.0)
 	arena.step(1.0 / 60.0)
 	check(arena.rush_state == "", "each rush fires only once per loop cycle")
+	# 打满 15% 上限 → 终结重击 + PERFECT COUNTER，直接击退
+	fresh()
+	arena._engage_rhythm()
+	c.chart["rushes"] = [40.0]
+	for b in [37.0, 39.0, 40.01]:   # 经过预警 → 冲刺 → 到位
+		clock_time = c.seconds(b)
+		arena.step(1.0 / 60.0)
+	check(arena.rush_state == "counter" and arena.counter_cap == int(round(arena.boss.max_hp * 0.15)), "counter cap is 15% of max HP")
+	var score_before := arena.score
+	var guard := 0
+	while arena.rush_state == "counter" and guard < 200:
+		arena.counter_hit()
+		arena.step(0.02)
+		guard += 1
+	check(arena.counter_damage == arena.counter_cap and arena.perfect_counter and arena.rush_state == "knockback"
+		and arena.score == score_before + BeatArena.PERFECT_COUNTER_BONUS, "reaching the 15% cap ends with a finisher + PERFECT COUNTER")
+	check(BeatArena.counter_tier_for(6) == 0 and BeatArena.counter_tier_for(7) == 1 and BeatArena.counter_tier_for(13) == 2,
+		"tier thresholds at hits 7 and 13")
 	arena.reset_fight()
 	check(not arena.rhythm_lock and game.player.auto_input, "reset releases the player back to free control")
 	boot.free()

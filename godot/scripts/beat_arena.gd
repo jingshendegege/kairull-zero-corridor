@@ -16,8 +16,14 @@ const LANE_FOOT := 36.0          ## 音符中心离主角脚底的高度（两�
 ## → 1.5 秒（真实时间）内任意攻击键连打 Boss → 击退回原位，击退期间速度拉回 1.0，继续打谱。
 const RUSH_WARN_BEATS := 2.0
 const RUSH_DASH_BEATS := 2.0
-const COUNTER_TIME := 1.5
-const COUNTER_DAMAGE := 2
+const COUNTER_TIME := 3.0            ## 贴身反击时长上限（真实秒）；约 9 下/秒可摸到 15% 上限，更快的手必打满
+const FINISHER_DAMAGE := 16          ## 时间到未打满时自动补的击退终结伤害（不超过剩余上限）
+const COUNTER_CAP_RATIO := 0.15      ## 单次反击伤害上限 = Boss 最大血量 15%（用户定）；打满即终结重击
+## 分档「卡肉」：[从第几下起, 每下伤害, 顿帧秒]。顿帧即手速上限——越往后越沉、越慢、越痛，
+## 且每档打满手速时的秒伤都高于上一档（2/0.05=40 → 5/0.09≈56 → 8/0.14≈57），不是惩罚而是越打越重。
+const COUNTER_TIERS := [[1, 2, 0.03], [7, 5, 0.07], [13, 8, 0.12]]
+const COUNTER_RECOVER := 0.02        ## 每击顿帧后的收招
+const PERFECT_COUNTER_BONUS := 2000
 const KNOCKBACK_TIME := 0.5
 const SLOWMO_RATE := 0.3
 const SLOWMO_EASE_IN := 0.15   ## 降速过渡时长（秒）
@@ -57,6 +63,15 @@ var _hit_voice_i := 0
 var rush_state := ""            ## "" / warn / dash / counter / knockback
 var rush_timer := 0.0
 var counter_hits := 0
+var counter_damage := 0
+var counter_cap := 1
+var counter_tier := 0
+var perfect_counter := false
+var _counter_lock := 0.0            ## 顿帧 + 收招剩余；期间按键进缓冲
+var _counter_buffer := 0
+var _hitstop := 0.0
+var _counter_pos := Vector2.ZERO
+signal damage_popped(amount: int, world: Vector2, tier: int)   ## tier 0/1/2 = 档位，3 = 终结重击
 var _rush_beat := 0.0
 var _rush_done := {}
 var _boss_home := Vector2.ZERO
@@ -410,13 +425,14 @@ func _clear_notes() -> void:
 		note.queue_free()
 	notes.clear()
 
-func _burst(at: Vector2, kind: String) -> void:
+func _burst(at: Vector2, kind: String, size := 1.0) -> void:
 	var sprite := Sprite2D.new()
 	sprite.texture = load(NOTE.ART + "note_burst.png")
 	sprite.hframes = 4
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	sprite.position = at
 	sprite.modulate = COLORS[kind]
+	sprite.scale = Vector2.ONE * size
 	add_child(sprite)
 	bursts.append({"sprite": sprite, "time": 0.0})
 
@@ -510,7 +526,8 @@ func _rhythm_tick(dt: float) -> void:
 	_place_player()
 	if not p.batting():
 		p.set_state("gun_idle" if rush_state == "counter" else "run")   # 两层都原地奔跑；反击时站定
-	p._advance_frame(dt)
+	if _hitstop <= 0.0:
+		p._advance_frame(dt)
 	p._sync_sprite()
 
 
@@ -581,17 +598,7 @@ func _press_dual(lane: String) -> BeatNote:
 
 ## 统一击打音效：所有音符同一个原版采样、同一音调；音量压低到 -4dB（双键 -2.5dB）以免盖过音乐。
 func _play_hit(heavy: bool) -> void:
-	if _hit_voices.is_empty():
-		for i in 4:
-			var voice := AudioStreamPlayer.new()
-			voice.stream = HIT_SFX
-			add_child(voice)
-			_hit_voices.append(voice)
-	var voice := _hit_voices[_hit_voice_i]
-	_hit_voice_i = (_hit_voice_i + 1) % _hit_voices.size()
-	voice.pitch_scale = 1.0
-	voice.volume_db = -2.5 if heavy else -4.0   # 用户反馈太响：整体压低，双键只略响
-	voice.play()
+	_play_stream(HIT_SFX, 1.0, -2.5 if heavy else -4.0)   # 用户反馈太响：整体压低，双键只略响
 
 
 # ------------------------------------------------------------------ 冲刺反击
@@ -624,9 +631,22 @@ func _update_rush(dt: float) -> void:
 		"counter":
 			rush_timer -= dt
 			conductor.set_rate(move_toward(conductor.rate, SLOWMO_RATE, dt * (1.0 - SLOWMO_RATE) / SLOWMO_EASE_IN))
-			boss.step(dt, _pulse_beat)
-			if rush_timer <= 0.0:
-				_start_knockback()
+			if _hitstop > 0.0:   # 顿帧：Boss 定格并按档位抖动
+				_hitstop -= dt
+				var amp: float = [2.0, 4.0, 7.0][counter_tier]
+				boss.position = _counter_pos + Vector2(randf_range(-amp, amp), randf_range(-amp * 0.5, amp * 0.5))
+				boss.flash = maxf(0.0, boss.flash - dt)
+				boss._sync_sprite()
+			else:
+				boss.position = _counter_pos
+				boss.step(dt, _pulse_beat)
+			if _counter_lock > 0.0:
+				_counter_lock -= dt
+				if _counter_lock <= 0.0 and _counter_buffer > 0:
+					_counter_buffer -= 1
+					_counter_strike()
+			if rush_state == "counter" and rush_timer <= 0.0:
+				_auto_finisher()   # 用户要求：无论是否打满，都以击退终结收尾
 		"knockback":
 			rush_timer -= dt
 			var k := 1.0 - clampf(rush_timer / KNOCKBACK_TIME, 0.0, 1.0)
@@ -644,35 +664,136 @@ func _start_counter() -> void:
 	rush_state = "counter"
 	rush_timer = COUNTER_TIME
 	counter_hits = 0
+	counter_damage = 0
+	counter_cap = maxi(1, int(round(boss.max_hp * COUNTER_CAP_RATIO)))
+	counter_tier = 0
+	perfect_counter = false
+	_counter_lock = 0.0
+	_counter_buffer = 0
+	_hitstop = 0.0
+	_counter_pos = boss.position
 	rush_mark.visible = false
 	boss.rotation = 0.0
 	if host.has_method("add_camera_shake"):
 		host.add_camera_shake(Vector2.LEFT, 0.4)
 
 
-## 反击期间每按一次攻击键：挥棒 + Boss 扣 COUNTER_DAMAGE 血（终段露核同样 ×2）。
+## 反击期间的一次按键：顿帧中则进缓冲（最多 1 下，顿帧结束立刻打出），否则立即出手。
 func counter_hit() -> void:
 	if rush_state != "counter" or boss.dead:
 		return
-	counter_hits += 1
+	if _counter_lock > 0.0:
+		_counter_buffer = 1
+		return
+	_counter_strike()
+
+
+## 时间到还没打满：自动补一记击退终结（终结音效/金色大字/强震屏），伤害不超过剩余上限；不算 PERFECT。
+func _auto_finisher() -> void:
+	var mult := int(conductor.chart.finale_core_multiplier) if conductor.finale_started() else 1
+	var damage := clampi(FINISHER_DAMAGE * mult, 0, counter_cap - counter_damage)
+	counter_damage += damage
 	var p: Node2D = host.player
 	p.state = ""
-	p.set_state(["bat1", "bat2", "bat3"][counter_hits % 3])
-	var damage := COUNTER_DAMAGE * (int(conductor.chart.finale_core_multiplier) if conductor.finale_started() else 1)
-	_burst(boss.target_point() + Vector2(randf_range(-20, 20), randf_range(-20, 20)), "heavy")
-	_play_hit(counter_hits % 4 == 0)
-	boss.take_reflected_hit(damage)
+	p.set_state("bat3")
+	var pos := boss.target_point()
+	_burst(pos, "heavy", 2.6)
+	_play_counter_sfx(counter_hits + 1, 2, true)
+	damage_popped.emit(counter_damage, pos, 3)   # 终结大字 = 本轮反击总伤害
+	if damage > 0:
+		boss.take_reflected_hit(damage)
+		boss.flash = 0.06
+		boss._sync_sprite()
 	if host.has_method("add_camera_shake"):
-		host.add_camera_shake(Vector2.RIGHT, 0.12)
+		host.add_camera_shake(Vector2.RIGHT, 0.9)
 	if boss.dead:
 		_end_rush(true)
+	else:
+		_start_knockback()
+
+
+static func counter_tier_for(hit: int) -> int:
+	var tier := 0
+	for i in COUNTER_TIERS.size():
+		if hit >= int(COUNTER_TIERS[i][0]):
+			tier = i
+	return tier
+
+
+## 出手一击：按档位结算伤害/顿帧/震屏/音效/伤害跳字；打满 15% 上限 → 终结重击 + PERFECT COUNTER。
+func _counter_strike() -> void:
+	counter_hits += 1
+	counter_tier = counter_tier_for(counter_hits)
+	var cfg: Array = COUNTER_TIERS[counter_tier]
+	var mult := int(conductor.chart.finale_core_multiplier) if conductor.finale_started() else 1
+	var damage := int(cfg[1]) * mult
+	var finisher := counter_damage + damage >= counter_cap
+	if finisher:
+		damage = counter_cap - counter_damage
+	counter_damage += damage
+	_hitstop = float(cfg[2]) * (2.0 if finisher else 1.0)
+	_counter_lock = _hitstop + COUNTER_RECOVER
+	var p: Node2D = host.player
+	p.state = ""
+	p.set_state("bat3" if finisher else ["bat2", "bat1", "bat3"][counter_tier])
+	var pos := boss.target_point() + Vector2(randf_range(-26, 26), randf_range(-30, 20))
+	_burst(pos, "heavy", [0.8, 1.2, 1.7, 2.6][3 if finisher else counter_tier])
+	_play_counter_sfx(counter_hits, counter_tier, finisher)
+	# 终结大字显示本轮反击总伤害（连段总伤），普通一击显示单次伤害
+	damage_popped.emit(counter_damage if finisher else damage, pos, 3 if finisher else counter_tier)
+	boss.take_reflected_hit(damage)
+	boss.flash = 0.04   # 连打只闪一层薄白（满闪 0.12 会让 Boss 变成白剪影、吞掉伤害数字）
+	boss._sync_sprite()
+	if host.has_method("add_camera_shake"):
+		host.add_camera_shake(Vector2.RIGHT, 0.9 if finisher else [0.1, 0.22, 0.4][counter_tier])
+	if boss.dead:
+		_end_rush(true)
+	elif finisher:
+		perfect_counter = true
+		score += PERFECT_COUNTER_BONUS
+		_start_knockback()
+
+
+## 越打越重的反击音效：以用户选定的原版命中声为底，每一下音调都比上一下更沉；
+## 二档叠一层压低的第二命中声，三档叠原版「击杀」重击，终结一击 = 击杀 + 撞墙回弹，全部压到最低。
+func _play_counter_sfx(hit: int, tier: int, finisher: bool) -> void:
+	var sfx: Dictionary = host._sfx
+	var pitch := clampf(1.15 - 0.03 * (hit - 1), 0.72, 1.15)
+	if finisher:
+		_play_stream(sfx.get("kill"), 0.7, 1.0)
+		_play_stream(sfx.get("wall"), 0.75, -1.0)
+		_play_stream(HIT_SFX, 0.68, -1.0)
+		return
+	_play_stream(HIT_SFX, pitch, [-5.0, -3.0, -2.0][tier])
+	if tier >= 1:
+		_play_stream(sfx.get("hit7"), pitch * 0.8, -6.0 if tier == 1 else -4.0)
+	if tier >= 2:
+		_play_stream(sfx.get("kill"), pitch * 0.9, -4.0)
+
+
+func _play_stream(stream: AudioStream, pitch: float, volume_db: float) -> void:
+	if stream == null:
+		return
+	if _hit_voices.size() < 8:
+		for i in 8 - _hit_voices.size():
+			var v := AudioStreamPlayer.new()
+			add_child(v)
+			_hit_voices.append(v)
+	var voice := _hit_voices[_hit_voice_i]
+	_hit_voice_i = (_hit_voice_i + 1) % _hit_voices.size()
+	voice.stream = stream
+	voice.pitch_scale = pitch
+	voice.volume_db = volume_db
+	voice.play()
 
 
 func _start_knockback() -> void:
 	rush_state = "knockback"
 	rush_timer = KNOCKBACK_TIME
 	_knock_from = boss.position
-	_play_hit(true)
+	_hitstop = 0.0
+	_counter_lock = 0.0
+	_counter_buffer = 0
 	if host.has_method("add_camera_shake"):
 		host.add_camera_shake(Vector2.RIGHT, 0.5)
 
