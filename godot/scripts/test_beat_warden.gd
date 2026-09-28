@@ -60,7 +60,7 @@ func _run() -> void:
 	n.advance_incoming(c.seconds(8))
 	check(is_equal_approx(n.position.x, 1408) and n.position.y == 700, "beat time arrives exactly at ground judge")
 	var air := note("normal", "air", c.seconds(8))
-	check(air.position.y == 628 and air.texture.get_width() == 44, "air lane and winged sprite")
+	check(air.position.y == 596 and air.texture.get_width() == 44, "air lane (above the divider) and winged sprite")
 	check(not air.body_rect().intersects(Rect2(1391, 654, 34, 82)), "standing hurtbox clears air notes")
 	for lane in ["ground", "air"]:
 		fresh()
@@ -266,7 +266,7 @@ func _run() -> void:
 	advance(0.37)
 	check(arena.rhythm_press("air") == air_note and air_note.reflected and not ground_note.reflected \
 			and arena.rating == "Perfect", "up press hits only the air lane (70ms late = Perfect)")
-	check(arena.player_lane == "air" and is_equal_approx(game.player.position.y, 736.0 - BeatArena.AIR_LIFT - 0.1) \
+	check(arena.player_lane == "air" and is_equal_approx(game.player.position.y, 736.0 - arena.air_lift() - 0.1) and is_equal_approx(arena.air_lift(), 104.0) \
 			and game.player.batting(), "up press teleports into the air lane and swings")
 	check(arena.rhythm_press("ground") == ground_note and arena.rating == "Hit" and arena.player_lane == "ground",
 		"down press hits the ground lane (170ms late = Hit)")
@@ -285,7 +285,8 @@ func _run() -> void:
 	advance(0.1)
 	check(game.player.hp == 5 and bomb.contacted and not bomb.spent, "being in the other lane dodges a bomb")
 	advance(0.4)
-	check(arena.player_lane == "ground", "air lane falls back to ground after the hold time")
+	check(arena.player_lane == "air", "upper lane persists until the other key is pressed")
+	arena.rhythm_press("ground")
 	var bomb2 := note("bomb", "ground", 0.8)
 	advance(0.2)
 	check(game.player.hp == 4 and bomb2.spent, "a bomb reaching the judge line in your lane hurts once")

@@ -316,7 +316,7 @@
       "cell_bbox": [
         63,
         83,
-        177,
+        179,
         179
       ]
     },
@@ -327,7 +327,7 @@
       "cell_bbox": [
         63,
         89,
-        181,
+        191,
         173
       ]
     },
@@ -338,7 +338,7 @@
       "cell_bbox": [
         63,
         106,
-        186,
+        197,
         156
       ]
     },
@@ -349,7 +349,7 @@
       "cell_bbox": [
         63,
         107,
-        187,
+        198,
         155
       ]
     }
@@ -357,7 +357,7 @@
   "source": "tools/art/enemy3d/beat_warden.py（原创 Blender 基本体模型，3D→像素）",
   "lanes_above_ground": {
     "ground": 36,
-    "air": 108
+    "air": 140
   },
   "horn_ground_world": [
     88.7,
@@ -365,7 +365,7 @@
   ],
   "horn_air_world": [
     69.3,
-    -109.0
+    -141.0
   ],
   "core_world": [
     0.0,

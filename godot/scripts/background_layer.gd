@@ -83,6 +83,9 @@ const CFG_M06 := [
 static var active_cfg: Array = []
 
 var host: Node2D   ## game，读 cam_tl
+## 额外水平滚动（世界像素）：节奏 Boss 战「边跑边打」时由舞台层累加，镜头不动也让视差层向左流动。
+var extra_scroll := 0.0
+var _drawn_extra := 0.0
 var front_only := false   ## true 时只画 L3（作为前景遮挡层，由 game 放在角色之上）
 var _grad: GradientTexture2D
 var _tex: Array = []
@@ -109,8 +112,9 @@ func _ready() -> void:
 func _process(_dt: float) -> void:
 	if host != null:
 		var next_position: Vector2 = host.cam_tl
-		if position != next_position:
+		if position != next_position or extra_scroll != _drawn_extra:
 			position = next_position
+			_drawn_extra = extra_scroll
 			queue_redraw()
 
 
@@ -139,7 +143,7 @@ func _draw() -> void:
 			continue
 		var tw: float = t.get_width() * SCALE
 		var y0: float = float(cfg["base"]) - tl.y * float(cfg["factor"])
-		var scroll: float = tl.x * float(cfg["factor"])
+		var scroll: float = (tl.x + extra_scroll) * float(cfg["factor"])
 		var first := floori(scroll / tw) - 1
 		var last := first + ceili(view.x / tw) + 3
 		for k in range(first, last):

@@ -6,6 +6,8 @@ class_name BeatStageFx
 ## 背景层（本节点）：LED 频谱墙、音箱塔 + 鼓动振膜、霓虹招牌、摇头灯、舞台台口。
 ## 右侧 Boss 身后刻意留空，并给 Boss 一束专属白色顶光。
 ## 叠加层（子节点 Glow，ADD 混合）：追光灯束与落地光斑、激光扇、Boss 喇叭冲击波、强拍闪光、LED 辉光。
+## 边跑边打（用户要求）：战斗中场景以音符同速向左滚动——视差背景（GameBackground.extra_scroll）、
+## 路过的灯杆/音箱塔/护栏、以及地形之前的跑道层（BeatRunway：滚动地面 + 上下层之间的隔板）。
 
 const ART := "res://assets/boss/beat_warden/"
 const LED_POS := Vector2(1480, 216)
@@ -14,6 +16,8 @@ const LED_FRAME := 10.0
 const EQ_BARS := 46
 const SPOT_XS := [1180.0, 1340.0, 1500.0, 1660.0, 1820.0, 1980.0, 2140.0, 2300.0, 2460.0]
 const SPOT_Y := 128.0
+const RUN_SPEED := 520.0         ## = 谱面 note_speed_px：音符相当于钉在世界里，主角迎着它们跑
+const LANE_FOOT := 36.0          ## 与 BeatArena.LANE_FOOT 一致：隔板顶面 = 上层音符中心 + 36
 ## 段落主色 / 副色 / 能量
 const LOOK := {
 	"idle": [Color("3a5aff"), Color("7a3aff"), 0.28],
@@ -53,6 +57,10 @@ var _hit_flash := 0.0
 var _last_hp := -1
 var _floor_y := 736.0
 var _tex := {}
+var runway: Node2D
+var scroll_x := 0.0
+var run_speed := 0.0
+var _divider_alpha := 0.0
 
 
 func setup(host: Node2D, beat_arena: Node2D) -> void:
@@ -69,6 +77,13 @@ func setup(host: Node2D, beat_arena: Node2D) -> void:
 	glow.material = mat
 	glow.draw.connect(_draw_glow)
 	add_child(glow)
+	# 跑道层放在地形之后、主角之前：盖住静态地面瓦片，不挡角色/音符
+	runway = Node2D.new()
+	runway.name = "BeatRunway"
+	runway.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	runway.draw.connect(_draw_runway)
+	game.add_child(runway)
+	game.move_child(runway, game.player.get_index())
 
 
 func _process(dt: float) -> void:
@@ -93,8 +108,16 @@ func _process(dt: float) -> void:
 		if _last_hp - hp >= 3 and game.has_method("add_camera_shake"):
 			game.add_camera_shake(Vector2.LEFT, 0.15)
 	_last_hp = hp
+	var running: bool = arena.rhythm_lock and state in ["count_in", "playing"]
+	if not frozen:
+		run_speed = move_toward(run_speed, RUN_SPEED if running else 0.0, RUN_SPEED * 1.5 * dt)
+		scroll_x += run_speed * dt
+		_divider_alpha = move_toward(_divider_alpha, 1.0 if state != "waiting" or arena.rhythm_lock else 0.0, dt * 3.0)
+	if game.bg != null:
+		game.bg.extra_scroll = scroll_x
 	queue_redraw()
 	glow.queue_redraw()
+	runway.queue_redraw()
 
 
 func _section_for(state: String) -> String:
@@ -136,9 +159,7 @@ func _draw() -> void:
 	for x in range(int(deck.position.x) + 24, int(deck.end.x), 48):
 		draw_rect(Rect2(x, deck.position.y + 14, 20, 4), Color(look[1], 0.25 + 0.5 * _kick * energy))
 	_draw_led(look, energy)
-	# 音箱塔：只放左侧（右侧 Boss 身后留空，避免同色系把 Boss 淹没）
-	for x in [1124.0]:
-		_draw_speaker(Vector2(x, _floor_y - 224.0), energy)
+	_draw_passing_props(look, energy)
 	# 霓虹招牌：随拍亮，待机时偶发接触不良闪烁
 	var neon: Texture2D = _tex.stage_neon
 	var bright := 0.8 + 0.2 * _kick
@@ -205,6 +226,88 @@ func _draw_led_text(inner: Rect2, text: String, look: Array) -> void:
 			for c in row.length():
 				if row[c] == "1":
 					draw_rect(Rect2(origin + Vector2((k * 6 + c) * px, r * px), Vector2(px, px)), col)
+
+
+## 路过的布景：护栏（连续）、灯杆（每 320px）、音箱塔（每 1280px），随 scroll_x 向左流动。
+## Boss 身后（右侧 300px）不画，避免同色系淹没 Boss。
+func _draw_passing_props(look: Array, energy: float) -> void:
+	var left := float(arena.config.stage_rect[0])
+	var right: float = arena.boss.position.x - 150.0
+	# 护栏：两根横杆 + 立柱
+	var rail := Color("1c1530")
+	draw_rect(Rect2(left, _floor_y - 34, right - left, 3), rail)
+	draw_rect(Rect2(left, _floor_y - 18, right - left, 3), rail)
+	draw_rect(Rect2(left, _floor_y - 35, right - left, 1), Color(look[0], 0.35))
+	var x := left - fposmod(scroll_x, 48.0)
+	while x < right:
+		if x >= left:
+			draw_rect(Rect2(x, _floor_y - 36, 3, 36), Color("150f24"))
+		x += 48.0
+	# 音箱塔
+	x = left - fposmod(scroll_x + 400.0, 1280.0)
+	while x < right:
+		if x + 112.0 > left and x + 112.0 < right:
+			_draw_speaker(Vector2(x, _floor_y - 224.0), energy)
+		x += 1280.0
+	# 灯杆：细杆 + 顶部随拍灯头
+	x = left - fposmod(scroll_x, 320.0) + 160.0
+	while x < right:
+		if x > left:
+			draw_rect(Rect2(x - 2, _floor_y - 300, 4, 300), Color("120c1f"))
+			draw_rect(Rect2(x - 8, _floor_y - 306, 16, 7), Color("2a2344"))
+			draw_rect(Rect2(x - 6, _floor_y - 300, 12, 2), Color(look[1], 0.4 + 0.6 * _kick))
+		x += 320.0
+
+
+## 跑道层（在地形之前）：滚动的舞台地面 + 上下两层之间的隔板走道。
+func _draw_runway() -> void:
+	if arena == null:
+		return
+	var look := _look()
+	var left := float(arena.config.stage_rect[0])
+	var right := left + float(arena.config.stage_rect[2])
+	# 地面：深色钢板 + 顶边灯线 + 滚动接缝 + 向左流动的虚线灯
+	runway.draw_rect(Rect2(left, _floor_y, right - left, 32), Color("120b20"))
+	runway.draw_rect(Rect2(left, _floor_y, right - left, 2), Color(look[0], 0.6 + 0.4 * _kick))
+	var x := left - fposmod(scroll_x, 64.0)
+	while x < right:
+		if x >= left:
+			runway.draw_rect(Rect2(x, _floor_y + 2, 2, 30), Color("07040d"))
+			runway.draw_rect(Rect2(x + 2, _floor_y + 2, 1, 30), Color("241a3a"))
+		x += 64.0
+	x = left - fposmod(scroll_x, 128.0)
+	while x < right:
+		if x >= left:
+			runway.draw_rect(Rect2(x + 40, _floor_y + 14, 36, 3), Color(look[1], 0.3 + 0.4 * _kick))
+		x += 128.0
+	if _divider_alpha <= 0.0:
+		return
+	# 隔板：上层站位面（上层音符中心下方 LANE_FOOT），从舞台左缘延伸到 Boss 前
+	var a := _divider_alpha
+	var top := float(arena.config.lane_air_y) + LANE_FOOT
+	var end_x: float = arena.boss.position.x - 140.0
+	runway.draw_rect(Rect2(left, top, end_x - left, 8), Color(Color("2a2344"), a))
+	runway.draw_rect(Rect2(left, top, end_x - left, 2), Color(look[0].lerp(Color.WHITE, 0.3 * _kick), a))
+	runway.draw_rect(Rect2(left, top + 8, end_x - left, 1), Color(Color("07040d"), a))
+	runway.draw_rect(Rect2(left, top + 20, end_x - left, 2), Color(Color("3a3350"), a * 0.8))
+	x = left - fposmod(scroll_x, 32.0)
+	var flip := posmod(floori(scroll_x / 32.0), 2) == 1
+	while x < end_x:
+		var x0 := maxf(x, left)
+		var x1 := minf(x + 32.0, end_x)
+		if x1 > x0:
+			var y0 := top + 9.0 if not flip else top + 20.0
+			var y1 := top + 20.0 if not flip else top + 9.0
+			runway.draw_line(Vector2(x0, y0), Vector2(x1, y1), Color(Color("3a3350"), a * 0.8), 2.0)
+		flip = not flip
+		x += 32.0
+	# 隔板边沿的追逐灯：每 64px 一盏，随拍点亮
+	x = left - fposmod(scroll_x, 64.0) + 32.0
+	while x < end_x:
+		if x > left:
+			runway.draw_rect(Rect2(x - 3, top + 3, 6, 3), Color(look[1], a * (0.35 + 0.65 * _kick)))
+		x += 64.0
+	runway.draw_rect(Rect2(end_x - 6, top - 6, 6, 28), Color(Color("3a3350"), a))
 
 
 func _draw_speaker(top_left: Vector2, energy: float) -> void:

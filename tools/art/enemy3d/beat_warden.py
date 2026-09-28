@@ -16,7 +16,7 @@ import bl_rig as R  # noqa: E402
 ANIMS = {"idle": 4, "fire_ground": 3, "fire_air": 3, "hurt": 3, "expose": 4, "core": 4, "death": 6}
 R.RES_X, R.RES_Y, R.BASELINE = 288, 272, 262
 BODY_Z = 34.0                     # 音箱柜底面离地高度（坐在底座上）
-GROUND_LANE_Z, AIR_LANE_Z = 36.0, 108.0   # 两条音符轨中心离地高度（与运行时一致）
+GROUND_LANE_Z, AIR_LANE_Z = 36.0, 140.0   # 两条音符轨中心离地高度（与运行时一致；上层抬高给中间隔板让位）
 
 
 def _part(name, parent, shape, size, loc=(0, 0, 0), rot=(0, 0, 0), material="armor", rank=0, bevel=0.0,

@@ -86,7 +86,7 @@ SPECS = {
         },
         "ground_snap": "all",
         "extra": {"source": "tools/art/enemy3d/beat_warden.py（原创 Blender 基本体模型，3D→像素）",
-                  "lanes_above_ground": {"ground": 36, "air": 108}},
+                  "lanes_above_ground": {"ground": 36, "air": 140}},
     },
 }
 

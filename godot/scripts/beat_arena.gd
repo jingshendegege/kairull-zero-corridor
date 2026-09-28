@@ -6,11 +6,11 @@ const WARDEN := preload("res://scripts/beat_warden.gd")
 const NOTE := preload("res://scripts/beat_note.gd")
 const COLORS := {"normal": Color("5fe6f0"), "heavy": Color("f0b44a"), "bomb": Color("ff3f94")}
 ## 2026-09-28 用户试玩反馈：自由移动+挥棒不好用 → 改为喵斯快跑式双轨。
-## 倒数开始后主角锁定在判定线前：W/↑ 瞬移到空中轨并挥棒，S/↓ 回地面轨并挥棒；
+## 倒数开始后主角锁定在判定线前原地奔跑（场景由 m07_beat_stage_fx 向左滚动）：
+## W/↑ 上到隔板上层并挥棒，S/↓ 回地面下层并挥棒；按一次就停在该层，直到按另一个键切换。
 ## 按键时在该轨 ±RHYTHM_WINDOW 内找最近音符判定（不再看球棒几何）。炸弹靠"不在它那条轨"躲。
 const RHYTHM_WINDOW := 0.20      ## 出手判定窗（秒）；漏判 = 过线超过此值
-const AIR_HOLD := 0.32           ## 空中轨停留时间，期间再按上可续
-const AIR_LIFT := 64.0           ## 空中轨时主角脚底抬高（球棒正好扫过空中轨）
+const LANE_FOOT := 36.0          ## 音符中心离主角脚底的高度（两层相同）；上层脚底 = 隔板顶面
 const PLAYER_OFFSET := -34.0     ## 主角站在判定环左侧，挥棒扫过判定环
 var host: Node2D
 var config: Dictionary
@@ -36,7 +36,6 @@ var _death_time := 0.0
 var _pulse_beat := 0.0
 var rhythm_lock := false         ## true = 双轨操作接管主角（倒数起到击破/重置）
 var player_lane := "ground"
-var _air_time := 0.0
 var _prev_up := false
 var _prev_down := false
 
@@ -133,7 +132,7 @@ func reset_fight(resume_ambience := false) -> void:
 	_release_rhythm()
 	CorridorLevel.active_exit_requires_boss = true
 	hud_layer.visible = false
-	judge_label.text = "W/↑ 打空中轨 · S/↓ 打地面轨\n粉色炸弹：换到另一条轨躲开"
+	judge_label.text = "W/↑ 上层 · S/↓ 下层（按一次就停留）\n粉色炸弹：换到另一层躲开"
 	_pulse_beat = 0.0
 	_update_visuals()
 	if resume_ambience and is_instance_valid(host.music) and not host.music.playing:
@@ -379,7 +378,6 @@ func _engage_rhythm() -> void:
 	var p: Node2D = host.player
 	rhythm_lock = true
 	player_lane = "ground"
-	_air_time = 0.0
 	_prev_up = true   # 进场时仍按着的键不算一次出手
 	_prev_down = true
 	p.auto_input = false
@@ -396,7 +394,6 @@ func _release_rhythm() -> void:
 		return
 	rhythm_lock = false
 	player_lane = "ground"
-	_air_time = 0.0
 	var p: Node2D = host.player
 	p.keys.clear()
 	p.auto_input = true
@@ -407,13 +404,18 @@ func _release_rhythm() -> void:
 
 func _place_player() -> void:
 	var p: Node2D = host.player
-	var lift := AIR_LIFT if player_lane == "air" else 0.0
+	var lift := air_lift() if player_lane == "air" else 0.0
 	p.position = Vector2(float(config.judge_x) + PLAYER_OFFSET, float(config.floor_y) - lift - 0.1)
 	p.vx = 0.0
 	p.vy = 0.0
 
 
-## 每个物理帧：读上/下键边沿、回落空中轨、推进主角动画与受伤无敌计时（主角 step 已停）。
+## 上层站位高度：隔板顶面 = 上层音符中心下方 LANE_FOOT。
+func air_lift() -> float:
+	return float(config.floor_y) - (float(config.lane_air_y) + LANE_FOOT)
+
+
+## 每个物理帧：读上/下键边沿、推进主角动画与受伤无敌计时（主角 step 已停）。
 func _rhythm_tick(dt: float) -> void:
 	if not rhythm_lock:
 		return
@@ -425,22 +427,18 @@ func _rhythm_tick(dt: float) -> void:
 		rhythm_press("ground")
 	_prev_up = up
 	_prev_down = down
-	_air_time = maxf(0.0, _air_time - dt)
-	if player_lane == "air" and _air_time <= 0.0:
-		player_lane = "ground"
 	var p: Node2D = host.player
 	p.invuln_t = maxf(0.0, p.invuln_t - dt)
 	_place_player()
 	if not p.batting():
-		p.set_state("gun_jump_air" if player_lane == "air" else "gun_idle")
+		p.set_state("run")   # 两层都原地奔跑
 	p._advance_frame(dt)
 	p._sync_sprite()
 
 
-## 一次出手：瞬移到该轨并挥棒；在该轨判定窗内取时间误差最小的音符反弹（炸弹不可打）。
+## 一次出手：瞬移到该层（并停留）挥棒；在该轨判定窗内取时间误差最小的音符反弹（炸弹不可打）。
 func rhythm_press(lane: String) -> BeatNote:
 	player_lane = lane
-	_air_time = AIR_HOLD if lane == "air" else 0.0
 	var p: Node2D = host.player
 	p.state = ""
 	p.set_state("bat2")

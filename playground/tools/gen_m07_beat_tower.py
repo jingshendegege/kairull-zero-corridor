@@ -78,7 +78,7 @@ BOSS_ARENA = {
     "floor_y": FLOOR_Y,
     "judge_x": STAGE_LEFT + 9 * TS,                 # 判定线：玩家站位（地面画两个判定环）
     "lane_ground_y": FLOOR_Y - 36,                  # 两条音符轨中心（与 Boss 号角口高度一致）
-    "lane_air_y": FLOOR_Y - 108,
+    "lane_air_y": FLOOR_Y - 140,                   # 上层轨：中间隔板（离地 104）之上，隔板顶面即上层站位
     "boss_feet": [STAGE_RIGHT - 6 * TS, FLOOR_Y],   # Boss 精灵脚底中点（atlas 面朝右，运行时水平翻转朝左）
     "player_start": [STAGE_LEFT + 4 * TS, FLOOR_Y],
     "chart": "res://assets/boss/beat_warden_chart.json",
