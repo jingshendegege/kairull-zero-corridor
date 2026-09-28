@@ -1,0 +1,1331 @@
+{
+ "bpm": 128.0,
+ "offset_sec": 0.0,
+ "beats_per_bar": 4,
+ "note_speed_px": 520,
+ "sections": [
+  {
+   "name": "intro",
+   "from_beat": 0
+  },
+  {
+   "name": "verse",
+   "from_beat": 32
+  },
+  {
+   "name": "build",
+   "from_beat": 96
+  },
+  {
+   "name": "drop",
+   "from_beat": 112
+  },
+  {
+   "name": "finale",
+   "from_beat": 176
+  }
+ ],
+ "notes": [
+  {
+   "beat": 8,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 10,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 12,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 14,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 16,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 18,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 20,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 22,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 24,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 26,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 28,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 30,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 32,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 33,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 34,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 36,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 37,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 38,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 39,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 39.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 40,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 41,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 42,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 44,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 45,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 46,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 47,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 47.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 48,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 49,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 50,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 52,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 53,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 54,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 55,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 55.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 56,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 57,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 58,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 60,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 61,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 62,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 63,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 63.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 64,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 65,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 66,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 68,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 69,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 70,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 71,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 71.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 72,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 73,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 74,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 76,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 77,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 78,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 79,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 79.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 80,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 81,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 82,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 84,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 85,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 86,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 87,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 87.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 88,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 89,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 90,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 92,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 93,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 94,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 95,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 95.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 96,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 98,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 100,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 102,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 104,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 106,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 107,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 108,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 110,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 111,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 112,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 112.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 113,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 114,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 114.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 115,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 115.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 116,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 116.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 117,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 118,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 118.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 119,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 119.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 120,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 120.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 121,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 122,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 122.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 123,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 123.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 124,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 125,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 125.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 126,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 127,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 127,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 128,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 128.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 129,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 130,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 130.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 131,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 131.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 132,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 132.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 133,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 134,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 134.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 135,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 135.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 136,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 136.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 137,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 138,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 138.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 139,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 139.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 140,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 141,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 141.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 142,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 143,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 143,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 144,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 144.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 145,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 146,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 146.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 147,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 147.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 148,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 148.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 149,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 150,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 150.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 151,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 151.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 152,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 152.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 153,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 154,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 154.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 155,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 155.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 156,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 157,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 157.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 158,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 159,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 159,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 160,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 160.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 161,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 162,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 162.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 163,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 163.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 164,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 164.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 165,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 166,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 166.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 167,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 167.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 168,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 168.5,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 169,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 170,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 170.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 171,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 171.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 172,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 173,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 173.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 174,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 175,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 175,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 176,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 176.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 177,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 177.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 178,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 178.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 179,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 179.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 180,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 180.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 181,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 181.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 182,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 182.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 183,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 183.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 184,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 184.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 185,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 185.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 186,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 186.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 187,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 187.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 188,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 188.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 189,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 189.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 190,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 190.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 191,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 191.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 192,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 192.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 193,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 193.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 194,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 194.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 195,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 195.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 196,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 196.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 197,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 197.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 198,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 198.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 199,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 199.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 200,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 200.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 201,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 201.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 202,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 202.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 203,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 203.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 204,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 204.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 205,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 205.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 206,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 206.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 207,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 207.5,
+   "lane": "air",
+   "kind": "bomb"
+  }
+ ],
+ "loop_from_beat": 112,
+ "loop_to_beat": 208,
+ "song_seconds": 99.5,
+ "boss_hp": 160,
+ "note_damage": {
+  "normal": 1,
+  "heavy": 3,
+  "bomb": 0
+ },
+ "finale_core_multiplier": 2,
+ "source": "tools/audio/beat_warden_song.py（原创合成，同源生成音频与谱面）"
+}

@@ -59,6 +59,14 @@ const CFG_QUARANTINE := [
 	{"color": "#05070b"},
 ]
 
+## 05 节拍广播塔（tools/art/m07/build_m07_art.py）：广播大厅 + 音箱墙/LED 频谱屏 + 顶部灯光桁架；末层为空色层。
+const CFG_M07 := [
+	{"file": "res://assets/bg/m07/M07_L0_hall.png", "factor": 0.0, "mirror": false, "base": 0.0},
+	{"file": "res://assets/bg/m07/M07_L1_speakers.png", "factor": 0.2, "mirror": true, "base": 0.0},
+	{"file": "res://assets/bg/m07/M07_L2_truss.png", "factor": 0.45, "mirror": true, "base": 0.0},
+	{"color": "#05070b"},
+]
+
 ## 04 排风脊线：室外夜空三层视差（tools/art/m06/build_m06_backgrounds.py，3px 像素块）。
 ##   L0 夜空 factor 0 固定整屏（768 ≥ 765 视野高，任何镜头高度都不露底色）
 ##   L1 远景城市/冷却塔 0.2：地面房间镜头 tl.y≈419 时地平线落在画面约 70% 高

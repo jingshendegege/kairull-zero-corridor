@@ -1,0 +1,374 @@
+{
+  "canvas_size": [
+    1728,
+    1904
+  ],
+  "cell_size": [
+    288,
+    272
+  ],
+  "columns": 6,
+  "baseline_y": 262,
+  "pivot_x": 144,
+  "facing": "right",
+  "animations": {
+    "idle": {
+      "frames": 4,
+      "loop": true,
+      "fps_hint": 8,
+      "row": 0
+    },
+    "fire_ground": {
+      "frames": 3,
+      "loop": false,
+      "fps_hint": 16,
+      "row": 1
+    },
+    "fire_air": {
+      "frames": 3,
+      "loop": false,
+      "fps_hint": 16,
+      "row": 2
+    },
+    "hurt": {
+      "frames": 3,
+      "loop": false,
+      "fps_hint": 14,
+      "row": 3
+    },
+    "expose": {
+      "frames": 4,
+      "loop": false,
+      "fps_hint": 6,
+      "row": 4
+    },
+    "core": {
+      "frames": 4,
+      "loop": true,
+      "fps_hint": 8,
+      "row": 5
+    },
+    "death": {
+      "frames": 6,
+      "loop": false,
+      "fps_hint": 6,
+      "row": 6
+    }
+  },
+  "frames": [
+    {
+      "animation": "idle",
+      "frame": 0,
+      "row": 0,
+      "cell_bbox": [
+        63,
+        39,
+        177,
+        223
+      ]
+    },
+    {
+      "animation": "idle",
+      "frame": 1,
+      "row": 0,
+      "cell_bbox": [
+        63,
+        37,
+        177,
+        225
+      ]
+    },
+    {
+      "animation": "idle",
+      "frame": 2,
+      "row": 0,
+      "cell_bbox": [
+        63,
+        36,
+        177,
+        226
+      ]
+    },
+    {
+      "animation": "idle",
+      "frame": 3,
+      "row": 0,
+      "cell_bbox": [
+        63,
+        36,
+        177,
+        226
+      ]
+    },
+    {
+      "animation": "fire_ground",
+      "frame": 0,
+      "row": 1,
+      "cell_bbox": [
+        63,
+        38,
+        177,
+        224
+      ]
+    },
+    {
+      "animation": "fire_ground",
+      "frame": 1,
+      "row": 1,
+      "cell_bbox": [
+        63,
+        38,
+        174,
+        224
+      ]
+    },
+    {
+      "animation": "fire_ground",
+      "frame": 2,
+      "row": 1,
+      "cell_bbox": [
+        63,
+        37,
+        176,
+        225
+      ]
+    },
+    {
+      "animation": "fire_air",
+      "frame": 0,
+      "row": 2,
+      "cell_bbox": [
+        63,
+        36,
+        177,
+        226
+      ]
+    },
+    {
+      "animation": "fire_air",
+      "frame": 1,
+      "row": 2,
+      "cell_bbox": [
+        63,
+        37,
+        198,
+        225
+      ]
+    },
+    {
+      "animation": "fire_air",
+      "frame": 2,
+      "row": 2,
+      "cell_bbox": [
+        63,
+        36,
+        184,
+        226
+      ]
+    },
+    {
+      "animation": "hurt",
+      "frame": 0,
+      "row": 3,
+      "cell_bbox": [
+        63,
+        38,
+        177,
+        224
+      ]
+    },
+    {
+      "animation": "hurt",
+      "frame": 1,
+      "row": 3,
+      "cell_bbox": [
+        63,
+        36,
+        177,
+        226
+      ]
+    },
+    {
+      "animation": "hurt",
+      "frame": 2,
+      "row": 3,
+      "cell_bbox": [
+        63,
+        36,
+        177,
+        226
+      ]
+    },
+    {
+      "animation": "expose",
+      "frame": 0,
+      "row": 4,
+      "cell_bbox": [
+        63,
+        46,
+        177,
+        216
+      ]
+    },
+    {
+      "animation": "expose",
+      "frame": 1,
+      "row": 4,
+      "cell_bbox": [
+        63,
+        63,
+        177,
+        199
+      ]
+    },
+    {
+      "animation": "expose",
+      "frame": 2,
+      "row": 4,
+      "cell_bbox": [
+        63,
+        84,
+        177,
+        178
+      ]
+    },
+    {
+      "animation": "expose",
+      "frame": 3,
+      "row": 4,
+      "cell_bbox": [
+        63,
+        87,
+        178,
+        175
+      ]
+    },
+    {
+      "animation": "core",
+      "frame": 0,
+      "row": 5,
+      "cell_bbox": [
+        63,
+        92,
+        177,
+        170
+      ]
+    },
+    {
+      "animation": "core",
+      "frame": 1,
+      "row": 5,
+      "cell_bbox": [
+        63,
+        87,
+        178,
+        175
+      ]
+    },
+    {
+      "animation": "core",
+      "frame": 2,
+      "row": 5,
+      "cell_bbox": [
+        63,
+        84,
+        179,
+        178
+      ]
+    },
+    {
+      "animation": "core",
+      "frame": 3,
+      "row": 5,
+      "cell_bbox": [
+        63,
+        87,
+        178,
+        175
+      ]
+    },
+    {
+      "animation": "death",
+      "frame": 0,
+      "row": 6,
+      "cell_bbox": [
+        63,
+        87,
+        182,
+        175
+      ]
+    },
+    {
+      "animation": "death",
+      "frame": 1,
+      "row": 6,
+      "cell_bbox": [
+        63,
+        104,
+        177,
+        158
+      ]
+    },
+    {
+      "animation": "death",
+      "frame": 2,
+      "row": 6,
+      "cell_bbox": [
+        63,
+        83,
+        177,
+        179
+      ]
+    },
+    {
+      "animation": "death",
+      "frame": 3,
+      "row": 6,
+      "cell_bbox": [
+        63,
+        89,
+        181,
+        173
+      ]
+    },
+    {
+      "animation": "death",
+      "frame": 4,
+      "row": 6,
+      "cell_bbox": [
+        63,
+        106,
+        186,
+        156
+      ]
+    },
+    {
+      "animation": "death",
+      "frame": 5,
+      "row": 6,
+      "cell_bbox": [
+        63,
+        107,
+        187,
+        155
+      ]
+    }
+  ],
+  "source": "tools/art/enemy3d/beat_warden.py（原创 Blender 基本体模型，3D→像素）",
+  "lanes_above_ground": {
+    "ground": 36,
+    "air": 108
+  },
+  "horn_ground_world": [
+    88.7,
+    -37.0
+  ],
+  "horn_air_world": [
+    69.3,
+    -109.0
+  ],
+  "core_world": [
+    0.0,
+    -161.0
+  ]
+}

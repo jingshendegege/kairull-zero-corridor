@@ -19,6 +19,9 @@ DEFAULTS = {
     # 04 排风脊线：中继检修站，前三个战斗房（扇阵/天窗廊/冷却塔）全清后启用
     "M06_ExhaustRidge": {"id": "m06_relay_mid", "room_index": 4,
         "cell": [150, 34], "required_clear_rooms": [1, 2, 3]},
+    # 05 节拍广播塔：候场室，清完后台走廊后启用（Boss 战失败从这里重来）
+    "M07_BeatTower": {"id": "m07_green_room", "room_index": 1,
+        "cell": [29, 22], "required_clear_rooms": [0]},
 }
 
 

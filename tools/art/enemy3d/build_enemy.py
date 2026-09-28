@@ -1,6 +1,6 @@
 """构建敌人图集：调用 Blender 渲染 → 像素合成 → 图集 PNG/JSON + 动态预览 GIF。
 
-用法：python build_enemy.py rifleman|loader
+用法：python build_enemy.py rifleman|loader|hound|beat_warden
 依赖：Blender 4.5.3（D:/ProgramData/Blender/...）、Pillow、numpy。幂等：同输入重复运行结果一致。
 """
 from __future__ import annotations
@@ -71,6 +71,23 @@ SPECS = {
         "ground_snap": "all",   # 飞扑的高度由实体位置抛物线承担，精灵帧脚底贴线
         "extra": {"source": "tools/art/enemy3d/hound.py（原创 Blender 基本体模型，3D→像素）"},
     },
+    "beat_warden": {
+        "model": "beat_warden.py", "palette": palettes.BEAT_WARDEN,
+        "out": ROOT / "godot/assets/boss/beat_warden",
+        "cell": (288, 272), "baseline": 262, "columns": 6,
+        "anims": {
+            "idle": {"frames": 4, "loop": True, "fps_hint": 8},        # 运行时按拍相位选帧，0 = 拍点
+            "fire_ground": {"frames": 3, "loop": False, "fps_hint": 16},
+            "fire_air": {"frames": 3, "loop": False, "fps_hint": 16},
+            "hurt": {"frames": 3, "loop": False, "fps_hint": 14},
+            "expose": {"frames": 4, "loop": False, "fps_hint": 6},
+            "core": {"frames": 4, "loop": True, "fps_hint": 8},        # 露核状态下的随拍呼吸
+            "death": {"frames": 6, "loop": False, "fps_hint": 6},
+        },
+        "ground_snap": "all",
+        "extra": {"source": "tools/art/enemy3d/beat_warden.py（原创 Blender 基本体模型，3D→像素）",
+                  "lanes_above_ground": {"ground": 36, "air": 108}},
+    },
 }
 
 
@@ -114,6 +131,12 @@ def main() -> None:
             mx, my = parts["fire_0_px"]
             ox = (spec["cell"][0] - parts["res"][0]) // 2
             extra["muzzle_world"] = [round(mx + ox - spec["cell"][0] / 2, 1), round(my - parts["baseline"] - 1, 1)]  # 相对地面（像素下沿）
+        for key in ("horn_ground_px", "horn_air_px", "core_px"):   # Boss 号角口/核心：相对脚底中点的世界偏移
+            if key in parts:
+                mx, my = parts[key]
+                ox = (spec["cell"][0] - parts["res"][0]) // 2
+                extra[key.replace("_px", "_world")] = [round(mx + ox - spec["cell"][0] / 2, 1),
+                                                       round(my - parts["baseline"] - 1, 1)]
         gs = spec.get("ground_snap", [])
         snap = {"all"} if gs == "all" else set(gs)
 
