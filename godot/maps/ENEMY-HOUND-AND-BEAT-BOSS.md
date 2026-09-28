@@ -106,3 +106,26 @@ Boss 大体积精灵（idle 呼吸随拍、发射、受击、降台露核、爆�
 |---|---|
 | Codex | 新脚本 `quarantine_hound.gd`、`beat_warden.gd`（及音符/判定相关新脚本）、`game.gd`/`level.gd`/`run_session.gd`/`attempt_timeline.gd`/`run_checkpoint.gd` 必要改动、M07 boot/scene、所有新增/修改测试 |
 | Claude | `playground/tools/gen_m06*.py`/`gen_m07*.py`、`godot/maps/*.ldtk`、`godot/generated/*`、`godot/assets/**`、`tools/**`、`tactical_hazard.gd`/`freight_lift.gd`/`smoke_tactics.gd` 的绘制函数、`m06/m07` 美术脚本 |
+
+---
+
+## E. 实际交付记录（2026-09-28）
+
+### 猎犬
+- 运行时：`quarantine_hound.gd`（Codex，89 项测试）；`POUNCE_RANGE` 由 260 下调到 200px（22 tick×540px/s 最远 198px，站定玩家必被扑到）。
+- 美术：`tools/art/enemy3d/hound.py` → `godot/assets/enemy/hound/`。
+- M06 放置 4 只（风扇阵列 c55、冷却塔 c126、索桥基座 c242、封锁泵站 c294），全关敌人 26→30。
+
+### 节拍监察官（全部原创，可复跑）
+- 配乐 + 谱面：`tools/audio/beat_warden_song.py`（numpy 合成 → ffmpeg Vorbis）。
+  128 BPM，A 小调 Am–F–C–G；intro 8 / verse 16 / build 4 / drop 16 / finale 8 小节，共 99.5s。
+  谱面 258 音符（normal 222 / heavy 12 / bomb 24），boss_hp 160（≈单遍伤害总量 258 的 62%）。
+  循环：`loop_from_beat 112`（drop 起）→ `loop_to_beat 208`（曲末）；一旦进入 finale 露核，循环中保持露核。
+- Boss 图集：`tools/art/enemy3d/beat_warden.py`（Blender 基本体 → 像素）→ `godot/assets/boss/beat_warden/atlas.*`，
+  格 288×272、脚底 262；idle 4（第 0 帧=拍点）/ fire_ground 3 / fire_air 3 / hurt 3 / expose 4 / core 4 / death 6；
+  JSON 附号角口/核心相对脚底坐标（面朝右）。
+- 音符/判定环/击碎/灯带与舞台背景：`tools/art/m07/build_m07_art.py`。
+- 地图：`playground/tools/gen_m07_beat_tower.py` → `godot/maps/m07_beat_tower.ldtk` / `godot/generated/m07_beat_tower_data.gd`
+  （80×25；后台走廊 2 守卫 + 货箱 + 钢梯 → 候场室检查点 → 44×21 舞台；`BOSS_ARENA` 常量给判定线/轨道/Boss 脚底）。
+- 几何核对：站立受击框 34×82 从空中轨音符（中心离地 108、半径 14）下方通过；跳跃顶点≈121px 可越过地面音符并够到空中音符。
+- 后端（Boss 状态机、指挥器、判定、时停/暂停同步、M07 场景、菜单第 5 关）由 Codex 实现，见其测试 `test_beat_warden.gd`/`test_m07_beat_tower.gd`。
