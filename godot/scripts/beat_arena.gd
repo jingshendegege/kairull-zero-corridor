@@ -71,6 +71,9 @@ var _counter_lock := 0.0            ## 顿帧 + 收招剩余；期间按键进�
 var _counter_buffer := 0
 var _hitstop := 0.0
 var _counter_pos := Vector2.ZERO
+var _lunge := 0.0                  ## 反击每击的前冲位移（像素），顿帧后回位
+var _afterimages: Array[Dictionary] = []   ## 换层残影：{sprite, life}
+const AFTERIMAGE_TIME := 0.3
 signal damage_popped(amount: int, world: Vector2, tier: int)   ## tier 0/1/2 = 档位，3 = 终结重击
 var _rush_beat := 0.0
 var _rush_done := {}
@@ -287,7 +290,8 @@ func _on_swing_started(_stage: int) -> void:
 	swing += 1
 
 func _on_bat_swung(hitbox: Rect2, _stage: int) -> void:
-	if state == "playing" and not frozen and not host.player.dead:
+	# 双轨模式按时间窗判定；主角挥棒动画自带的命中信号不能再走旧的球棒碰撞判定
+	if state == "playing" and not frozen and not host.player.dead and not rhythm_lock:
 		bat_contacts(hitbox)
 
 func bat_contacts(hitbox: Rect2) -> void:
@@ -480,6 +484,8 @@ func _release_rhythm() -> void:
 		return
 	rhythm_lock = false
 	player_lane = "ground"
+	_lunge = 0.0
+	_clear_afterimages()
 	var p: Node2D = host.player
 	p.keys.clear()
 	p.auto_input = true
@@ -493,7 +499,7 @@ func _release_rhythm() -> void:
 func _place_player() -> void:
 	var p: Node2D = host.player
 	var lift := air_lift() if player_lane == "air" else 0.0
-	p.position = Vector2(float(config.judge_x) + PLAYER_OFFSET, float(config.floor_y) - lift - 0.1)
+	p.position = Vector2(float(config.judge_x) + PLAYER_OFFSET + _lunge, float(config.floor_y) - lift - 0.1)
 	p.vx = 0.0
 	p.vy = 0.0
 
@@ -528,16 +534,19 @@ func _rhythm_tick(dt: float) -> void:
 		p.set_state("gun_idle" if rush_state == "counter" else "run")   # 两层都原地奔跑；反击时站定
 	if _hitstop <= 0.0:
 		p._advance_frame(dt)
+		_lunge = move_toward(_lunge, 0.0, dt * 140.0)
+	_advance_afterimages(dt)
 	p._sync_sprite()
 
 
 ## 一次出手：瞬移到该层（并停留）挥棒；在该轨判定窗内取时间误差最小的音符反弹（炸弹不可打）。
 func rhythm_press(lane: String) -> BeatNote:
 	var rising := lane == "air" and player_lane == "ground"
+	if lane != player_lane:
+		_spawn_afterimage()   # 用户要求：上下切换在原位置留 0.3 秒渐隐残影
 	player_lane = lane
 	var p: Node2D = host.player
-	p.state = ""
-	p.set_state("bat3" if rising else "bat2")   # 用户要求：从下层切到上层用连击第三段
+	_pose_strike("bat3" if rising else "bat2", 0.2)   # 用户要求：从下层切到上层用连击第三段
 	_place_player()
 	swing += 1
 	if state != "playing" or frozen:
@@ -693,9 +702,8 @@ func _auto_finisher() -> void:
 	var mult := int(conductor.chart.finale_core_multiplier) if conductor.finale_started() else 1
 	var damage := clampi(FINISHER_DAMAGE * mult, 0, counter_cap - counter_damage)
 	counter_damage += damage
-	var p: Node2D = host.player
-	p.state = ""
-	p.set_state("bat3")
+	_pose_strike("bat3", host.player.BAT_HIT_AT + 0.04)
+	_lunge = 24.0
 	var pos := boss.target_point()
 	_burst(pos, "heavy", 2.6)
 	_play_counter_sfx(counter_hits + 1, 2, true)
@@ -733,9 +741,9 @@ func _counter_strike() -> void:
 	counter_damage += damage
 	_hitstop = float(cfg[2]) * (2.0 if finisher else 1.0)
 	_counter_lock = _hitstop + COUNTER_RECOVER
-	var p: Node2D = host.player
-	p.state = ""
-	p.set_state("bat3" if finisher else ["bat2", "bat1", "bat3"][counter_tier])
+	# 连打时每击直接定格在球棒击中帧（顿帧期间保持），三种挥棒轮换 + 前冲，快速连打也看得出在挥
+	_pose_strike("bat3" if finisher else ["bat1", "bat2", "bat3"][counter_hits % 3], host.player.BAT_HIT_AT + 0.04)
+	_lunge = 24.0 if finisher else [8.0, 13.0, 18.0][counter_tier]
 	var pos := boss.target_point() + Vector2(randf_range(-26, 26), randf_range(-30, 20))
 	_burst(pos, "heavy", [0.8, 1.2, 1.7, 2.6][3 if finisher else counter_tier])
 	_play_counter_sfx(counter_hits, counter_tier, finisher)
@@ -820,4 +828,53 @@ func _draw_rush_mark() -> void:
 	rush_mark.draw_rect(Rect2(-5, -29, 10, 40), Color.WHITE)
 	rush_mark.draw_rect(Rect2(-5, 18, 10, 10), Color.WHITE)
 	rush_mark.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 把主角摆到某段挥棒的指定进度（0..1，BAT_HIT_AT ≈ 球棒击中帧），并立即刷新精灵。
+func _pose_strike(stage: String, progress: float) -> void:
+	var p: Node2D = host.player
+	p.state = ""
+	p.set_state(stage)
+	var frames := int(p.db.actions[p.current_clip()]["frames"])
+	p.t = clampf(progress, 0.0, 0.99) * frames / float(p.db.fps)
+	p.frame = mini(frames - 1, int(floor(p.t * p.db.fps)))
+	p._sync_sprite()
+
+
+## 换层残影：复制主角当前精灵（同纹理/区域/变换）留在原位，淡青色 0.3 秒线性淡出；画在主角身后。
+func _spawn_afterimage() -> void:
+	var src: Sprite2D = host.player._sprite
+	if src == null or src.texture == null:
+		return
+	var ghost := Sprite2D.new()
+	ghost.texture = src.texture
+	ghost.region_enabled = src.region_enabled
+	ghost.region_rect = src.region_rect
+	ghost.centered = src.centered
+	ghost.offset = src.offset
+	ghost.flip_h = src.flip_h
+	ghost.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	ghost.modulate = Color(0.55, 0.95, 1.0, 0.6)
+	host.add_child(ghost)
+	host.move_child(ghost, host.player.get_index())
+	ghost.global_transform = src.global_transform
+	_afterimages.append({"sprite": ghost, "life": AFTERIMAGE_TIME})
+
+
+func _advance_afterimages(dt: float) -> void:
+	for item: Dictionary in _afterimages:
+		item.life -= dt
+		var ghost: Sprite2D = item.sprite
+		if is_instance_valid(ghost):
+			ghost.modulate.a = 0.6 * clampf(item.life / AFTERIMAGE_TIME, 0.0, 1.0)
+			if item.life <= 0.0:
+				ghost.queue_free()
+	_afterimages = _afterimages.filter(func(item: Dictionary) -> bool: return item.life > 0.0)
+
+
+func _clear_afterimages() -> void:
+	for item: Dictionary in _afterimages:
+		if is_instance_valid(item.sprite):
+			item.sprite.queue_free()
+	_afterimages.clear()
 

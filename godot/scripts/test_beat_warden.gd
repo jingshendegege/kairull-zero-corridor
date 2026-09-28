@@ -276,6 +276,8 @@ func _run() -> void:
 	advance(0.37)
 	check(arena.rhythm_press("air") == air_note and air_note.reflected and not ground_note.reflected \
 			and arena.rating == "Perfect", "up press hits only the air lane (70ms late = Perfect)")
+	check(arena._afterimages.size() == 1 and arena._afterimages[0].sprite.modulate.a > 0.5,
+		"switching lanes leaves an afterimage at the old spot")
 	check(arena.player_lane == "air" and is_equal_approx(game.player.position.y, 736.0 - arena.air_lift() - 0.1) and is_equal_approx(arena.air_lift(), 104.0) \
 			and game.player.batting(), "up press teleports into the air lane and swings")
 	check(arena.rhythm_press("ground") == ground_note and arena.rating == "Hit" and arena.player_lane == "ground",
@@ -347,6 +349,8 @@ func _run() -> void:
 		arena.step(0.06)
 	check(arena.boss.hp == hp_before - 5 * 2 and arena.counter_hits == 5 and pops.size() == 5 and pops[0] == [2, 0],
 		"tier-1 counter hits deal 2 and pop small damage numbers")
+	check(game.player.batting() and game.player.frame > 0 and arena._lunge > 0.0,
+		"each counter hit snaps to the bat's impact frame and lunges forward")
 	for i in 2:
 		arena.counter_hit()
 		arena.step(0.06)
