@@ -87,6 +87,7 @@ var quarantine_foreground: QuarantineArchitecture    ## 正式 M01 稀疏近景�
 var current_room := -1         ## 玩家所在房间（level.rooms 下标，-1 = 无房间系统/房间外）
 var exit_door: ExitDoor        ## 塔门出口视觉（> 标记处）
 var level_cleared := false     ## 玩家触碰出口后：冻结敌人 + HUD 出 CLEAR 卡
+var beat_arena: Node2D        ## M07 clock/notes stay outside old enemy snapshots.
 var red_boss: Node2D           ## 关底 Boss（Red / Hornet，由 active_boss 选择）
 var bg: GameBackground
 var paint_layer: SlimePaintLayer
@@ -417,6 +418,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				return  # 倒带中不接受旧快速复活，防止重复切场景或敌人不重置。
 		if event.keycode == KEY_BACKSPACE:
 			player.reset_to_spawn()
+			if beat_arena != null:
+				beat_arena.reset_fight(true)
 			_reset_original_kill_chain()
 			_reset_bat_cargo()
 			_enemy_knockbacks.clear()
@@ -895,6 +898,8 @@ func _physics_process(dt: float) -> void:
 				smoke_tactics.try_pickup(player)
 				_refresh_smoke_cover()
 			return  # 敌人逻辑 tick、子弹、货箱、伤害与击退全冻结；玩家自身 step 仍运行。
+	if beat_arena != null:
+		beat_arena.step(dt)
 	_step_tactics(dt)
 	if timeline_enabled and player.dead:
 		return
@@ -1015,6 +1020,8 @@ func _physics_process(dt: float) -> void:
 ## 且关底 Boss（hornet/red，若本场景刷了）已死。默认关/M02 该开关为 false，
 ## 出口维持旧行为（到门即过关；M02 的清怪由房门各自强制）。
 func _exit_gated() -> bool:
+	if beat_arena != null and beat_arena.blocks_exit():
+		return true
 	if not CorridorLevel.active_exit_requires_boss:
 		return false
 	for m in minions:
@@ -1769,6 +1776,8 @@ func _set_player_time_focus(active: bool) -> void:
 
 
 func _set_temporal_nodes_paused(paused: bool) -> void:
+	if beat_arena != null:
+		beat_arena.set_frozen(paused)
 	if paused == _temporal_paused:
 		return
 	_temporal_paused = paused
@@ -1802,6 +1811,8 @@ func _sync_temporal_projection() -> void:
 
 
 func _on_player_died() -> void:
+	if beat_arena != null:
+		beat_arena.reset_fight()
 	_reset_original_kill_chain()
 	_set_player_time_focus(false)
 	play_action("player_death")
@@ -1825,6 +1836,8 @@ func _on_player_died() -> void:
 func _begin_rewind() -> void:
 	if not timeline_enabled or time_phase in ["rewinding", "interference"] or _transitioning:
 		return
+	if beat_arena != null:
+		beat_arena.reset_fight() # No partial chart rewind.
 	attempt_timeline.record(self, 0.0, true)
 	_set_player_time_focus(false)
 	time_charge.cancel()

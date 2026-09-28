@@ -8,8 +8,9 @@ static var start_level := 0 ## 菜单保留旧关，新增第二关；仅选择�
 const DIFFICULTIES := ["easy", "hard", "zero"]
 static var checkpoint: Dictionary = {} ## 仅当前挑战的内存快照；返回菜单/新开局清空，不跨关串档。
 const LEVEL_SCENES := ["res://scenes/m01_protocol_quarantine.tscn", "res://scenes/m04_chrono_freight.tscn",
-		"res://scenes/m05_vertical_freight.tscn", "res://scenes/m06_exhaust_ridge.tscn"]
-const LEVEL_NAMES := ["01 协议检疫站", "02 时差货运场", "03 垂直货运井", "04 排风脊线"]
+		"res://scenes/m05_vertical_freight.tscn", "res://scenes/m06_exhaust_ridge.tscn",
+		"res://scenes/m07_beat_tower.tscn"]
+const LEVEL_NAMES := ["01 协议检疫站", "02 时差货运场", "03 垂直货运井", "04 排风脊线", "05 节拍广播塔"]
 
 
 static func selected_scene() -> String:

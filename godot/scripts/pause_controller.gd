@@ -78,6 +78,8 @@ func pause_game() -> void:
 			_mode_snapshot.append({"ref": weakref(node), "mode": node.process_mode})
 			node.process_mode = Node.PROCESS_MODE_DISABLED
 	active = true
+	if host.beat_arena != null:
+		host.beat_arena.set_frozen(true)
 	get_tree().paused = true
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	var progress: Dictionary = host.run_progress()
@@ -117,6 +119,8 @@ func _finish_pause(sync_input: bool) -> void:
 			node.stream_paused = bool(entry.paused)
 	_audio_snapshot.clear()
 	active = false
+	if is_instance_valid(host) and host.beat_arena != null:
+		host.beat_arena.set_frozen(host._temporal_paused)
 	if is_instance_valid(ui):
 		ui.hide_menu()
 	Input.set_mouse_mode(_mouse_mode)

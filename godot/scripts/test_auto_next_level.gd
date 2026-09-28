@@ -46,7 +46,7 @@ func _run() -> void:
 		var count := 0
 		for enemy: Node2D in game.minions:
 			count += int(not enemy.dead)
-		check(count == [20,38,52,26][index],"新关完整生成自己的敌人")
+		check(count == [20,38,52,30,2][index],"新关完整生成自己的敌人")
 		# 激活当前关中段点，验证自动换关只清这份旧存档。
 		var config: Dictionary = CorridorLevel.active_checkpoints[0]
 		for enemy: Node2D in game.minions:
@@ -60,6 +60,13 @@ func _run() -> void:
 		check(not SESSION.checkpoint.is_empty(),"本关检查点经真实接口激活")
 		for enemy: Node2D in game.minions:
 			enemy.dead = true
+		if game.beat_arena != null:
+			# M07 fixture must defeat its independent boss before the exit can open.
+			game.player.position = Vector2(1200, 736)
+			game.beat_arena.step(0.0)
+			game.beat_arena.step(game.beat_arena.conductor.seconds(4))
+			game.beat_arena.boss.take_reflected_hit(160)
+			game.beat_arena.step(0.5)
 		game.player.position = game.level.exit_point
 		game.player.on_ground = true
 		game._physics_process(0.0)
@@ -117,7 +124,7 @@ func _run() -> void:
 		else:
 			game.victory_transition.advance(10.0)
 			game._process(0.0)
-			check(not game._transitioning and game.victory_next_scene().is_empty(),"第四关不跳回第一关或旧试作")
+			check(not game._transitioning and game.victory_next_scene().is_empty(),"第五关不跳回第一关或旧试作")
 			check(game.victory_transition.prompt_text().contains("重新挑战") \
 					and game._can_restart_campaign(),"最终关保留重玩和暂停菜单")
 	current_scene.free()

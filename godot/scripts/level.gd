@@ -28,6 +28,8 @@ const M05_VERTICAL_DATA := preload("res://generated/m05_vertical_freight_data.gd
 const MAP_M05_VERTICAL_FREIGHT := M05_VERTICAL_DATA.MAP_TEXT
 const M06_DATA := preload("res://generated/m06_exhaust_ridge_data.gd")
 const MAP_M06_EXHAUST_RIDGE := M06_DATA.MAP_TEXT
+const M07_DATA := preload("res://generated/m07_beat_tower_data.gd")
+const MAP_M07_BEAT_TOWER := M07_DATA.MAP_TEXT
 
 const TS := 32
 

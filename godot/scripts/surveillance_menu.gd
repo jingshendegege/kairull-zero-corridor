@@ -227,7 +227,9 @@ class MonitorCanvas extends Control:
 			var chosen := index == level_choice
 			draw_rect(card, Color("#122830") if chosen else Color("#09191f"))
 			draw_rect(card, Color(accent, 0.9 if chosen else 0.3), false, 2)
-			_text(card.position + Vector2(8, 27), SESSION.LEVEL_NAMES[index], 14, PAPER if chosen else MUTED)
+			var title: String = SESSION.LEVEL_NAMES[index]
+			_text(card.position + Vector2(8, 15), title.substr(0, 2), 11, accent if chosen else MUTED)
+			_text(card.position + Vector2(8, 33), title.substr(3), 14, PAPER if chosen else MUTED)
 		var button := START_BUTTON
 		draw_rect(button, Color(accent, 0.18 if focused else 0.08))
 		draw_rect(button, Color(accent, 0.95 if focused else 0.35), false, 3)
