@@ -4,7 +4,7 @@ class_name BeatArena
 const CONDUCTOR := preload("res://scripts/beat_conductor.gd")
 const WARDEN := preload("res://scripts/beat_warden.gd")
 const NOTE := preload("res://scripts/beat_note.gd")
-const COLORS := {"normal": Color("5fe6f0"), "heavy": Color("f0b44a"), "bomb": Color("ff3f94")}
+const COLORS := {"normal": Color("5fe6f0"), "heavy": Color("f0b44a"), "bomb": Color("ff3a1a")}
 ## 2026-09-28 用户试玩反馈：自由移动+挥棒不好用 → 改为喵斯快跑式双轨。
 ## 倒数开始后主角锁定在判定线前原地奔跑（场景由 m07_beat_stage_fx 向左滚动）：
 ## W/↑ 上到隔板上层并挥棒，S/↓ 回地面下层并挥棒；按一次就停在该层，直到按另一个键切换。
@@ -373,7 +373,7 @@ func _advance_bursts(dt: float) -> void:
 
 func _update_visuals() -> void:
 	var pulse := 1.0 - fposmod(_pulse_beat, 1.0)
-	var color := Color("8ff8ff") if posmod(floori(_pulse_beat), 2) == 0 else Color("ff5aa8")
+	var color := Color("ffb040") if posmod(floori(_pulse_beat), 2) == 0 else Color("ff3a1a")   # 摇滚版：橙/红交替
 	for ring: Sprite2D in rings:
 		ring.scale = Vector2.ONE * (0.85 + 0.2 * pulse)
 		ring.modulate = Color(color, 0.5 + 0.5 * pulse)

@@ -1,4 +1,4 @@
-"""05 节拍广播塔：竞技场视差背景 + 节奏 Boss 的音符/判定环/击碎特效（原创程序化像素画，固定种子，幂等）。
+"""05 节拍广播塔（2026-09-28 按用户要求改为摇滚画风：黑红火光、金属、拨片音符）：竞技场视差背景 + 节奏 Boss 的音符/判定环/击碎特效（原创程序化像素画，固定种子，幂等）。
 
 背景低分辨率 384×256 绘制 → 最近邻 ×4（与 M06 相同：GameBackground SCALE 0.75 显示为 3px 像素块）。
 输出：
@@ -56,67 +56,72 @@ def put(px, w, h, x, y, col):
 
 # ================================================================ 背景
 def hall() -> Image.Image:
-    """远景：巨型场馆。夜空 → 地平线品红光晕；舞台方向放射光芒；两侧灯塔；看台上一片手机灯海。
-    左右边缘只有渐变与看台，可无缝横向平铺。"""
-    rnd = random.Random(7070)
+    """远景（摇滚）：黑红夜空 + 地平线火光；舞台后方巨型闪电圆徽；两侧远处音箱墙剪影；
+    看台打火机火光海 + 白色探照灯柱；天空烟雾（闪电由舞台层动态绘制，远景不画静态闪电以免平铺重复）。左右边缘仅渐变/看台，可横向平铺。"""
+    rnd = random.Random(6666)
     img = Image.new("RGBA", (LW, LH))
     px = img.load()
-    stops = [(0.0, "#04020b"), (0.4, "#0e0624"), (0.66, "#26093f"), (0.78, "#4a1260"), (0.83, "#7a1f73"),
-             (0.86, "#2a0b36"), (1.0, "#0c0514")]
+    stops = [(0.0, "#050203"), (0.35, "#12040a"), (0.62, "#2c070a"), (0.76, "#5a0e0a"), (0.82, "#b8300e"),
+             (0.85, "#3a0a08"), (1.0, "#0c0304")]
     for y in range(LH):
         for x in range(LW):
             px[x, y] = dither_ramp(stops, y / (LH - 1), x, y)
-    # 舞台方向的放射光芒（中心在画面下方中部），抖动半透明
-    cx, cy = 192, 214
-    for y in range(0, 214):
+    # 烟雾团：暗红灰色抖动云
+    for _ in range(16):
+        cx, cy, r = rnd.randrange(LW), rnd.randrange(30, 170), rnd.randrange(18, 46)
+        for y in range(cy - r, cy + r):
+            for x in range(cx - 2 * r, cx + 2 * r):
+                d = math.hypot((x - cx) / 2.0, y - cy) / r
+                if d < 1 and 0 <= x < LW and 0 <= y < LH and dith((1 - d) * 0.5, x, y):
+                    px[x, y] = hx("#2e1414" if y < 120 else "#3a1210")
+    # 舞台后方巨型闪电圆徽（深红描边 + 橙色闪电）
+    cx, cy, r = 192, 150, 58
+    for y in range(cy - r - 2, cy + r + 3):
+        for x in range(cx - r - 2, cx + r + 3):
+            d = math.hypot(x - cx, y - cy)
+            if r - 3 <= d <= r:
+                px[x, y] = hx("#7a1410" if (x + y) % 2 else "#5a0e0c")
+            elif r - 7 <= d < r - 3:
+                px[x, y] = hx("#1a0606")
+    bolt = [(200, 100), (178, 150), (194, 150), (182, 200), (212, 138), (196, 138), (208, 100)]
+    from PIL import ImageDraw
+    ImageDraw.Draw(img).polygon(bolt, fill=hx("#ff7a1a"), outline=hx("#ffd26a"))
+    # 两侧远处音箱墙剪影（带暗红网罩纹）
+    for x0 in (8, 300):
+        for row in range(4):
+            for col in range(2):
+                bx, by = x0 + col * 38, 206 - (row + 1) * 30
+                for y in range(by, by + 29):
+                    for x in range(bx, bx + 37):
+                        edge = x in (bx, bx + 36) or y in (by, by + 28)
+                        put(px, LW, LH, x, y, "#120405" if edge else ("#1e0708" if (x + y) % 3 else "#16050a"))
+                for yy in range(by + 4, by + 8):
+                    for xx in range(bx + 4, bx + 14):
+                        put(px, LW, LH, xx, yy, "#3a2a1a")   # 铭牌
+    # 看台：暗色阶梯 + 打火机火光
+    for tier, top in enumerate((166, 184, 198)):
         for x in range(LW):
-            a = math.atan2(y - cy, x - cx)
-            ray = (int((a + math.pi) / (math.pi / 18)) % 2 == 0)
-            d = math.hypot(x - cx, (y - cy) * 1.3)
-            k = max(0.0, 1.0 - d / 230) * (0.9 if ray else 0.35)
-            if dith(k * 0.8, x, y):
-                px[x, y] = hx("#3b1466" if ray else "#241046")
-    # 天空里稀疏的烟花残点
-    for _ in range(90):
-        x, y = rnd.randrange(LW), int(rnd.random() ** 1.5 * 150)
-        px[x, y] = hx(rnd.choice(["#6d4aa6", "#9a6ad0", "#4a3a86", "#c28bff"]))
-    # 两座灯塔：格构柱 + 顶部灯组 + 下射的抖动光柱
-    for tx in (64, 320):
-        for y in range(40, 214):
-            for dx in (-5, 5):
-                put(px, LW, LH, tx + dx, y, "#150a26")
-            k = y % 10
-            put(px, LW, LH, tx - 5 + k, y, "#1d0f33")
-            put(px, LW, LH, tx + 5 - k, y, "#1d0f33")
-        for row in range(3):
-            for col in range(5):
-                x0, y0 = tx - 12 + col * 5, 26 + row * 5
-                for yy in range(y0, y0 + 4):
-                    for xx in range(x0, x0 + 4):
-                        put(px, LW, LH, xx, yy, "#fff6e0" if (xx + yy) % 3 else "#bfe8ff")
-        for y in range(42, 214):
-            half = (y - 42) * 0.32
-            for x in range(int(tx - half), int(tx + half) + 1):
-                k = (1.0 - abs(x - tx) / max(1.0, half)) * (1.0 - (y - 42) / 172) * 0.55
-                if 0 <= x < LW and dith(k, x, y):
-                    px[x, y] = hx("#5a3c8a")
-    # 看台：三层弧形看台 + 手机灯海（越近越密）
-    for tier, (top, col) in enumerate(((150, "#14081f"), (172, "#10061a"), (194, "#0b0413"))):
-        for x in range(LW):
-            t = top + int(6 * math.cos((x - 192) / 192 * math.pi * 0.5) * -1) + 6
-            for y in range(t, 216):
-                if px[x, y][2] > 20 or tier == 2:
-                    px[x, y] = hx(col)
-            put(px, LW, LH, x, t, "#2a1240")
-    for _ in range(1400):
-        x = rnd.randrange(LW)
-        y = 154 + int(rnd.random() ** 0.6 * 60)
+            t = top + int(4 * math.cos((x - 192) / 192 * math.pi * 0.5) * -1) + 4
+            for y in range(t, 214):
+                if tier == 2 or px[x, y][0] > 30:
+                    px[x, y] = hx(("#140405", "#100304", "#0a0203")[tier])
+            put(px, LW, LH, x, t, "#3a0c0a")
+    for _ in range(900):
+        x, y = rnd.randrange(LW), 168 + int(rnd.random() ** 0.6 * 46)
         if y < 214:
-            px[x, y] = hx(rnd.choice(["#fff3d6", "#c9f6ff", "#ff9bd0", "#8a6ab8", "#ffe28a", "#6a4a9a"]))
-    # 地平线霓虹带
+            px[x, y] = hx(rnd.choice(["#ffb040", "#ffd26a", "#ff7a1a", "#fff2c0", "#b83a10"]))
+    # 探照灯柱（白色抖动）从看台斜向夜空
+    for sx, ang in ((40, 0.35), (120, 0.12), (270, -0.15), (350, -0.4)):
+        for i in range(160):
+            y = 200 - i
+            x = int(sx + math.tan(ang) * i)
+            for dx in range(-2 - i // 40, 3 + i // 40):
+                if 0 <= x + dx < LW and 0 <= y < LH and dith((1 - i / 160) * 0.55, x + dx, y):
+                    px[x + dx, y] = hx("#8a6a60")
+    # 地平线火线
     for x in range(LW):
-        put(px, LW, LH, x, 215, "#ff4fa8" if x % 6 else "#8a1f60")
-        put(px, LW, LH, x, 216, "#5a1348")
+        put(px, LW, LH, x, 214, "#ff6a1a" if x % 5 else "#ffd26a")
+        put(px, LW, LH, x, 215, "#8a1a08")
     return img
 
 
@@ -124,11 +129,13 @@ CROWD_W = LW * 4   # 观众层 4 倍宽且首尾无缝：边跑边打时不再�
 
 
 def speakers() -> Image.Image:
-    """中景：前排观众剪影（举手、荧光棒、偶尔的应援牌），CROWD_W 宽、横向首尾无缝，不镜像。"""
-    rnd = random.Random(128)
+    """中景（摇滚）：前排观众剪影——长发甩头、金属礼手势（食指+小指）、打火机火苗；
+    头顶被舞台火光擦出红橙轮廓。CROWD_W 宽、横向首尾无缝，不镜像。"""
+    rnd = random.Random(1313)
     W = CROWD_W
     img = Image.new("RGBA", (W, LH), (0, 0, 0, 0))
     px = img.load()
+    body = "#060203"
 
     def wput(x, y, col):
         if 0 <= y < LH:
@@ -141,61 +148,68 @@ def speakers() -> Image.Image:
         h = rnd.randint(13, 26)
         top = base - h
         cx = x + w // 2
-        body = "#07040d" if rnd.random() < 0.8 else "#0a0613"
-        for yy in range(top + 5, LH):                       # 身体
+        tilt = rnd.choice((-2, -1, 0, 1, 2))   # 甩头
+        for yy in range(top + 5, LH):
             for xx in range(x + 1, x + w - 1):
                 wput(xx, yy, body)
-        for yy in range(top, top + 6):                       # 头
-            for xx in range(cx - 2, cx + 3):
-                if (xx - cx) ** 2 + (yy - top - 3) ** 2 <= 7:
+        for yy in range(top, top + 6):
+            for xx in range(cx - 2 + tilt, cx + 3 + tilt):
+                if (xx - cx - tilt) ** 2 + (yy - top - 3) ** 2 <= 7:
                     wput(xx, yy, body)
+        if rnd.random() < 0.35:                               # 长发
+            for k in range(rnd.randint(5, 9)):
+                wput(cx + tilt * 2 - 2 + (k % 2), top + 3 + k, body)
+                wput(cx + tilt * 2 + 2 - (k % 2), top + 3 + k, body)
         r = rnd.random()
-        if r < 0.5:                                          # 举手 + 荧光棒
+        if r < 0.45:                                          # 金属礼手势
             side = rnd.choice((-1, 1))
             hx0 = cx + side * (w // 2)
-            arm = rnd.randint(6, 10)
+            arm = rnd.randint(7, 11)
             for k in range(arm):
                 wput(hx0 + side * (k // 4), top + 6 - k, body)
-            stick = rnd.choice(["#8ff8ff", "#ff5aa8", "#ffe28a", "#b08cff", "#8ff8ff"])
-            for k in range(5):
-                wput(hx0 + side * 2, top + 6 - arm - k, stick)
-        elif r < 0.56:                                       # 双手举应援牌
-            sw = rnd.randint(10, 16)
-            col = rnd.choice(["#ff5aa8", "#8ff8ff", "#ffe28a"])
-            for yy in range(top - 12, top - 4):
-                for xx in range(cx - sw // 2, cx + sw // 2):
-                    edge = yy in (top - 12, top - 5) or xx in (cx - sw // 2, cx + sw // 2 - 1)
-                    wput(xx, yy, "#1a1026" if edge else ("#241838" if (xx + yy) % 3 else col))
-            for yy in range(top - 4, top + 6):
-                wput(cx - sw // 2 + 1, yy, body)
-                wput(cx + sw // 2 - 2, yy, body)
-        elif r < 0.62:                                       # 手机闪光灯
-            wput(cx + 3, top - 4, "#fff6e0")
-            wput(cx + 3, top - 3, body)
+            tip = top + 6 - arm
+            fx = hx0 + side * (arm // 4)
+            for k in range(3):
+                wput(fx - 1, tip - k, body)    # 食指
+                wput(fx + 2, tip - k, body)    # 小指
+            wput(fx, tip, body)
+            wput(fx + 1, tip, body)
+        elif r < 0.6:                                         # 打火机
+            side = rnd.choice((-1, 1))
+            hx0 = cx + side * (w // 2)
+            for k in range(8):
+                wput(hx0 + side * (k // 4), top + 6 - k, body)
+            fx = hx0 + side * 2
+            wput(fx, top - 3, "#ff7a1a")
+            wput(fx, top - 4, "#ffd26a")
+            wput(fx, top - 5, "#fff2c0")
         x += w - rnd.randint(1, 3)
-    # 观众头顶被舞台光擦亮的边
     for xx in range(W):
         for yy in range(1, LH):
-            if px[xx, yy][3] and px[xx, yy - 1][3] == 0 and px[xx, yy][:3] in ((7, 4, 13), (10, 6, 19)):
-                px[xx, yy] = hx("#3a2058")
+            if px[xx, yy][3] and px[xx, yy - 1][3] == 0 and px[xx, yy][:3] == (6, 2, 3):
+                px[xx, yy] = hx("#7a1a0c")
     return img
 
 
 def truss() -> Image.Image:
+    """顶部远处桁架（摇滚）：黑钢双弦桁架 + 锈红高光 + 垂下的铁链（中视差，可镜像平铺）。"""
     img = Image.new("RGBA", (LW, LH), (0, 0, 0, 0))
     px = img.load()
     top, bot = 10, 22
-    # 双弦桁架 + 斜腹杆
     for x in range(LW):
         for y in (top, top + 1, bot, bot + 1):
-            put(px, LW, LH, x, y, "#2a2340" if y in (top, bot) else "#0f0b1b")
+            put(px, LW, LH, x, y, "#3a1a14" if y in (top, bot) else "#0c0606")
         k = x % 12
         yy = top + 2 + (k if k < 6 else 12 - k) * 2 * (bot - top - 2) // 12
-        put(px, LW, LH, x, yy, "#1f1933")
+        put(px, LW, LH, x, yy, "#1e0c0a")
     for x in range(0, LW, 12):
         for y in range(top, bot + 2):
-            put(px, LW, LH, x, y, "#1f1933")
+            put(px, LW, LH, x, y, "#1e0c0a")
+    for i, x in enumerate(range(30, LW, 64)):                  # 铁链
+        for y in range(bot + 2, bot + 18 + (i * 7) % 14):
+            put(px, LW, LH, x + (1 if (y // 2) % 2 else 0), y, "#2a1410")
     return img
+
 
 
 # ================================================================ 音符与特效
@@ -250,42 +264,87 @@ def wings(img: Image.Image, cy: int, col="#d7f6ff", dark="#5d7fa0") -> Image.Ima
     return out
 
 
-def note_normal() -> Image.Image:
-    img = Image.new("RGBA", (28, 28), (0, 0, 0, 0))
+ROCK_INK = "#0a0606"
+BOLT = ["..###", ".###.", "###..", "#####", "..##.", ".##..", "##..."]
+SKULL = [".#####.", "#######", "##.#.##", "#######", ".##.##.", ".#.#.#."]
+
+
+def pick_mask(w: int, h: int) -> set[tuple[int, int]]:
+    """吉他拨片轮廓：圆顶 + 两侧外凸弧线收向下方圆头尖角（像素级无抗锯齿）。"""
+    cap = 0.3
+    mask = set()
+    for y in range(h):
+        v = (y + 0.5) / h
+        if v < cap:
+            half = 0.5 * math.sqrt(max(0.0, 1.0 - ((cap - v) / cap) ** 2))
+        else:
+            half = 0.5 * max(0.0, 1.0 - (v - cap) / (1.0 - cap)) ** 0.7
+            half = max(half, 0.07)
+        for x in range(w):
+            if abs((x + 0.5) / w - 0.5) <= half:
+                mask.add((x, y))
+    return mask
+
+
+def shade_pick(w: int, h: int, ramp: list[str], outline: str = ROCK_INK) -> Image.Image:
+    """拨片着色：1px 墨色描边 + 左上高光带 + 右下暗部 + 中部金属横纹。"""
+    mask = pick_mask(w, h)
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     px = img.load()
-    disc(px, 28, 28, 14, 14, 12, ["#e6ffff", "#5fe6f0", "#2a8ea8"])
-    disc(px, 28, 28, 14, 14, 8, ["#bff9ff", "#3fcfe0", "#2a8ea8"], outline="#1a6f86")
-    glyph(px, 13, 14, "#0b2a3a")
+    for (x, y) in mask:
+        edge = any((x + dx, y + dy) not in mask for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+        if edge:
+            px[x, y] = hx(outline)
+            continue
+        t = (x / w) * 0.6 + (y / h) * 0.4
+        col = ramp[0] if t < 0.32 else ramp[1] if t < 0.62 else ramp[2]
+        if (x + 2 * y) % 11 == 0 and ramp[1] == col:
+            col = ramp[0]
+        px[x, y] = hx(col)
+    return img
+
+
+def stamp(px, pattern, x0, y0, col, s=1):
+    for r, row in enumerate(pattern):
+        for c, ch in enumerate(row):
+            if ch == "#":
+                for dy in range(s):
+                    for dx in range(s):
+                        px[x0 + c * s + dx, y0 + r * s + dy] = hx(col)
+
+
+def note_normal() -> Image.Image:
+    """普通音符：电光蓝金属拨片 + 墨色闪电。"""
+    img = shade_pick(28, 28, ["#e8fbff", "#5fd8f0", "#2a7ea8"])
+    stamp(img.load(), BOLT, 12, 8, "#0a2a3a")
     return img
 
 
 def note_heavy(cracked: bool = False) -> Image.Image:
+    """重音符：大号金色拨片 + 骷髅 + 顶部火舌；第一击后出现裂纹（运行时现为一击即反弹，裂纹图保留兼容）。"""
     img = Image.new("RGBA", (40, 40), (0, 0, 0, 0))
+    pick = shade_pick(34, 36, ["#fff0b0", "#ffb020", "#b8600a"])
+    img.alpha_composite(pick, (3, 4))
     px = img.load()
-    disc(px, 40, 40, 20, 20, 18, ["#fff0b8", "#f0b44a", "#a8661e"])
-    disc(px, 40, 40, 20, 20, 13, ["#ffe39a", "#dd9a3a", "#a8661e"], outline="#6b3c0e")
-    for a in range(0, 360, 45):                      # 外圈铆钉
-        x = int(20 + 15.5 * math.cos(math.radians(a)))
-        y = int(20 + 15.5 * math.sin(math.radians(a)))
-        px[x, y] = hx("#fff6d8")
-    glyph(px, 19, 20, "#3a1d05", big=True)
-    if cracked:                                      # 第一击后的裂纹
-        x, y = 8, 12
-        for step in range(22):
-            px[min(39, x), min(39, y)] = hx(OUTLINE)
-            if 0 <= x + 1 < 40:
-                px[x + 1, min(39, y)] = hx("#6b3c0e")
+    for i, x in enumerate(range(8, 33, 5)):                   # 顶部火舌
+        hgt = 3 + (i * 7) % 4
+        for k in range(hgt):
+            px[x, max(0, 5 - k)] = hx("#ff6a1a" if k < hgt - 1 else "#ffd26a")
+    stamp(px, SKULL, 13, 12, ROCK_INK, 2)
+    if cracked:
+        x, y = 9, 14
+        for step in range(20):
+            if 0 <= x < 40 and 0 <= y < 40 and px[x, y][3]:
+                px[x, y] = hx(ROCK_INK)
             x += 1
             y += 1 if step % 3 else 0
-        for i in range(8):
-            px[22 + i, 27 - i // 2] = hx(OUTLINE)
     return img
 
 
 def note_bomb() -> Image.Image:
+    """炸弹：黑色刺雷，刺尖发红，中心红色发光核 + 白色叉。"""
     img = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
     px = img.load()
-    # 尖刺（8 向）
     for a in range(0, 360, 45):
         for r in range(9, 15):
             x = int(round(16 + r * math.cos(math.radians(a))))
@@ -294,13 +353,12 @@ def note_bomb() -> Image.Image:
             for dx in range(-half, half + 1):
                 for dy in range(-half, half + 1):
                     if 0 <= x + dx < 32 and 0 <= y + dy < 32:
-                        px[x + dx, y + dy] = hx("#ff9ccc" if r == 14 else "#b8246c")
-    disc(px, 32, 32, 16, 16, 10, ["#ff9ccc", "#ff3f94", "#9a1a5a"])
-    # 白色 ✕ 禁止标志
-    for i in range(-4, 5):
-        for t in (0, 1):
-            px[16 + i, 16 + i - t] = hx("#fff0f7")
-            px[16 + i, 16 - i - t] = hx("#fff0f7")
+                        px[x + dx, y + dy] = hx("#ff3a1a" if r >= 13 else "#2a2a30")
+    disc(px, 32, 32, 16, 16, 10, ["#4a4a55", "#1c1c22", "#0c0c10"], outline=ROCK_INK)
+    disc(px, 32, 32, 16, 16, 5, ["#ffd26a", "#ff3a1a", "#8a1208"], outline="#3a0806")
+    for i in range(-3, 4):
+        px[16 + i, 16 + i] = hx("#fff2d0")
+        px[16 + i, 16 - i] = hx("#fff2d0")
     return img
 
 
@@ -376,13 +434,13 @@ def stage_led_mask() -> Image.Image:
             if not inner:
                 edge = x in (0, LED_W - 1) or y in (0, LED_H - 1)
                 lit = y in (1, 2) or x in (1, 2)
-                px[x, y] = hx(OUTLINE if edge else "#4a3f6a" if lit else "#231c38")
+                px[x, y] = hx(OUTLINE if edge else "#5a5a66" if lit else "#26262e")
             elif (x - LED_FRAME) % 4 == 3 or (y - LED_FRAME) % 4 == 3:
                 px[x, y] = hx("#050308")
     for x in range(24, LED_W - 20, 48):                      # 外框螺栓
         for y in (4, LED_H - 6):
-            px[x, y] = hx("#8a80b0")
-            px[x + 1, y + 1] = hx("#120c20")
+            px[x, y] = hx("#b8b8c8")
+            px[x + 1, y + 1] = hx("#0c0c10")
     return img
 
 
@@ -447,18 +505,18 @@ def stage_spot() -> Image.Image:
     px = img.load()
     for x in range(4, 24):
         for y in range(0, 4):
-            px[x, y] = hx(OUTLINE if y in (0, 3) or x in (4, 23) else "#3a3350")
+            px[x, y] = hx(OUTLINE if y in (0, 3) or x in (4, 23) else "#4a4a55")
     for side in (5, 21):
         for y in range(3, 14):
             for x in (side, side + 1):
-                px[x, y] = hx("#2a2344")
+                px[x, y] = hx("#2a2a33")
     for y in range(8, 21):
         for x in range(7, 21):
             edge = x in (7, 20) or y in (8, 20)
-            px[x, y] = hx(OUTLINE if edge else "#1c1830" if x > 16 else "#2c2448")
+            px[x, y] = hx(OUTLINE if edge else "#18181e" if x > 16 else "#34343e")
     for x in range(9, 19):
         px[x, 19] = hx("#ffffff")
-        px[x, 18] = hx("#cfd8ff")
+        px[x, 18] = hx("#ffe8c0")
     return img
 
 
@@ -495,7 +553,7 @@ def stage_neon() -> Image.Image:
         for x in range(w):
             if (x, y) in lit:
                 inner = all((x + dx, y + dy) in lit for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
-                px[x, y] = hx("#fff0f8" if inner else "#ff5aa8")
+                px[x, y] = hx("#fff2d0" if inner else "#ff4a1a")
             else:
                 near = 99
                 for dy in range(-6, 7):
@@ -503,7 +561,7 @@ def stage_neon() -> Image.Image:
                         if (x + dx, y + dy) in lit:
                             near = min(near, abs(dx) + abs(dy))
                 if near <= 6 and dith((7 - near) / 7 * 0.7, x, y):
-                    px[x, y] = hx("#ff3f94", 110 if near <= 3 else 60)
+                    px[x, y] = hx("#ff3a10", 110 if near <= 3 else 60)
     return img
 
 
@@ -518,8 +576,8 @@ def main() -> None:
              "stage_lightbar.png": lightbar(), "stage_led_mask.png": stage_led_mask(),
              "stage_speaker.png": stage_speaker(), "stage_woofer.png": stage_woofer(), "stage_spot.png": stage_spot(),
              "stage_neon.png": stage_neon()}
-    items["note_normal_air.png"] = wings(items["note_normal.png"], 14)
-    items["note_bomb_air.png"] = wings(items["note_bomb.png"], 16, "#ffd0e6", "#9a1a5a")
+    items["note_normal_air.png"] = wings(items["note_normal.png"], 12, "#ffb040", "#b8300e")   # 火焰小翼
+    items["note_bomb_air.png"] = wings(items["note_bomb.png"], 16, "#ff6a4a", "#5a0806")
     for name, img in items.items():
         img.save(BOSS_OUT / name)
         print("wrote", name, img.size)

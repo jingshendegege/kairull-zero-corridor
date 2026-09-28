@@ -47,14 +47,14 @@ HOUND = {
 
 
 BEAT_WARDEN = {
-    # 紫黑音箱柜 + 炭钢底座 + 黄铜号角/锤头；品红=拍点灯/危险，青=核心与判定提示
-    "cab": {"ramp": ["#4e4580", "#352e5e", "#252043", "#18152d"], "line": "#0b0916", "spec": "#6f64a8", "grain": True},
-    "plate": {"ramp": ["#6a7384", "#454c5a", "#2f343f", "#1f232b"], "line": "#0a0c10", "spec": "#a6afbf", "grain": True},
-    "rubber": {"ramp": ["#44474f", "#2b2d34", "#1c1d22", "#111215"], "line": "#050506"},
-    "metal": {"ramp": ["#b3bcc6", "#7b8591", "#525a65", "#353b43"], "line": "#12151a", "spec": "#eef2f6"},
-    "brass": {"ramp": ["#f6d68e", "#cc9a40", "#8f6427", "#583b16"], "line": "#2c1c08", "spec": "#fff3cc", "outline_front": True},
-    "hazard": {"ramp": ["#ffd27a", "#dc9a45", "#a4662b", "#6e411c"], "line": "#3a200c"},
-    "lamp": {"ramp": ["#ff5aa8"], "line": "#8c1a52", "emissive": True},
-    "lamp_cyan": {"ramp": ["#8ff8ff"], "line": "#1c8c9c", "emissive": True},
-    "core": {"ramp": ["#6ff3ff"], "line": "#1a8fa8", "emissive": True},
+    # 2026-09-28 摇滚版：黑铬音箱柜 + 枪灰底座 + 镀铬号角/锤头；红色拍点灯、橙色指示、火焰色核心与警示条
+    "cab": {"ramp": ["#34343d", "#23232a", "#17171c", "#0d0d10"], "line": "#040405", "spec": "#7a7a88", "grain": True},
+    "plate": {"ramp": ["#565660", "#3a3a42", "#26262c", "#18181c"], "line": "#060607", "spec": "#a0a0ae", "grain": True},
+    "rubber": {"ramp": ["#3a3a40", "#242428", "#18181b", "#0e0e10"], "line": "#040405"},
+    "metal": {"ramp": ["#d8dde6", "#9aa2ae", "#626a76", "#3a4048"], "line": "#101216", "spec": "#ffffff"},
+    "brass": {"ramp": ["#f0f2f6", "#b0b8c4", "#727a88", "#40464f"], "line": "#14161a", "spec": "#ffffff", "outline_front": True},
+    "hazard": {"ramp": ["#ffd26a", "#ff7a1a", "#d8400e", "#8a1a08"], "line": "#3a0a04"},
+    "lamp": {"ramp": ["#ff3a1a"], "line": "#6a0a04", "emissive": True},
+    "lamp_cyan": {"ramp": ["#ffb040"], "line": "#8a4a08", "emissive": True},
+    "core": {"ramp": ["#ffe07a"], "line": "#d86a10", "emissive": True},
 }

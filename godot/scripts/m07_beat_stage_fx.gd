@@ -22,14 +22,15 @@ const RUN_SPEED := 520.0         ## = 谱面 note_speed_px：音符相当于钉�
 const LANE_FOOT := 36.0          ## 与 BeatArena.LANE_FOOT 一致：隔板顶面 = 上层音符中心 + 36
 ## 段落主色 / 副色 / 能量
 const LOOK := {
-	"idle": [Color("3a5aff"), Color("7a3aff"), 0.28],
-	"count": [Color("3fd8ff"), Color("8f7aff"), 0.45],
-	"intro": [Color("3fd8ff"), Color("8f7aff"), 0.55],
-	"verse": [Color("b06cff"), Color("3fd8ff"), 0.72],
-	"build": [Color("ff9a3f"), Color("ff3f94"), 0.8],
-	"drop": [Color("ff3f94"), Color("3fd8ff"), 1.0],
-	"finale": [Color("ffc84a"), Color("ff3f94"), 1.0],
-	"end": [Color("ffffff"), Color("ffc84a"), 0.6],
+	# 2026-09-28 摇滚版配色：红 / 橙 / 金 / 白
+	"idle": [Color("a01a10"), Color("ff7a1a"), 0.28],
+	"count": [Color("ff7a1a"), Color("ffffff"), 0.45],
+	"intro": [Color("ff7a1a"), Color("ff3a1a"), 0.55],
+	"verse": [Color("ff3a1a"), Color("fff2d0"), 0.72],
+	"build": [Color("ffb040"), Color("ff3a1a"), 0.8],
+	"drop": [Color("ff2a1a"), Color("ffe07a"), 1.0],
+	"finale": [Color("ffe07a"), Color("ff5a1a"), 1.0],
+	"end": [Color("ffffff"), Color("ffb040"), 0.6],
 }
 ## 5×7 点阵字（LED 墙上的倒数与提示）
 const FONT := {
@@ -63,6 +64,9 @@ var runway: Node2D
 var scroll_x := 0.0
 var run_speed := 0.0
 var _divider_alpha := 0.0
+var _bolt := 0.0
+var _bolt_seed := 0
+var _last_section := ""
 
 
 func setup(host: Node2D, beat_arena: Node2D) -> void:
@@ -104,9 +108,19 @@ func _process(dt: float) -> void:
 		_beat += dt * 2.2
 	_kick = exp(-fposmod(_beat, 1.0) * 6.0)
 	_section = _section_for(state)
+	if _section != _last_section:
+		if _section in ["drop", "finale"]:
+			_bolt = 1.0
+			_bolt_seed += 1
+		_last_section = _section
+	if not frozen:
+		_bolt = maxf(0.0, _bolt - dt * 5.0)
 	var hp: int = arena.boss.hp
 	if _last_hp >= 0 and hp < _last_hp:
 		_hit_flash = 1.0
+		if _last_hp - hp >= 3:
+			_bolt = 1.0
+			_bolt_seed += 1
 		if _last_hp - hp >= 3 and game.has_method("add_camera_shake"):
 			game.add_camera_shake(Vector2.LEFT, 0.15)
 	_last_hp = hp
@@ -161,7 +175,7 @@ func _draw() -> void:
 	var deck_a := 1.0 - _divider_alpha
 	if deck_a > 0.0:
 		var deck := Rect2(LED_POS.x - 40, LED_POS.y + LED_SIZE.y, LED_SIZE.x + 80, _floor_y - LED_POS.y - LED_SIZE.y)
-		draw_rect(deck, Color(Color("0b0716"), deck_a))
+		draw_rect(deck, Color(Color("0c0606"), deck_a))
 		draw_rect(Rect2(deck.position, Vector2(deck.size.x, 3)), Color(look[0], (0.5 + 0.5 * _kick) * deck_a))
 		for x in range(int(deck.position.x) + 24, int(deck.end.x), 48):
 			draw_rect(Rect2(x, deck.position.y + 14, 20, 4), Color(look[1], (0.25 + 0.5 * _kick * energy) * deck_a))
@@ -177,7 +191,7 @@ func _draw() -> void:
 
 func _draw_led(look: Array, energy: float) -> void:
 	var inner := Rect2(LED_POS + Vector2.ONE * LED_FRAME, LED_SIZE - Vector2.ONE * LED_FRAME * 2.0)
-	draw_rect(inner, Color("120a22"))
+	draw_rect(inner, Color("140808"))
 	var text := _led_text()
 	if text != "":
 		_draw_led_text(inner, text, look)
@@ -245,13 +259,15 @@ func _draw_runway() -> void:
 	var left := float(arena.config.stage_rect[0])
 	var right := left + float(arena.config.stage_rect[2])
 	# 地面：深色钢板 + 顶边灯线 + 滚动接缝 + 向左流动的虚线灯
-	runway.draw_rect(Rect2(left, _floor_y, right - left, 96), Color("120b20"))
+	runway.draw_rect(Rect2(left, _floor_y, right - left, 96), Color("18181c"))
 	runway.draw_rect(Rect2(left, _floor_y, right - left, 2), Color(look[0], 0.6 + 0.4 * _kick))
 	var x := left - fposmod(scroll_x, 64.0)
 	while x < right:
 		if x >= left:
-			runway.draw_rect(Rect2(x, _floor_y + 2, 2, 94), Color("07040d"))
-			runway.draw_rect(Rect2(x + 2, _floor_y + 2, 1, 94), Color("241a3a"))
+			runway.draw_rect(Rect2(x, _floor_y + 2, 2, 94), Color("08080a"))
+			runway.draw_rect(Rect2(x + 2, _floor_y + 2, 1, 94), Color("34343c"))
+			for k in range(4):   # 防滑钢板纹
+				runway.draw_rect(Rect2(x + 10 + k * 13, _floor_y + 8 + (k % 2) * 6, 6, 2), Color("2a2a31"))
 		x += 64.0
 	x = left - fposmod(scroll_x, 128.0)
 	while x < right:
@@ -265,10 +281,17 @@ func _draw_runway() -> void:
 	var a := _divider_alpha
 	var top := float(arena.config.lane_air_y) + LANE_FOOT
 	var end_x: float = arena.boss.position.x - 140.0
-	runway.draw_rect(Rect2(left, top, end_x - left, 8), Color(Color("2a2344"), a))
+	runway.draw_rect(Rect2(left, top, end_x - left, 8), Color(Color("2a2a30"), a))
+	var sx := left - fposmod(scroll_x, 24.0)
+	while sx < end_x:   # 红黑警示斜纹（随跑道滚动）
+		var s0 := maxf(sx, left)
+		var s1 := minf(sx + 12.0, end_x)
+		if s1 > s0:
+			runway.draw_rect(Rect2(s0, top + 3, s1 - s0, 5), Color(Color("b8200e"), a))
+		sx += 24.0
 	runway.draw_rect(Rect2(left, top, end_x - left, 2), Color(look[0].lerp(Color.WHITE, 0.3 * _kick), a))
-	runway.draw_rect(Rect2(left, top + 8, end_x - left, 1), Color(Color("07040d"), a))
-	runway.draw_rect(Rect2(left, top + 20, end_x - left, 2), Color(Color("3a3350"), a * 0.8))
+	runway.draw_rect(Rect2(left, top + 8, end_x - left, 1), Color(Color("08080a"), a))
+	runway.draw_rect(Rect2(left, top + 20, end_x - left, 2), Color(Color("46464f"), a * 0.8))
 	x = left - fposmod(scroll_x, 32.0)
 	var flip := posmod(floori(scroll_x / 32.0), 2) == 1
 	while x < end_x:
@@ -277,7 +300,7 @@ func _draw_runway() -> void:
 		if x1 > x0:
 			var y0 := top + 9.0 if not flip else top + 20.0
 			var y1 := top + 20.0 if not flip else top + 9.0
-			runway.draw_line(Vector2(x0, y0), Vector2(x1, y1), Color(Color("3a3350"), a * 0.8), 2.0)
+			runway.draw_line(Vector2(x0, y0), Vector2(x1, y1), Color(Color("46464f"), a * 0.8), 2.0)
 		flip = not flip
 		x += 32.0
 	# 隔板边沿的追逐灯：每 64px 一盏，随拍点亮
@@ -286,7 +309,7 @@ func _draw_runway() -> void:
 		if x > left:
 			runway.draw_rect(Rect2(x - 3, top + 3, 6, 3), Color(look[1], a * (0.35 + 0.65 * _kick)))
 		x += 64.0
-	runway.draw_rect(Rect2(end_x - 6, top - 6, 6, 28), Color(Color("3a3350"), a))
+	runway.draw_rect(Rect2(end_x - 6, top - 6, 6, 28), Color(Color("46464f"), a))
 
 
 ## 当前视野内的摇头灯：[世界 x, 稳定编号]。灯架随跑道移动，编号跟着灯走，扫动相位不跳变。
@@ -303,17 +326,17 @@ func _spots() -> Array:
 ## 顶部灯架：盖住静止的天花板瓦片，双弦桁架 + 斜腹杆随跑道滚动，下挂摇头灯。
 func _draw_rig(look: Array, left: float, right: float) -> void:
 	var top := RIG_TOP
-	runway.draw_rect(Rect2(left, top, right - left, SPOT_Y - top), Color("0d0918"))
-	runway.draw_rect(Rect2(left, top + 4, right - left, 3), Color("2a2340"))
-	runway.draw_rect(Rect2(left, SPOT_Y - 6, right - left, 3), Color("2a2340"))
+	runway.draw_rect(Rect2(left, top, right - left, SPOT_Y - top), Color("0c0a0a"))
+	runway.draw_rect(Rect2(left, top + 4, right - left, 3), Color("4a2a20"))
+	runway.draw_rect(Rect2(left, SPOT_Y - 6, right - left, 3), Color("4a2a20"))
 	runway.draw_rect(Rect2(left, SPOT_Y - 3, right - left, 1), Color(look[0], 0.3 + 0.3 * _kick))
 	var x := left - fposmod(scroll_x + left, 36.0)
 	var flip := posmod(floori((scroll_x + left) / 36.0), 2) == 1
 	while x < right:
 		var y0 := top + 7.0 if flip else SPOT_Y - 6.0
 		var y1 := SPOT_Y - 6.0 if flip else top + 7.0
-		runway.draw_line(Vector2(x, y0), Vector2(x + 36.0, y1), Color("1f1933"), 2.0)
-		runway.draw_rect(Rect2(x, top + 4, 2, SPOT_Y - top - 7), Color("1f1933"))
+		runway.draw_line(Vector2(x, y0), Vector2(x + 36.0, y1), Color("2a201c"), 2.0)
+		runway.draw_rect(Rect2(x, top + 4, 2, SPOT_Y - top - 7), Color("2a201c"))
 		flip = not flip
 		x += 36.0
 	var spot: Texture2D = _tex.stage_spot
@@ -371,6 +394,7 @@ func _draw_glow() -> void:
 			rings.append(fposmod(_beat + 0.5, 1.0))
 		for p: float in rings:
 			glow.draw_arc(center, 40.0 + p * 560.0, 0.0, TAU, 64, Color(look[1], (1.0 - p) * 0.3 * energy), 4.0)
+	_draw_pyro(look)
 	# 强拍闪光：drop 每小节首拍，finale 每拍
 	var wash := 0.0
 	if _section == "drop" and posmod(floori(_beat), 4) == 0:
@@ -388,10 +412,71 @@ func _draw_glow() -> void:
 	var neon_glow := 0.35 + 0.5 * _kick
 	if _section == "idle":
 		neon_glow = 0.0 if sin(_t * 37.0) > 0.9 or sin(_t * 5.3) > 0.97 else 0.4
-	glow.draw_texture(neon, neon_pos, Color(look[0].lerp(Color("ff5aa8"), 0.5), neon_glow))
+	glow.draw_texture(neon, neon_pos, Color(look[0].lerp(Color("ff4a1a"), 0.5), neon_glow))
 	# LED 墙辉光
 	glow.draw_rect(Rect2(LED_POS - Vector2(12, 12), LED_SIZE + Vector2(24, 24)),
 			Color(look[0], 0.05 + 0.08 * _kick * energy + 0.2 * _hit_flash))
+
+
+## 摇滚烟火：LED 墙底边三根火焰喷柱（drop 每小节首拍 / finale 每两拍）、灯架落下的火花雨、闪电。
+## 火焰只在 LED 墙区域（轨道之上）喷，不进入上下两层的游玩区域。
+func _draw_pyro(look: Array) -> void:
+	var drop := _section in ["drop", "finale"]
+	if drop:
+		var period := 4.0 if _section == "drop" else 2.0
+		var since := fposmod(_beat, period)
+		var env := clampf(since / 0.08, 0.0, 1.0) * clampf(1.0 - (since - 0.08) / 0.7, 0.0, 1.0)
+		if env > 0.0:
+			var base_y := LED_POS.y + LED_SIZE.y
+			for i in 3:
+				var cx := LED_POS.x + LED_SIZE.x * (i + 1) / 4.0
+				var h := 280.0 * env * (0.85 + 0.15 * sin(_t * 23.0 + i * 1.7))
+				_flame(Vector2(cx, base_y), 40.0, h, 0.55 * env, Color("ff5a1a"))
+				_flame(Vector2(cx, base_y), 24.0, h * 0.75, 0.6 * env, Color("ffb040"))
+				_flame(Vector2(cx, base_y), 10.0, h * 0.45, 0.55 * env, Color("fff2d0"))
+	# 火花雨：drop/finale 每小节首拍从灯架落下，1 拍内落到 LED 墙底
+	if drop:
+		var bar_t := fposmod(_beat, 4.0)
+		if bar_t < 1.2:
+			var rng := RandomNumberGenerator.new()
+			rng.seed = floori(_beat / 4.0) * 97 + 5
+			var view := _view_x()
+			for k in 28:
+				var x := rng.randf_range(view.x + 200.0, view.y - 200.0)
+				var y := SPOT_Y + 10.0 + bar_t * rng.randf_range(260.0, 420.0)
+				var fade := 1.0 - bar_t / 1.2
+				if y < LED_POS.y + LED_SIZE.y:
+					glow.draw_rect(Rect2(x, y, 2, 5), Color(Color("ffd26a") if k % 3 else Color("ff7a1a"), 0.8 * fade))
+	# 闪电：Boss 挨重击 / 进入高潮段时从灯架劈到 LED 墙顶
+	if _bolt > 0.0:
+		var rng2 := RandomNumberGenerator.new()
+		rng2.seed = _bolt_seed * 7919
+		var x := rng2.randf_range(LED_POS.x + 80.0, LED_POS.x + LED_SIZE.x - 80.0)
+		var y := SPOT_Y + 6.0
+		var pts := PackedVector2Array([Vector2(x, y)])
+		while y < LED_POS.y + 40.0:
+			x += rng2.randf_range(-26.0, 26.0)
+			y += rng2.randf_range(10.0, 22.0)
+			pts.append(Vector2(x, y))
+		glow.draw_polyline(pts, Color(Color("ffb040"), 0.5 * _bolt), 7.0)
+		glow.draw_polyline(pts, Color(Color("f0f4ff"), _bolt), 2.5)
+
+
+func _flame(base: Vector2, half_w: float, h: float, alpha: float, col: Color) -> void:
+	var pts := PackedVector2Array()
+	var cols := PackedColorArray()
+	var n := 8
+	for k in n + 1:   # 左侧由下往上
+		var t := float(k) / n
+		var wob := sin(_t * 31.0 + t * 9.0 + base.x) * half_w * 0.25 * t
+		pts.append(base + Vector2(-half_w * (1.0 - t) + wob, -h * t))
+		cols.append(Color(col, alpha * (1.0 - t * 0.7)))
+	for k in range(n - 1, -1, -1):   # 右侧由上往下
+		var t := float(k) / n
+		var wob := sin(_t * 27.0 + t * 7.0 + base.x * 1.3) * half_w * 0.25 * t
+		pts.append(base + Vector2(half_w * (1.0 - t) + wob, -h * t))
+		cols.append(Color(col, alpha * (1.0 - t * 0.7)))
+	glow.draw_polygon(pts, cols)
 
 
 func _beam(origin: Vector2, angle: float, half_width: float, col: Color) -> void:

@@ -50,15 +50,17 @@ const PX_FONT := {
 	" ": ["000", "000", "000", "000", "000", "000", "000"],
 }
 const HEART := ["0110110", "1111111", "1111111", "0111110", "0011100", "0001000"]
+## 2026-09-28 摇滚版配色：黑钢面板 + 铆钉，红/橙/金/钢白
 const RATING_LOOK := {
-	"Perfect": ["PERFECT", Color("ffd84a"), Color("2a8ea8")],
-	"Great": ["GREAT", Color("ff5aa8"), Color("4a1238")],
-	"Hit": ["GOOD", Color("8ff8ff"), Color("16303e")],
-	"Miss": ["MISS", Color("8a8aa0"), Color("1a1a24")],
+	"Perfect": ["PERFECT", Color("ffd84a"), Color("8a3a08")],
+	"Great": ["GREAT", Color("ff3a1a"), Color("4a0806")],
+	"Hit": ["GOOD", Color("d8dde6"), Color("26262e")],
+	"Miss": ["MISS", Color("6a6a74"), Color("141418")],
 }
-const SECTION_COLOR := {"intro": Color("3fd8ff"), "verse": Color("b06cff"), "build": Color("ff9a3f"),
-	"drop": Color("ff3f94"), "finale": Color("ffc84a")}
-const INK := Color("0b0916")
+const SECTION_COLOR := {"intro": Color("ff7a1a"), "verse": Color("ff3a1a"), "build": Color("ffb040"),
+	"drop": Color("ff2a1a"), "finale": Color("ffe07a")}
+const INK := Color("0a0606")
+const STEEL := Color("2a2a30")
 
 var game: Node2D
 var arena: Node2D
@@ -172,34 +174,34 @@ func _draw_boss_bar(size: Vector2) -> void:
 	var x0 := (size.x - w) * 0.5
 	var y0 := 22.0
 	var sec := _section()
-	var sec_col: Color = SECTION_COLOR.get(sec, Color("ff3f94"))
+	var sec_col: Color = SECTION_COLOR.get(sec, Color("ff2a1a"))
 	# 名牌
 	canvas.draw_rect(Rect2(x0 - 4, y0 - 20, 226, 18), INK)
-	canvas.draw_rect(Rect2(x0 - 4, y0 - 20, 4, 18), Color("ff3f94"))
-	_px_text("BEAT WARDEN", Vector2(x0 + 6, y0 - 17), 2.0, Color("fff0f8"))
+	canvas.draw_rect(Rect2(x0 - 4, y0 - 20, 4, 18), Color("ff2a1a"))
+	_px_text("BEAT WARDEN", Vector2(x0 + 6, y0 - 17), 2.0, Color("fff2d0"))
 	var font: Font = game.hud.get_theme_font()
-	canvas.draw_string(font, Vector2(x0 + 148, y0 - 5), "节拍监察官", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("c9b8ff"))
+	canvas.draw_string(font, Vector2(x0 + 148, y0 - 5), "节拍监察官", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("d8c8b8"))
 	# 段落牌 + 露核倍率
 	var label := sec.to_upper()
 	_px_text(label, Vector2(x0 + w - label.length() * 12.0 + 2, y0 - 17), 2.0, sec_col)
 	if arena.conductor.finale_started() and fmod(_t, 0.6) < 0.4:
-		_px_text("CORE x2", Vector2(x0 + w + 12, y0 + 4), 2.0, Color("8ff8ff"))
+		_px_text("CORE x2", Vector2(x0 + w + 12, y0 + 4), 2.0, Color("d8dde6"))
 	# 血条框 + 12 段
 	canvas.draw_rect(Rect2(x0 - 4, y0 - 2, w + 8, 22), INK)
-	canvas.draw_rect(Rect2(x0 - 2, y0, w + 4, 18), Color("241c3c"))
+	canvas.draw_rect(Rect2(x0 - 2, y0, w + 4, 18), Color("2a1c1a"))
 	var max_hp := float(arena.boss.max_hp)
 	var lag_w := w * clampf(_lag_hp / max_hp, 0.0, 1.0)
 	var hp_w := w * clampf(float(arena.boss.hp) / max_hp, 0.0, 1.0)
-	canvas.draw_rect(Rect2(x0, y0 + 2, lag_w, 14), Color("fff0f8"))
-	canvas.draw_rect(Rect2(x0, y0 + 2, hp_w, 14), Color("c8246c"))
-	canvas.draw_rect(Rect2(x0, y0 + 2, hp_w, 6), Color("ff5aa8"))
-	canvas.draw_rect(Rect2(x0, y0 + 2, hp_w, 2), Color("ffb0d8"))
+	canvas.draw_rect(Rect2(x0, y0 + 2, lag_w, 14), Color("fff2d0"))
+	canvas.draw_rect(Rect2(x0, y0 + 2, hp_w, 14), Color("b8200e"))
+	canvas.draw_rect(Rect2(x0, y0 + 2, hp_w, 6), Color("ff3a1a"))
+	canvas.draw_rect(Rect2(x0, y0 + 2, hp_w, 2), Color("ffb040"))
 	for i in range(1, 12):
 		canvas.draw_rect(Rect2(x0 + w * i / 12.0 - 1, y0 + 2, 2, 14), INK)
 	# 歌曲进度（一遍 = loop_to_beat 拍）+ 段落刻度
 	var total := float(arena.conductor.chart.loop_to_beat)
 	var py := y0 + 24
-	canvas.draw_rect(Rect2(x0, py, w, 3), Color("241c3c"))
+	canvas.draw_rect(Rect2(x0, py, w, 3), Color("2a1c1a"))
 	var prog := clampf(float(arena._pulse_beat) / total, 0.0, 1.0)
 	canvas.draw_rect(Rect2(x0, py, w * prog, 3), sec_col)
 	for section: Dictionary in arena.conductor.chart.sections:
@@ -212,20 +214,29 @@ func _draw_player_panel() -> void:
 	var x0 := 20.0
 	var y0 := 18.0
 	canvas.draw_rect(Rect2(x0 - 6, y0 - 6, 40 + p.max_hp * 26.0, 58), Color(INK, 0.85))
-	canvas.draw_rect(Rect2(x0 - 6, y0 - 6, 4, 58), Color("8ff8ff"))
-	_px_text("HP", Vector2(x0 + 2, y0 + 2), 2.0, Color("8ff8ff"))
+	canvas.draw_rect(Rect2(x0 - 4, y0 - 4, 36 + p.max_hp * 26.0, 54), Color(STEEL, 0.6))
+	_rivets(Rect2(x0 - 6, y0 - 6, 40 + p.max_hp * 26.0, 58))
+	canvas.draw_rect(Rect2(x0 - 6, y0 - 6, 4, 58), Color("d8dde6"))
+	_px_text("HP", Vector2(x0 + 2, y0 + 2), 2.0, Color("d8dde6"))
 	for i in p.max_hp:
 		var full: bool = i < p.hp
-		var col := Color("ff5aa8") if full else Color("3a2a55")
+		var col := Color("ff3a1a") if full else Color("3a1a18")
 		var flash: bool = full and p.invuln_t > 0.0 and fmod(_t, 0.15) < 0.07
 		_heart(Vector2(x0 + 30 + i * 26.0, y0), 3.0, Color.WHITE if flash else col)
 	# 时停槽
 	var ratio: float = game.time_charge.ratio()
 	var active: bool = game.time_charge.active
 	var font: Font = game.hud.get_theme_font()
-	canvas.draw_string(font, Vector2(x0 + 2, y0 + 42), "时停 右键", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("c9b8ff"))
-	canvas.draw_rect(Rect2(x0 + 70, y0 + 32, 120, 8), Color("241c3c"))
-	canvas.draw_rect(Rect2(x0 + 70, y0 + 32, 120 * ratio, 8), Color("ffd84a") if active else Color("8f7aff"))
+	canvas.draw_string(font, Vector2(x0 + 2, y0 + 42), "时停 右键", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("d8c8b8"))
+	canvas.draw_rect(Rect2(x0 + 70, y0 + 32, 120, 8), Color("2a1c1a"))
+	canvas.draw_rect(Rect2(x0 + 70, y0 + 32, 120 * ratio, 8), Color("ffd84a") if active else Color("ff7a1a"))
+
+
+func _rivets(rect: Rect2) -> void:
+	for c: Vector2 in [rect.position + Vector2(4, 4), Vector2(rect.end.x - 7, rect.position.y + 4),
+			Vector2(rect.position.x + 4, rect.end.y - 7), rect.end - Vector2(7, 7)]:
+		canvas.draw_rect(Rect2(c, Vector2(3, 3)), Color("8a8a96"))
+		canvas.draw_rect(Rect2(c + Vector2(1, 1), Vector2(2, 2)), Color("3a3a42"))
 
 
 func _heart(pos: Vector2, px: float, col: Color) -> void:
@@ -245,10 +256,12 @@ func _draw_score(size: Vector2) -> void:
 	var w := text.length() * 6.0 * px
 	var pos := Vector2(size.x - w - 24, 22)
 	canvas.draw_rect(Rect2(pos.x - 10, 12, w + 22, 70), Color(INK, 0.85))
+	canvas.draw_rect(Rect2(pos.x - 8, 14, w + 18, 66), Color(STEEL, 0.6))
+	_rivets(Rect2(pos.x - 10, 12, w + 22, 70))
 	canvas.draw_rect(Rect2(pos.x + w + 8, 12, 4, 70), Color("ffd84a"))
 	_px_text("SCORE", Vector2(pos.x, 16), 2.0, Color("ffd84a"))
 	_px_text(text, pos + Vector2(0, 12), px, Color.WHITE)
-	_px_text("ACC %.1f%%" % (_accuracy() * 100.0), Vector2(pos.x, 70), 2.0, Color("c9b8ff"))
+	_px_text("ACC %.1f%%" % (_accuracy() * 100.0), Vector2(pos.x, 70), 2.0, Color("d8c8b8"))
 
 
 func _accuracy() -> float:
@@ -266,7 +279,7 @@ func _draw_combo(size: Vector2) -> void:
 	var px := 8.0 + 2.0 * _combo_pop
 	var w := text.length() * 6.0 * px - px
 	var center := Vector2(size.x * 0.5 - 120.0, 250.0)
-	_px_text("COMBO", center - Vector2(43, 34), 3.0, Color("ff5aa8"))
+	_px_text("COMBO", center - Vector2(43, 34), 3.0, Color("ff3a1a"))
 	_px_text(text, center - Vector2(w * 0.5, 0), px, Color.WHITE.lerp(Color("ffd84a"), _combo_pop))
 
 
@@ -281,7 +294,7 @@ func _draw_lane_keys() -> void:
 		var at := _screen(Vector2(judge_x - 150.0, y))
 		var on: bool = arena.player_lane == lane
 		var flash: float = _key_flash[lane]
-		var col := Color("8ff8ff") if lane == "air" else Color("ff5aa8")
+		var col := Color("ffb040") if lane == "air" else Color("ff3a1a")
 		var alpha := 0.9 if on else 0.4
 		var box := Rect2(at - Vector2(24, 16), Vector2(48, 32))
 		canvas.draw_rect(box.grow(2), Color(INK, alpha))
@@ -314,9 +327,11 @@ func _draw_result(size: Vector2) -> void:
 	var h := 300.0
 	var pos := Vector2((size.x - w) * 0.5, (size.y - h) * 0.5 - 40 + (1.0 - appear) * 30.0)
 	canvas.draw_rect(Rect2(pos - Vector2(4, 4), Vector2(w + 8, h + 8)), Color(INK, 0.92 * a))
-	canvas.draw_rect(Rect2(pos, Vector2(w, h)), Color(Color("150f28"), 0.95 * a))
-	canvas.draw_rect(Rect2(pos, Vector2(w, 4)), Color(Color("ff3f94"), a))
-	canvas.draw_rect(Rect2(pos + Vector2(0, h - 4), Vector2(w, 4)), Color(Color("3fd8ff"), a))
+	canvas.draw_rect(Rect2(pos, Vector2(w, h)), Color(Color("141010"), 0.95 * a))
+	if a > 0.5:
+		_rivets(Rect2(pos, Vector2(w, h)))
+	canvas.draw_rect(Rect2(pos, Vector2(w, 4)), Color(Color("ff2a1a"), a))
+	canvas.draw_rect(Rect2(pos + Vector2(0, h - 4), Vector2(w, 4)), Color(Color("ff7a1a"), a))
 	_px_text("CLEAR!", pos + Vector2(28, 24), 7.0, Color(Color("ffd84a"), a))
 	var acc := _accuracy()
 	var c: Dictionary = arena.counts
@@ -327,7 +342,7 @@ func _draw_result(size: Vector2) -> void:
 		rank = "A"
 	elif acc >= 0.75:
 		rank = "B"
-	var rank_col: Color = {"S": Color("ffd84a"), "A": Color("ff5aa8"), "B": Color("8ff8ff"), "C": Color("8a8aa0")}[rank]
+	var rank_col: Color = {"S": Color("ffd84a"), "A": Color("ff3a1a"), "B": Color("d8dde6"), "C": Color("8a8aa0")}[rank]
 	_px_text(rank, pos + Vector2(w - 120, 30) + Vector2(6, 6), 16.0, Color(INK, a))
 	_px_text(rank, pos + Vector2(w - 120, 30), 16.0, Color(rank_col, a))
 	var rows := [["PERFECT", int(c.Perfect), RATING_LOOK.Perfect[1]], ["GREAT", int(c.Great), RATING_LOOK.Great[1]],
@@ -336,11 +351,11 @@ func _draw_result(size: Vector2) -> void:
 		var y := pos.y + 100 + i * 34.0
 		_px_text(rows[i][0], Vector2(pos.x + 30, y), 3.0, Color(rows[i][2], a))
 		_px_text(str(rows[i][1]), Vector2(pos.x + 200, y), 3.0, Color(Color.WHITE, a))
-	_px_text("MAX COMBO", Vector2(pos.x + 300, pos.y + 168), 2.0, Color(Color("c9b8ff"), a))
+	_px_text("MAX COMBO", Vector2(pos.x + 300, pos.y + 168), 2.0, Color(Color("d8c8b8"), a))
 	_px_text(str(arena.max_combo), Vector2(pos.x + 300, pos.y + 184), 4.0, Color(Color.WHITE, a))
-	_px_text("SCORE", Vector2(pos.x + 300, pos.y + 222), 2.0, Color(Color("c9b8ff"), a))
+	_px_text("SCORE", Vector2(pos.x + 300, pos.y + 222), 2.0, Color(Color("d8c8b8"), a))
 	_px_text("%07d" % int(arena.score), Vector2(pos.x + 300, pos.y + 238), 4.0, Color(Color.WHITE, a))
-	_px_text("ACC %.1f%%" % (acc * 100.0), Vector2(pos.x + 30, pos.y + h - 34), 2.0, Color(Color("c9b8ff"), a))
+	_px_text("ACC %.1f%%" % (acc * 100.0), Vector2(pos.x + 30, pos.y + h - 34), 2.0, Color(Color("d8c8b8"), a))
 
 
 ## 5×7 像素字（大写字母/数字/少量符号），每个"像素"是 px×px 方块，先画 1px 墨色阴影保证任何背景都可读。
