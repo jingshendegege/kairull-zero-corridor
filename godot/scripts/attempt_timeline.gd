@@ -34,6 +34,8 @@ func _capture(host: Node2D) -> Dictionary:
 			"corpse_ground_y": enemy.get("corpse_ground_y") if enemy.has_method("set_corpse_ground") else 0.0,
 			"corpse_ground_valid": enemy.get("corpse_ground_valid") if enemy.has_method("set_corpse_ground") else false,
 			"corpse_ground_projected": enemy.get("corpse_ground_projected") if enemy.has_method("set_corpse_ground") else false})
+		if enemy is QuarantineHound:
+			actors[-1]["hound_combat"] = enemy.capture_combat_state()
 	var cargo: Array[Dictionary] = []
 	for prop: Node2D in host.props:
 		if not is_instance_valid(prop):
@@ -160,6 +162,8 @@ func apply_rewind(host: Node2D, progress: float) -> void:
 			enemy.set("corpse_ground_projected", projected)
 			if projected:
 				enemy.set("corpse_lift", 0.0)
+		if enemy is QuarantineHound:
+			enemy.apply_combat_state(state.get("hound_combat", {}))
 		enemy._sync_sprite()
 	for index in mini(host.props.size(), first["props"].size()):
 		var prop: Node2D = host.props[index]

@@ -295,6 +295,10 @@ func _ready() -> void:
 				var g := GruntGunner.new()
 				g.level = level
 				m = g
+			elif spawn_kind == "hound":
+				var hound := QuarantineHound.new()
+				hound.level = level
+				m = hound
 			elif spawn_kind == "melee":
 				var melee := FREIGHT_INSPECTOR_SCRIPT.new()
 				melee.level = level
@@ -541,7 +545,7 @@ func _setup_tactics() -> void:
 			fx.append({"x": at.x, "y": at.y, "life": 0.18, "kind": "spark"}))
 		tactical_hazards.append(hazard)
 	for enemy: Node2D in minions:
-		if enemy is GruntGunner or enemy is FreightInspector:
+		if enemy is GruntGunner or enemy is FreightInspector or enemy is QuarantineHound:
 			enemy.vision_blocker = Callable(smoke_tactics, "blocks_segment")
 		if "door_blockers" in enemy:
 			enemy.door_blockers = _world_blockers()
@@ -634,7 +638,7 @@ func _refresh_smoke_cover() -> void:
 		return
 	player.set_smoke_cover(smoke_tactics.contains_actor(player))
 	for enemy: Node2D in minions:
-		if not is_instance_valid(enemy) or not (enemy is GruntGunner or enemy is FreightInspector):
+		if not is_instance_valid(enemy) or not (enemy is GruntGunner or enemy is FreightInspector or enemy is QuarantineHound):
 			continue
 		var sprite: Sprite2D = enemy._sprite
 		if not sprite.has_meta("smoke_base_tint"):
@@ -916,7 +920,7 @@ func _physics_process(dt: float) -> void:
 					continue # 已清前半段仍计入清敌分母，但不复活、播尸体或执行离屏脚本。
 				if not _campaign_enemy_released(m):
 					# 未进入下段时仅播慢呼吸，不让隔壁近战兵提前冲进补给房。
-					if m is GruntGunner or m is FreightInspector:
+					if m is GruntGunner or m is FreightInspector or m is QuarantineHound:
 						m._anim_clock += dt
 						m._sync_sprite()
 					continue
@@ -924,7 +928,9 @@ func _physics_process(dt: float) -> void:
 				m.step(dt)
 				_resolve_glass_enemy_movement(m, before_move)
 				# 新近战兵只用短攻击盒有效窗；旧敌人保留原身体碰撞兼容分支。
-				if m.has_method("attack_active") and m.has_method("attack_rect"):
+				if m is QuarantineHound:
+					m.try_attack(player, _player_hurtbox())
+				elif m.has_method("attack_active") and m.has_method("attack_rect"):
 					if m.attack_active() and m.attack_rect().intersects(_player_hurtbox()):
 						player.take_damage(1, m.position.x)
 				elif m.state == "attack" and m.frame >= 4 and not m.dead:
@@ -960,6 +966,8 @@ func _physics_process(dt: float) -> void:
 				if e.take_hit(b["x"], 1):
 					var force_direction := Vector2(b["vx"], b["vy"]).normalized()
 					if e.dead:
+						if e is QuarantineHound:
+							_start_corpse_impact(e, 0, force_direction.x)
 						_on_player_enemy_killed(e)
 						play_sfx("gkill%d" % (randi() % 4 + 1))
 						play_sfx("slime_death")
@@ -1544,6 +1552,8 @@ func _start_corpse_impact(target: Node2D, stage: int, direction: float) -> bool:
 		return false
 	var motion := DEATH_INERTIA_SCRIPT.new()
 	motion.launch(target.position, direction, stage)
+	if target is QuarantineHound:
+		motion.velocity += target.velocity # Preserve running/airborne momentum on lethal impact.
 	var entry := {"target": weakref(target), "motion": motion,
 			"power": 0.9 + 0.15 * clampi(stage, 0, 2), "direction": 1.0 if direction >= 0.0 else -1.0}
 	for index in _corpse_impacts.size():

@@ -419,6 +419,10 @@ func _parse_markers() -> void:
 					enemy_spawns.append(feet)
 					enemy_spawn_kinds.append("")
 					grid[r] = grid[r].substr(0, c) + "." + grid[r].substr(c + 1)
+				"h":
+					enemy_spawns.append(feet)
+					enemy_spawn_kinds.append("hound")
+					grid[r] = grid[r].substr(0, c) + "." + grid[r].substr(c + 1)
 				"m":
 					enemy_spawns.append(feet)
 					enemy_spawn_kinds.append("melee")
