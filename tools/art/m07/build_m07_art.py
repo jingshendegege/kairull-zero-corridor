@@ -2,13 +2,15 @@
 
 背景低分辨率 384×256 绘制 → 最近邻 ×4（与 M06 相同：GameBackground SCALE 0.75 显示为 3px 像素块）。
 输出：
-  godot/assets/bg/m07/M07_L0_hall.png      广播大厅（固定层）：紫黑渐变 + 巨型喇叭膜同心环 + 斜射光柱
-  godot/assets/bg/m07/M07_L1_speakers.png  音箱墙 + 中央 LED 频谱屏（慢视差，可镜像平铺）
+  godot/assets/bg/m07/M07_L0_hall.png      远景场馆（固定层）：地平线品红光晕 + 放射光芒 + 灯塔 + 看台手机灯海
+  godot/assets/bg/m07/M07_L1_speakers.png  前排观众剪影 + 荧光棒（慢视差，可镜像平铺）
   godot/assets/bg/m07/M07_L2_truss.png     顶部灯光桁架 + 聚光灯 + 垂缆（中视差，可镜像平铺）
   godot/assets/boss/beat_warden/note_*.png  音符：normal/heavy/bomb（地面轨）与 *_air（空中轨，带翼）
   godot/assets/boss/beat_warden/judge_ring.png   判定环（运行时按拍脉动/着色）
   godot/assets/boss/beat_warden/note_burst.png   击碎特效 4 帧横排（48×48/帧，白底色，运行时按音符类型着色）
   godot/assets/boss/beat_warden/stage_lightbar.png  随拍闪烁的灯带单元（运行时 modulate）
+  godot/assets/boss/beat_warden/stage_*.png        舞台实景层：LED 灯墙遮罩/音箱塔/低音振膜/摇头灯/霓虹招牌
+                                                   （世界坐标 1:1，由 godot/scripts/m07_beat_stage_fx.gd 随拍驱动）
 """
 from __future__ import annotations
 
@@ -54,98 +56,112 @@ def put(px, w, h, x, y, col):
 
 # ================================================================ 背景
 def hall() -> Image.Image:
+    """远景：巨型场馆。夜空 → 地平线品红光晕；舞台方向放射光芒；两侧灯塔；看台上一片手机灯海。
+    左右边缘只有渐变与看台，可无缝横向平铺。"""
+    rnd = random.Random(7070)
     img = Image.new("RGBA", (LW, LH))
     px = img.load()
-    stops = [(0.0, "#07050f"), (0.35, "#120b24"), (0.7, "#1b1136"), (1.0, "#0e0a1c")]
+    stops = [(0.0, "#04020b"), (0.4, "#0e0624"), (0.66, "#26093f"), (0.78, "#4a1260"), (0.83, "#7a1f73"),
+             (0.86, "#2a0b36"), (1.0, "#0c0514")]
     for y in range(LH):
         for x in range(LW):
             px[x, y] = dither_ramp(stops, y / (LH - 1), x, y)
-    # 巨型喇叭膜：舞台右侧（Boss 身后）的同心环，越往外越暗
-    cx, cy = 262, 132
-    for y in range(LH):
+    # 舞台方向的放射光芒（中心在画面下方中部），抖动半透明
+    cx, cy = 192, 214
+    for y in range(0, 214):
         for x in range(LW):
-            d = math.hypot((x - cx) * 1.0, (y - cy) * 1.12)
-            if d < 118:
-                ring = int(d) % 14
-                if ring in (0, 1):
-                    k = 1.0 - d / 118
-                    if dith(k * 1.4, x, y):
-                        px[x, y] = hx("#3b2a66" if k > 0.5 else "#2a1d4c")
-                elif d < 20:
-                    px[x, y] = hx("#2a1d4c") if dith(0.6, x, y) else px[x, y]
-    # 斜射光柱：从顶部两盏大灯打向舞台（抖动半透明感）
-    for sx, ang, col in ((60, 0.32, "#2b2150"), (170, 0.12, "#2a2350"), (330, -0.28, "#2b2150")):
-        for y in range(0, LH):
-            half = 4 + y * 0.12
-            center = sx + math.tan(ang) * y
-            for x in range(int(center - half), int(center + half) + 1):
-                k = (1.0 - abs(x - center) / half) * (1.0 - y / LH) * 0.8
+            a = math.atan2(y - cy, x - cx)
+            ray = (int((a + math.pi) / (math.pi / 18)) % 2 == 0)
+            d = math.hypot(x - cx, (y - cy) * 1.3)
+            k = max(0.0, 1.0 - d / 230) * (0.9 if ray else 0.35)
+            if dith(k * 0.8, x, y):
+                px[x, y] = hx("#3b1466" if ray else "#241046")
+    # 天空里稀疏的烟花残点
+    for _ in range(90):
+        x, y = rnd.randrange(LW), int(rnd.random() ** 1.5 * 150)
+        px[x, y] = hx(rnd.choice(["#6d4aa6", "#9a6ad0", "#4a3a86", "#c28bff"]))
+    # 两座灯塔：格构柱 + 顶部灯组 + 下射的抖动光柱
+    for tx in (64, 320):
+        for y in range(40, 214):
+            for dx in (-5, 5):
+                put(px, LW, LH, tx + dx, y, "#150a26")
+            k = y % 10
+            put(px, LW, LH, tx - 5 + k, y, "#1d0f33")
+            put(px, LW, LH, tx + 5 - k, y, "#1d0f33")
+        for row in range(3):
+            for col in range(5):
+                x0, y0 = tx - 12 + col * 5, 26 + row * 5
+                for yy in range(y0, y0 + 4):
+                    for xx in range(x0, x0 + 4):
+                        put(px, LW, LH, xx, yy, "#fff6e0" if (xx + yy) % 3 else "#bfe8ff")
+        for y in range(42, 214):
+            half = (y - 42) * 0.32
+            for x in range(int(tx - half), int(tx + half) + 1):
+                k = (1.0 - abs(x - tx) / max(1.0, half)) * (1.0 - (y - 42) / 172) * 0.55
                 if 0 <= x < LW and dith(k, x, y):
+                    px[x, y] = hx("#5a3c8a")
+    # 看台：三层弧形看台 + 手机灯海（越近越密）
+    for tier, (top, col) in enumerate(((150, "#14081f"), (172, "#10061a"), (194, "#0b0413"))):
+        for x in range(LW):
+            t = top + int(6 * math.cos((x - 192) / 192 * math.pi * 0.5) * -1) + 6
+            for y in range(t, 216):
+                if px[x, y][2] > 20 or tier == 2:
                     px[x, y] = hx(col)
-    # 地平线处的观众席剪影（低矮起伏的人头 + 应援荧光棒）
-    rnd = random.Random(7070)
-    base = 214
-    for x in range(LW):
-        top = base - int(4 + 3 * abs(math.sin(x * 0.45)) + 2 * math.sin(x * 0.13))
-        for y in range(top, LH):
-            px[x, y] = hx("#08060f" if y > top + 1 else "#130d24")
-    for _ in range(70):
+            put(px, LW, LH, x, t, "#2a1240")
+    for _ in range(1400):
         x = rnd.randrange(LW)
-        col = rnd.choice(["#ff5aa8", "#8ff8ff", "#ffd27a", "#8ff8ff"])
-        top = base - 12 - rnd.randrange(4)
-        for y in range(top, top + 4):
-            put(px, LW, LH, x, y, col if y == top else "#3a2a55")
+        y = 154 + int(rnd.random() ** 0.6 * 60)
+        if y < 214:
+            px[x, y] = hx(rnd.choice(["#fff3d6", "#c9f6ff", "#ff9bd0", "#8a6ab8", "#ffe28a", "#6a4a9a"]))
+    # 地平线霓虹带
+    for x in range(LW):
+        put(px, LW, LH, x, 215, "#ff4fa8" if x % 6 else "#8a1f60")
+        put(px, LW, LH, x, 216, "#5a1348")
     return img
 
 
 def speakers() -> Image.Image:
+    """中景（可镜像平铺）：前排观众剪影，举手与荧光棒。"""
+    rnd = random.Random(128)
     img = Image.new("RGBA", (LW, LH), (0, 0, 0, 0))
     px = img.load()
-    floor = 216
-
-    def cabinet(x0, y0, w, h):
-        for y in range(y0, y0 + h):
-            for x in range(x0, x0 + w):
-                edge = x in (x0, x0 + w - 1) or y in (y0, y0 + h - 1)
-                put(px, LW, LH, x, y, "#060409" if edge else ("#16102a" if x < x0 + w - 3 else "#0f0b1e"))
-        r = min(w, h) // 2 - 3
-        cx, cy = x0 + w // 2, y0 + h // 2
-        for y in range(cy - r, cy + r + 1):
-            for x in range(cx - r, cx + r + 1):
-                d = math.hypot(x - cx, y - cy)
-                if d <= r:
-                    col = "#241a40" if d > r - 1.5 else "#0a0712" if d > r * 0.35 else "#2f2150"
-                    put(px, LW, LH, x, y, col)
-        put(px, LW, LH, cx, cy, "#5a2a60")
-
-    # 左右两堵音箱墙（每堵 2 列 × 4 行），中间留出 LED 屏
-    for col_x in (4, 34, 316, 346):
-        for row in range(4):
-            cabinet(col_x, floor - 34 - row * 34, 30, 34)
-    # LED 频谱屏（中央）：边框 + 柱状频谱（静态画面，运行时灯带另画）
-    sx0, sy0, sx1, sy1 = 120, 58, 264, 132
-    for y in range(sy0, sy1 + 1):
-        for x in range(sx0, sx1 + 1):
-            edge = x in (sx0, sx1) or y in (sy0, sy1)
-            put(px, LW, LH, x, y, "#060409" if edge else ("#0c0918" if (x + y) % 2 else "#0e0a1c"))
-    rnd = random.Random(128)
-    for i, x in enumerate(range(sx0 + 4, sx1 - 3, 5)):
-        h = int(8 + 44 * abs(math.sin(i * 0.55)) * (0.6 + 0.4 * rnd.random()))
-        for y in range(sy1 - 3 - h, sy1 - 3):
-            t = (sy1 - 3 - y) / 56
-            col = "#8ff8ff" if t < 0.45 else "#c9a0ff" if t < 0.75 else "#ff5aa8"
-            if (y % 3) != 0:
-                for dx in range(3):
-                    put(px, LW, LH, x + dx, y, col if (y + dx) % 5 else "#6a4a9a")
-    # 屏幕支架
-    for x in (150, 234):
-        for y in range(sy1 + 1, floor):
-            put(px, LW, LH, x, y, "#0a0712")
-            put(px, LW, LH, x + 1, y, "#130d24")
-    # 地台
-    for y in range(floor, LH):
-        for x in range(LW):
-            put(px, LW, LH, x, y, "#07050c")
+    base = 206
+    x = 0
+    while x < LW:
+        w = rnd.randint(7, 11)
+        h = rnd.randint(14, 24)
+        top = base - h
+        cx = x + w // 2
+        for yy in range(top + 5, LH):                       # 身体
+            for xx in range(x + 1, x + w - 1):
+                put(px, LW, LH, xx, yy, "#07040d")
+        for yy in range(top, top + 6):                       # 头
+            for xx in range(cx - 2, cx + 3):
+                if (xx - cx) ** 2 + (yy - top - 3) ** 2 <= 7:
+                    put(px, LW, LH, xx, yy, "#07040d")
+        if rnd.random() < 0.55:                              # 举手 + 荧光棒
+            side = rnd.choice((-1, 1))
+            hx0 = cx + side * (w // 2)
+            for i in range(9):
+                put(px, LW, LH, hx0 + side * (i // 4), top + 6 - i, "#07040d")
+            stick = rnd.choice(["#8ff8ff", "#ff5aa8", "#ffe28a", "#b08cff"])
+            for i in range(5):
+                put(px, LW, LH, hx0 + side * 2, top - 3 - i, stick)
+            put(px, LW, LH, hx0 + side * 2 - 1, top - 5, "#3a2a55")
+        if False:                                            # 旗帜：远看像飘浮方块，已停用
+            for i in range(28):
+                put(px, LW, LH, cx, top - i, "#1a1026")
+            flag = rnd.choice(["#3a1a6a", "#5a1348"])
+            for yy in range(top - 28, top - 18):
+                for xx in range(cx + 1, cx + 13):
+                    if (xx + yy) % 5:
+                        put(px, LW, LH, xx, yy + int(math.sin(xx * 0.6)), flag)
+        x += w - rnd.randint(1, 3)
+    # 观众头顶被舞台光擦亮的边
+    for x in range(LW):
+        for y in range(LH):
+            if px[x, y][3] and (y == 0 or px[x, y - 1][3] == 0) and px[x, y][:3] == (7, 4, 13):
+                px[x, y] = hx("#3a2058")
     return img
 
 
@@ -342,6 +358,151 @@ def lightbar() -> Image.Image:
     return img
 
 
+# ================================================================ 舞台实景层（世界坐标 1:1，由 m07_beat_stage_fx.gd 随拍驱动）
+LED_W, LED_H, LED_FRAME = 736, 352, 10
+
+
+def stage_led_mask() -> Image.Image:
+    """LED 灯墙遮罩：外框 + 3×3 像素灯珠（透明）与 1px 暗缝。运行时先在底下画彩色频谱，再盖这张遮罩。"""
+    img = Image.new("RGBA", (LED_W, LED_H), (0, 0, 0, 0))
+    px = img.load()
+    for y in range(LED_H):
+        for x in range(LED_W):
+            inner = LED_FRAME <= x < LED_W - LED_FRAME and LED_FRAME <= y < LED_H - LED_FRAME
+            if not inner:
+                edge = x in (0, LED_W - 1) or y in (0, LED_H - 1)
+                lit = y in (1, 2) or x in (1, 2)
+                px[x, y] = hx(OUTLINE if edge else "#4a3f6a" if lit else "#231c38")
+            elif (x - LED_FRAME) % 4 == 3 or (y - LED_FRAME) % 4 == 3:
+                px[x, y] = hx("#050308")
+    for x in range(24, LED_W - 20, 48):                      # 外框螺栓
+        for y in (4, LED_H - 6):
+            px[x, y] = hx("#8a80b0")
+            px[x + 1, y + 1] = hx("#120c20")
+    return img
+
+
+def stage_speaker() -> Image.Image:
+    """112×224 音箱塔（两只箱体）：暗紫箱体、青色霓虹包边、低音口留黑（运行时叠 stage_woofer 随拍鼓动）。"""
+    w, h = 112, 224
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    px = img.load()
+    for box in range(2):
+        y0 = box * 112
+        for y in range(y0, y0 + 112):
+            for x in range(w):
+                edge = x in (0, w - 1) or y in (y0, y0 + 111)
+                col = OUTLINE if edge else ("#1a1230" if x < w - 8 else "#110b20")
+                if not edge and (x in (2, w - 3) or y == y0 + 2):
+                    col = "#3fd8ff" if (x + y) % 2 else "#2a8ea8"         # 霓虹包边
+                px[x, y] = hx(col)
+        cx, cy = 56, y0 + 62
+        for y in range(y0, y0 + 112):
+            for x in range(w):
+                d = math.hypot(x - cx, y - cy)
+                if d <= 40:
+                    px[x, y] = hx("#2c2448" if d > 38 else "#030206")
+        for x in range(84, 100):                               # 高音口
+            for y in range(y0 + 10, y0 + 22):
+                px[x, y] = hx("#05030a" if (x + y) % 2 else "#241c3c")
+        for x in range(12, 40, 6):                             # 电平灯
+            px[x, y0 + 14] = hx("#ff5aa8" if x > 30 else "#8ff8ff")
+    return img
+
+
+def stage_woofer() -> Image.Image:
+    """76×76 低音喇叭振膜：橡胶折环 + 锥盆同心纹 + 品红防尘帽。"""
+    s = 76
+    img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    px = img.load()
+    c = s / 2 - 0.5
+    for y in range(s):
+        for x in range(s):
+            d = math.hypot(x - c, y - c)
+            if d > 37.5:
+                continue
+            lx = (x - c + d * 0.3) / 38
+            if d > 34:
+                col = "#3a3350" if lx < 0 else "#1c1830"
+            elif d > 30:
+                col = "#0c0914"
+            elif d > 12:
+                ring = int(d) % 5 == 0
+                col = "#2a2344" if ring else ("#1a1530" if lx < 0.1 else "#120e22")
+            elif d > 10:
+                col = "#0c0914"
+            else:
+                col = "#ffb0d8" if (x - c) + (y - c) < -6 else "#ff3f94" if d < 8.5 else "#9a1a5a"
+            px[x, y] = hx(col)
+    return img
+
+
+def stage_spot() -> Image.Image:
+    """28×22 摇头灯（倒挂在桁架上）：U 型叉臂 + 灯头 + 白色镜头（光色由运行时光束决定）。"""
+    img = Image.new("RGBA", (28, 22), (0, 0, 0, 0))
+    px = img.load()
+    for x in range(4, 24):
+        for y in range(0, 4):
+            px[x, y] = hx(OUTLINE if y in (0, 3) or x in (4, 23) else "#3a3350")
+    for side in (5, 21):
+        for y in range(3, 14):
+            for x in (side, side + 1):
+                px[x, y] = hx("#2a2344")
+    for y in range(8, 21):
+        for x in range(7, 21):
+            edge = x in (7, 20) or y in (8, 20)
+            px[x, y] = hx(OUTLINE if edge else "#1c1830" if x > 16 else "#2c2448")
+    for x in range(9, 19):
+        px[x, 19] = hx("#ffffff")
+        px[x, 18] = hx("#cfd8ff")
+    return img
+
+
+FONT5 = {
+    "B": ["1110", "1001", "1110", "1001", "1001", "1110"], "E": ["1111", "1000", "1110", "1000", "1000", "1111"],
+    "A": ["0110", "1001", "1001", "1111", "1001", "1001"], "T": ["11111", "00100", "00100", "00100", "00100", "00100"],
+    "W": ["10001", "10001", "10101", "10101", "11011", "10001"], "R": ["1110", "1001", "1110", "1010", "1001", "1001"],
+    "D": ["1110", "1001", "1001", "1001", "1001", "1110"], "N": ["1001", "1101", "1101", "1011", "1011", "1001"],
+    " ": ["00", "00", "00", "00", "00", "00"],
+}
+
+
+def stage_neon() -> Image.Image:
+    """霓虹招牌 "BEAT WARDEN"：像素灯管（白芯 + 品红管壁）+ 预烘焙的抖动光晕；运行时调亮度/闪烁。"""
+    text, scale = "BEAT WARDEN", 5
+    widths = [len(FONT5[ch][0]) for ch in text]
+    w = sum(widths) * scale + (len(text) - 1) * 4 + 24
+    h = 6 * scale + 24
+    tube = Image.new("L", (w, h), 0)
+    tp = tube.load()
+    x0 = 12
+    for ch, cw in zip(text, widths):
+        for r, row in enumerate(FONT5[ch]):
+            for c, bit in enumerate(row):
+                if bit == "1":
+                    for dy in range(scale):
+                        for dx in range(scale):
+                            tp[x0 + c * scale + dx, 12 + r * scale + dy] = 255
+        x0 += cw * scale + 4
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    px = img.load()
+    lit = {(x, y) for y in range(h) for x in range(w) if tp[x, y]}
+    for y in range(h):
+        for x in range(w):
+            if (x, y) in lit:
+                inner = all((x + dx, y + dy) in lit for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+                px[x, y] = hx("#fff0f8" if inner else "#ff5aa8")
+            else:
+                near = 99
+                for dy in range(-6, 7):
+                    for dx in range(-6, 7):
+                        if (x + dx, y + dy) in lit:
+                            near = min(near, abs(dx) + abs(dy))
+                if near <= 6 and dith((7 - near) / 7 * 0.7, x, y):
+                    px[x, y] = hx("#ff3f94", 110 if near <= 3 else 60)
+    return img
+
+
 def main() -> None:
     BG_OUT.mkdir(parents=True, exist_ok=True)
     BOSS_OUT.mkdir(parents=True, exist_ok=True)
@@ -350,7 +511,9 @@ def main() -> None:
         print("wrote bg", name)
     items = {"note_normal.png": note_normal(), "note_heavy.png": note_heavy(), "note_heavy_cracked.png": note_heavy(True),
              "note_bomb.png": note_bomb(), "judge_ring.png": judge_ring(), "note_burst.png": note_burst(),
-             "stage_lightbar.png": lightbar()}
+             "stage_lightbar.png": lightbar(), "stage_led_mask.png": stage_led_mask(),
+             "stage_speaker.png": stage_speaker(), "stage_woofer.png": stage_woofer(), "stage_spot.png": stage_spot(),
+             "stage_neon.png": stage_neon()}
     items["note_normal_air.png"] = wings(items["note_normal.png"], 14)
     items["note_bomb_air.png"] = wings(items["note_bomb.png"], 16, "#ffd0e6", "#9a1a5a")
     for name, img in items.items():

@@ -38,6 +38,12 @@ func _ready() -> void:
 	game.add_child(arena)
 	game.beat_arena = arena
 	arena.setup(game, DATA.BOSS_ARENA)
+	# 2026-09-28 Claudeï¼éæèå°å®æ¯å±ï¼LED å¢/é³ç®±/ç¯æ/æ¿åï¼ï¼æ¾å¨å°å½¢ä¹åãè§è²ä¹åã
+	var stage_fx := preload("res://scripts/m07_beat_stage_fx.gd").new()
+	stage_fx.name = "BeatStageFx"
+	game.add_child(stage_fx)
+	game.move_child(stage_fx, game.level.get_index())
+	stage_fx.setup(game, arena)
 	# A retry may inherit a stopped backstage player after the boss song.
 	if game.music != null and not game.music.playing:
 		game.music.stream_paused = false
