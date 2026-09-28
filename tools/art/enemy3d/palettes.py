@@ -33,3 +33,14 @@ LOADER = {
     "lamp": {"ramp": ["#ff5aa8"], "line": "#8c1a52", "emissive": True},
     "hot": {"ramp": ["#ff9b5a"], "line": "#8c3212", "emissive": True},
 }
+
+
+HOUND = {
+    # 炭蓝机械装甲 + 深蓝胸甲 + 琥珀侧腹警示条；品红眼缝是飞扑预警的视觉焦点
+    "plate": {"ramp": ["#5f6a7e", "#3c4556", "#2a303c", "#1c2029"], "line": "#0a0c11", "spec": "#98a3b6", "grain": True},
+    "armor": {"ramp": ["#4f6394", "#33436c", "#232f4e", "#171f35"], "line": "#0a0e1c", "spec": "#8ea2d0"},
+    "hazard": {"ramp": ["#ffd27a", "#dc9a45", "#a4662b", "#6e411c"], "line": "#3a200c"},
+    "metal": {"ramp": ["#8d99a6", "#5d6875", "#3f4751", "#2a3037"], "line": "#12161b", "spec": "#d2dae3"},
+    "lamp": {"ramp": ["#ff5aa8"], "line": "#8c1a52", "emissive": True},
+    "lamp_cyan": {"ramp": ["#8ff8ff"], "line": "#1c8c9c", "emissive": True},
+}

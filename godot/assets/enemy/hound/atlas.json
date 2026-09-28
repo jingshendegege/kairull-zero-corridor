@@ -1,0 +1,413 @@
+{
+  "canvas_size": [
+    1280,
+    672
+  ],
+  "cell_size": [
+    160,
+    96
+  ],
+  "columns": 8,
+  "baseline_y": 89,
+  "pivot_x": 80,
+  "facing": "right",
+  "animations": {
+    "idle": {
+      "frames": 4,
+      "loop": true,
+      "fps_hint": 2,
+      "row": 0
+    },
+    "alert": {
+      "frames": 4,
+      "loop": false,
+      "fps_hint": 10,
+      "row": 1
+    },
+    "run": {
+      "frames": 6,
+      "loop": true,
+      "fps_hint": 12,
+      "row": 2
+    },
+    "windup": {
+      "frames": 4,
+      "loop": false,
+      "fps_hint": 10,
+      "row": 3
+    },
+    "pounce": {
+      "frames": 4,
+      "loop": false,
+      "fps_hint": 12,
+      "row": 4
+    },
+    "recover": {
+      "frames": 4,
+      "loop": false,
+      "fps_hint": 8,
+      "row": 5
+    },
+    "death": {
+      "frames": 6,
+      "loop": false,
+      "fps_hint": 9,
+      "row": 6
+    }
+  },
+  "frames": [
+    {
+      "animation": "idle",
+      "frame": 0,
+      "row": 0,
+      "cell_bbox": [
+        52,
+        40,
+        63,
+        49
+      ]
+    },
+    {
+      "animation": "idle",
+      "frame": 1,
+      "row": 0,
+      "cell_bbox": [
+        51,
+        42,
+        63,
+        47
+      ]
+    },
+    {
+      "animation": "idle",
+      "frame": 2,
+      "row": 0,
+      "cell_bbox": [
+        52,
+        41,
+        63,
+        48
+      ]
+    },
+    {
+      "animation": "idle",
+      "frame": 3,
+      "row": 0,
+      "cell_bbox": [
+        54,
+        40,
+        61,
+        49
+      ]
+    },
+    {
+      "animation": "alert",
+      "frame": 0,
+      "row": 1,
+      "cell_bbox": [
+        53,
+        39,
+        62,
+        50
+      ]
+    },
+    {
+      "animation": "alert",
+      "frame": 1,
+      "row": 1,
+      "cell_bbox": [
+        52,
+        39,
+        63,
+        50
+      ]
+    },
+    {
+      "animation": "alert",
+      "frame": 2,
+      "row": 1,
+      "cell_bbox": [
+        52,
+        38,
+        62,
+        51
+      ]
+    },
+    {
+      "animation": "alert",
+      "frame": 3,
+      "row": 1,
+      "cell_bbox": [
+        52,
+        39,
+        62,
+        50
+      ]
+    },
+    {
+      "animation": "run",
+      "frame": 0,
+      "row": 2,
+      "cell_bbox": [
+        52,
+        40,
+        63,
+        49
+      ]
+    },
+    {
+      "animation": "run",
+      "frame": 1,
+      "row": 2,
+      "cell_bbox": [
+        52,
+        38,
+        62,
+        51
+      ]
+    },
+    {
+      "animation": "run",
+      "frame": 2,
+      "row": 2,
+      "cell_bbox": [
+        52,
+        38,
+        61,
+        51
+      ]
+    },
+    {
+      "animation": "run",
+      "frame": 3,
+      "row": 2,
+      "cell_bbox": [
+        52,
+        44,
+        61,
+        45
+      ]
+    },
+    {
+      "animation": "run",
+      "frame": 4,
+      "row": 2,
+      "cell_bbox": [
+        52,
+        38,
+        61,
+        51
+      ]
+    },
+    {
+      "animation": "run",
+      "frame": 5,
+      "row": 2,
+      "cell_bbox": [
+        52,
+        39,
+        62,
+        50
+      ]
+    },
+    {
+      "animation": "windup",
+      "frame": 0,
+      "row": 3,
+      "cell_bbox": [
+        51,
+        39,
+        63,
+        50
+      ]
+    },
+    {
+      "animation": "windup",
+      "frame": 1,
+      "row": 3,
+      "cell_bbox": [
+        51,
+        42,
+        62,
+        47
+      ]
+    },
+    {
+      "animation": "windup",
+      "frame": 2,
+      "row": 3,
+      "cell_bbox": [
+        51,
+        45,
+        61,
+        44
+      ]
+    },
+    {
+      "animation": "windup",
+      "frame": 3,
+      "row": 3,
+      "cell_bbox": [
+        49,
+        47,
+        63,
+        42
+      ]
+    },
+    {
+      "animation": "pounce",
+      "frame": 0,
+      "row": 4,
+      "cell_bbox": [
+        48,
+        29,
+        72,
+        60
+      ]
+    },
+    {
+      "animation": "pounce",
+      "frame": 1,
+      "row": 4,
+      "cell_bbox": [
+        47,
+        35,
+        73,
+        54
+      ]
+    },
+    {
+      "animation": "pounce",
+      "frame": 2,
+      "row": 4,
+      "cell_bbox": [
+        46,
+        43,
+        71,
+        46
+      ]
+    },
+    {
+      "animation": "pounce",
+      "frame": 3,
+      "row": 4,
+      "cell_bbox": [
+        49,
+        40,
+        66,
+        49
+      ]
+    },
+    {
+      "animation": "recover",
+      "frame": 0,
+      "row": 5,
+      "cell_bbox": [
+        51,
+        39,
+        63,
+        50
+      ]
+    },
+    {
+      "animation": "recover",
+      "frame": 1,
+      "row": 5,
+      "cell_bbox": [
+        51,
+        37,
+        63,
+        52
+      ]
+    },
+    {
+      "animation": "recover",
+      "frame": 2,
+      "row": 5,
+      "cell_bbox": [
+        51,
+        37,
+        63,
+        52
+      ]
+    },
+    {
+      "animation": "recover",
+      "frame": 3,
+      "row": 5,
+      "cell_bbox": [
+        52,
+        38,
+        62,
+        51
+      ]
+    },
+    {
+      "animation": "death",
+      "frame": 0,
+      "row": 6,
+      "cell_bbox": [
+        51,
+        29,
+        62,
+        60
+      ]
+    },
+    {
+      "animation": "death",
+      "frame": 1,
+      "row": 6,
+      "cell_bbox": [
+        48,
+        20,
+        67,
+        69
+      ]
+    },
+    {
+      "animation": "death",
+      "frame": 2,
+      "row": 6,
+      "cell_bbox": [
+        38,
+        43,
+        75,
+        46
+      ]
+    },
+    {
+      "animation": "death",
+      "frame": 3,
+      "row": 6,
+      "cell_bbox": [
+        29,
+        64,
+        81,
+        25
+      ]
+    },
+    {
+      "animation": "death",
+      "frame": 4,
+      "row": 6,
+      "cell_bbox": [
+        29,
+        64,
+        81,
+        25
+      ]
+    },
+    {
+      "animation": "death",
+      "frame": 5,
+      "row": 6,
+      "cell_bbox": [
+        29,
+        63,
+        81,
+        26
+      ]
+    }
+  ],
+  "source": "tools/art/enemy3d/hound.py（原创 Blender 基本体模型，3D→像素）"
+}

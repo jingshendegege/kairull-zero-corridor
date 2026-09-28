@@ -55,6 +55,22 @@ SPECS = {
         "extra": {"source": "tools/art/enemy3d/loader.py（原创 Blender 基本体模型，3D→像素）",
                   "attack_active_frames": [1, 2, 3, 4, 5]},
     },
+    "hound": {
+        "model": "hound.py", "palette": palettes.HOUND,
+        "out": ROOT / "godot/assets/enemy/hound",
+        "cell": (160, 96), "baseline": 89, "columns": 8,
+        "anims": {
+            "idle": {"frames": 4, "loop": True, "fps_hint": 2},
+            "alert": {"frames": 4, "loop": False, "fps_hint": 10},
+            "run": {"frames": 6, "loop": True, "fps_hint": 12},
+            "windup": {"frames": 4, "loop": False, "fps_hint": 10},
+            "pounce": {"frames": 4, "loop": False, "fps_hint": 12},
+            "recover": {"frames": 4, "loop": False, "fps_hint": 8},
+            "death": {"frames": 6, "loop": False, "fps_hint": 9},
+        },
+        "ground_snap": "all",   # 飞扑的高度由实体位置抛物线承担，精灵帧脚底贴线
+        "extra": {"source": "tools/art/enemy3d/hound.py（原创 Blender 基本体模型，3D→像素）"},
+    },
 }
 
 

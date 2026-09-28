@@ -19,6 +19,14 @@ const SNIPER_LOCK_TIME := 0.35
 const SNIPER_FLASH_TIME := 0.6 ## 预射最后0.6秒：跟踪末0.25秒 + 全部锁向。
 const SNIPER_COOLDOWN := 1.5 ## 用户指定射后1.5秒冷却，不影响光栅/压机节拍。
 const PRESS_PLATE_H := 24.0
+## 2026-09-28 机关重画：像素精灵（tools/art/hazards/build_hazard_sprites.py）；灯色/蓄力/瞄准线/光束仍由代码画。
+const SNIPER_BASE_TEX := preload("res://assets/maps/hazards/sniper_base.png")
+const SNIPER_HEAD_TEX := preload("res://assets/maps/hazards/sniper_head.png")
+const SNIPER_HEAD_DEAD_TEX := preload("res://assets/maps/hazards/sniper_head_dead.png")
+const SNIPER_BARREL_TEX := preload("res://assets/maps/hazards/sniper_barrel.png")
+const LASER_POST_TEX := preload("res://assets/maps/hazards/laser_post.png")
+const PRESS_HEAD_TEX := preload("res://assets/maps/hazards/press_head.png")
+const PRESS_PLATE_TEX := preload("res://assets/maps/hazards/press_plate.png")
 
 var hazard_type := "auto_sniper"
 var room_id := ""
@@ -339,21 +347,18 @@ func _draw_sniper() -> void:
 		lamp = Color("#467978")
 	if state in ["warning", "locked", "active"]:
 		lamp = DANGER if state != "warning" else AMBER
-	# 小型固定工业炮：有底座/装甲/枪管，不复用枪手人物或改变其获认可美术。
-	draw_rect(Rect2(-22, -12, 44, 12), DARK)
-	draw_line(Vector2(-16, -10), Vector2(-7, -38), STEEL, 5.0)
-	draw_line(Vector2(16, -10), Vector2(7, -38), STEEL, 5.0)
-	draw_rect(Rect2(-19, -72, 38, 35), Color("#0b141c"))
-	draw_rect(Rect2(-16, -69, 32, 29), STEEL if not dead else Color("#273039"))
-	draw_line(Vector2(-15, -69), Vector2(15, -69), Color("#6b8088"), 2.0)
-	var barrel_tip := Vector2(face * (19.0 if dead else 30.0), -49.0 if dead else -56.0)
-	draw_line(Vector2(face * 7.0, -54.0), barrel_tip, Color("#101a22"), 10.0)
-	draw_line(Vector2(face * 9.0, -57.0), barrel_tip + Vector2(0, -2), STEEL, 4.0)
-	draw_rect(Rect2(-7, -78, 14, 5), Color("#1f2b34") if dead else lamp)
-	for x in [-12.0, 8.0]:
-		draw_rect(Rect2(x, -47, 4, 3), Color("#718089"))
+	# 固定工业炮：三脚架底座 + 装甲机头 + 随瞄准方向转动的枪管（像素精灵）。
+	draw_texture(SNIPER_BASE_TEX, Vector2(-24, -60))
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(face, 1.0))
+	draw_texture(SNIPER_HEAD_DEAD_TEX if dead else SNIPER_HEAD_TEX, Vector2(-18, -76))
+	draw_rect(Rect2(-5, -76, 5, 2), Color("#1f2b34") if dead else lamp)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	# 枪管枢轴在 (0,-56)，长 26px → 枪口正好落在 muzzle_position()
+	var barrel_angle := aim_direction.angle() if not dead else (0.45 if face > 0 else PI - 0.45)
+	draw_set_transform(Vector2(0, -56), barrel_angle, Vector2(1.0, 1.0 if cos(barrel_angle) >= 0.0 else -1.0))
+	draw_texture(SNIPER_BARREL_TEX, Vector2(0, -4))
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if dead:
-		draw_line(Vector2(-9, -69), Vector2(7, -52), Color("#10171f"), 3.0)
 		return
 	var charge := 0.0
 	if state == "warning":
@@ -381,9 +386,8 @@ func _draw_laser() -> void:
 	if not armed:
 		lamp = Color("#53646b")
 	for x in [-8.0, span]:
-		draw_rect(Rect2(x - 3, -15, 11, 30), Color("#111c25"))
-		draw_rect(Rect2(x, -12, 5, 24), STEEL)
-		draw_rect(Rect2(x, -4, 5, 8), lamp)
+		draw_texture(LASER_POST_TEX, Vector2(x - 4, -18))
+		draw_rect(Rect2(x + 1, -3, 4, 6), lamp)
 	var end := _ray_end(position, Vector2.RIGHT, span) - position
 	if active:
 		draw_line(Vector2.ZERO, end, Color(DANGER, 0.20), 6.0)
@@ -406,16 +410,12 @@ func _draw_press() -> void:
 	for x in [0.0, width - 5.0]:
 		draw_rect(Rect2(x, -6, 5, press_height + 6), Color("#24333d"))
 		draw_rect(Rect2(x + 1, -6, 1, press_height + 4), Color("#5a707a"))
-	draw_rect(Rect2(6, -10, width - 12, 15), DARK)
-	draw_rect(Rect2(width * 0.5 - 5, -7, 10, 4), lamp)
+	draw_texture_rect(PRESS_HEAD_TEX, Rect2(0, -10, width, 18), false)
+	draw_rect(Rect2(width * 0.5 - 4, -6, 8, 4), lamp)
 	for x in [width * 0.32, width * 0.66]:
-		draw_line(Vector2(x, 4), Vector2(x, plate.position.y + 4), Color("#77898f"), 5.0)
-		draw_line(Vector2(x + 1, 4), Vector2(x + 1, plate.position.y + 4), Color("#364951"), 2.0)
-	draw_rect(plate, Color("#101a21"))
-	draw_rect(plate.grow(-3), STEEL)
-	draw_line(plate.position + Vector2(3, 2), plate.position + Vector2(width - 3, 2), Color("#91a2a2"), 2.0)
-	for x in range(6, int(width) - 8, 13):
-		draw_line(plate.position + Vector2(x, 17), plate.position + Vector2(x + 7, 21), AMBER, 3.0)
+		draw_line(Vector2(x, 8), Vector2(x, plate.position.y + 4), Color("#77898f"), 5.0)
+		draw_line(Vector2(x + 1, 8), Vector2(x + 1, plate.position.y + 4), Color("#364951"), 2.0)
+	draw_texture_rect(PRESS_PLATE_TEX, plate, false)
 	draw_line(Vector2(0, press_height - 1), Vector2(width, press_height - 1), Color(lamp, 0.7), 2.0)
 	if state == "warning":
 		for y in range(34, int(press_height) - 10, 18):
