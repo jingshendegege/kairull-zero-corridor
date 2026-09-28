@@ -62,7 +62,7 @@ const CFG_QUARANTINE := [
 ## 05 节拍广播塔（tools/art/m07/build_m07_art.py）：广播大厅 + 音箱墙/LED 频谱屏 + 顶部灯光桁架；末层为空色层。
 const CFG_M07 := [
 	{"file": "res://assets/bg/m07/M07_L0_hall.png", "factor": 0.0, "mirror": false, "base": 0.0},
-	{"file": "res://assets/bg/m07/M07_L1_speakers.png", "factor": 0.2, "mirror": true, "base": 0.0},
+	{"file": "res://assets/bg/m07/M07_L1_speakers.png", "factor": 0.2, "mirror": false, "base": 0.0},  # 4 倍宽无缝，不镜像
 	{"file": "res://assets/bg/m07/M07_L2_truss.png", "factor": 0.45, "mirror": true, "base": 0.0},
 	{"color": "#05070b"},
 ]

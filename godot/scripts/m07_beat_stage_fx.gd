@@ -7,15 +7,17 @@ class_name BeatStageFx
 ## 右侧 Boss 身后刻意留空，并给 Boss 一束专属白色顶光。
 ## 叠加层（子节点 Glow，ADD 混合）：追光灯束与落地光斑、激光扇、Boss 喇叭冲击波、强拍闪光、LED 辉光。
 ## 边跑边打（用户要求）：战斗中场景以音符同速向左滚动——视差背景（GameBackground.extra_scroll）、
-## 路过的灯杆/音箱塔/护栏、以及地形之前的跑道层（BeatRunway：滚动地面 + 上下层之间的隔板）。
+## 地形之前的跑道层（BeatRunway：滚动地面、
+## 上下层之间的隔板、盖住天花板并挂着摇头灯的顶部灯架）。奔跑时隐藏静止的台口与地面灯带，避免穿帮。
 
 const ART := "res://assets/boss/beat_warden/"
 const LED_POS := Vector2(1480, 216)
 const LED_SIZE := Vector2(736, 352)
 const LED_FRAME := 10.0
 const EQ_BARS := 46
-const SPOT_XS := [1180.0, 1340.0, 1500.0, 1660.0, 1820.0, 1980.0, 2140.0, 2300.0, 2460.0]
-const SPOT_Y := 128.0
+const RIG_SPACING := 180.0       ## 顶部灯架上摇头灯间距（随跑道移动）
+const RIG_TOP := 94.0            ## 灯架盖住天花板瓦片（row 3 = y 96..128）
+const SPOT_Y := 136.0            ## 摇头灯挂点（灯架下沿）
 const RUN_SPEED := 520.0         ## = 谱面 note_speed_px：音符相当于钉在世界里，主角迎着它们跑
 const LANE_FOOT := 36.0          ## 与 BeatArena.LANE_FOOT 一致：隔板顶面 = 上层音符中心 + 36
 ## 段落主色 / 副色 / 能量
@@ -67,7 +69,7 @@ func setup(host: Node2D, beat_arena: Node2D) -> void:
 	game = host
 	arena = beat_arena
 	_floor_y = float(arena.config.floor_y)
-	for key in ["stage_led_mask", "stage_speaker", "stage_woofer", "stage_spot", "stage_neon"]:
+	for key in ["stage_led_mask", "stage_spot", "stage_neon"]:
 		_tex[key] = load(ART + key + ".png")
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	glow = Node2D.new()
@@ -115,6 +117,8 @@ func _process(dt: float) -> void:
 		_divider_alpha = move_toward(_divider_alpha, 1.0 if state != "waiting" or arena.rhythm_lock else 0.0, dt * 3.0)
 	if game.bg != null:
 		game.bg.extra_scroll = scroll_x
+	for bar: Sprite2D in arena.lights:
+		bar.visible = _divider_alpha < 0.5   # 静止灯带与滚动跑道矛盾：奔跑时隐藏
 	queue_redraw()
 	glow.queue_redraw()
 	runway.queue_redraw()
@@ -153,23 +157,22 @@ func _draw() -> void:
 	var look := _look()
 	var energy := _energy()
 	# 舞台台口：LED 墙下的深色升降台 + 顶边灯线
-	var deck := Rect2(LED_POS.x - 40, LED_POS.y + LED_SIZE.y, LED_SIZE.x + 80, _floor_y - LED_POS.y - LED_SIZE.y)
-	draw_rect(deck, Color("0b0716"))
-	draw_rect(Rect2(deck.position, Vector2(deck.size.x, 3)), Color(look[0], 0.5 + 0.5 * _kick))
-	for x in range(int(deck.position.x) + 24, int(deck.end.x), 48):
-		draw_rect(Rect2(x, deck.position.y + 14, 20, 4), Color(look[1], 0.25 + 0.5 * _kick * energy))
+	# 台口连着地面，奔跑时（地面在动）淡出，LED 墙变成悬浮大屏
+	var deck_a := 1.0 - _divider_alpha
+	if deck_a > 0.0:
+		var deck := Rect2(LED_POS.x - 40, LED_POS.y + LED_SIZE.y, LED_SIZE.x + 80, _floor_y - LED_POS.y - LED_SIZE.y)
+		draw_rect(deck, Color(Color("0b0716"), deck_a))
+		draw_rect(Rect2(deck.position, Vector2(deck.size.x, 3)), Color(look[0], (0.5 + 0.5 * _kick) * deck_a))
+		for x in range(int(deck.position.x) + 24, int(deck.end.x), 48):
+			draw_rect(Rect2(x, deck.position.y + 14, 20, 4), Color(look[1], (0.25 + 0.5 * _kick * energy) * deck_a))
 	_draw_led(look, energy)
-	_draw_passing_props(look, energy)
+	# 用户反馈：轨道上的音箱/器材等布景挡视野 → 轨道区域不放任何布景，只保留远景
 	# 霓虹招牌：随拍亮，待机时偶发接触不良闪烁
 	var neon: Texture2D = _tex.stage_neon
 	var bright := 0.8 + 0.2 * _kick
 	if _section == "idle":
 		bright = 0.15 if sin(_t * 37.0) > 0.9 or sin(_t * 5.3) > 0.97 else 0.75
 	draw_texture(neon, Vector2(LED_POS.x + LED_SIZE.x * 0.5 - neon.get_width() * 0.5, LED_POS.y - 58), Color(1, 1, 1, bright))
-	# 摇头灯本体
-	var spot: Texture2D = _tex.stage_spot
-	for x: float in SPOT_XS:
-		draw_texture(spot, Vector2(x - 14, SPOT_Y))
 
 
 func _draw_led(look: Array, energy: float) -> void:
@@ -228,35 +231,10 @@ func _draw_led_text(inner: Rect2, text: String, look: Array) -> void:
 					draw_rect(Rect2(origin + Vector2((k * 6 + c) * px, r * px), Vector2(px, px)), col)
 
 
-## 路过的布景：护栏（连续）、灯杆（每 320px）、音箱塔（每 1280px），随 scroll_x 向左流动。
-## Boss 身后（右侧 300px）不画，避免同色系淹没 Boss。
-func _draw_passing_props(look: Array, energy: float) -> void:
-	var left := float(arena.config.stage_rect[0])
-	var right: float = arena.boss.position.x - 150.0
-	# 护栏：两根横杆 + 立柱
-	var rail := Color("1c1530")
-	draw_rect(Rect2(left, _floor_y - 34, right - left, 3), rail)
-	draw_rect(Rect2(left, _floor_y - 18, right - left, 3), rail)
-	draw_rect(Rect2(left, _floor_y - 35, right - left, 1), Color(look[0], 0.35))
-	var x := left - fposmod(scroll_x, 48.0)
-	while x < right:
-		if x >= left:
-			draw_rect(Rect2(x, _floor_y - 36, 3, 36), Color("150f24"))
-		x += 48.0
-	# 音箱塔
-	x = left - fposmod(scroll_x + 400.0, 1280.0)
-	while x < right:
-		if x + 112.0 > left and x + 112.0 < right:
-			_draw_speaker(Vector2(x, _floor_y - 224.0), energy)
-		x += 1280.0
-	# 灯杆：细杆 + 顶部随拍灯头
-	x = left - fposmod(scroll_x, 320.0) + 160.0
-	while x < right:
-		if x > left:
-			draw_rect(Rect2(x - 2, _floor_y - 300, 4, 300), Color("120c1f"))
-			draw_rect(Rect2(x - 8, _floor_y - 306, 16, 7), Color("2a2344"))
-			draw_rect(Rect2(x - 6, _floor_y - 300, 12, 2), Color(look[1], 0.4 + 0.6 * _kick))
-		x += 320.0
+## 视野范围（世界 x），两侧多留 240px，布景从画面外滑入滑出，不会凭空出现。
+func _view_x() -> Vector2:
+	var cam: Vector2 = game.cam_tl
+	return Vector2(cam.x - 240.0, cam.x + get_viewport_rect().size.x + 240.0)
 
 
 ## 跑道层（在地形之前）：滚动的舞台地面 + 上下两层之间的隔板走道。
@@ -267,19 +245,20 @@ func _draw_runway() -> void:
 	var left := float(arena.config.stage_rect[0])
 	var right := left + float(arena.config.stage_rect[2])
 	# 地面：深色钢板 + 顶边灯线 + 滚动接缝 + 向左流动的虚线灯
-	runway.draw_rect(Rect2(left, _floor_y, right - left, 32), Color("120b20"))
+	runway.draw_rect(Rect2(left, _floor_y, right - left, 96), Color("120b20"))
 	runway.draw_rect(Rect2(left, _floor_y, right - left, 2), Color(look[0], 0.6 + 0.4 * _kick))
 	var x := left - fposmod(scroll_x, 64.0)
 	while x < right:
 		if x >= left:
-			runway.draw_rect(Rect2(x, _floor_y + 2, 2, 30), Color("07040d"))
-			runway.draw_rect(Rect2(x + 2, _floor_y + 2, 1, 30), Color("241a3a"))
+			runway.draw_rect(Rect2(x, _floor_y + 2, 2, 94), Color("07040d"))
+			runway.draw_rect(Rect2(x + 2, _floor_y + 2, 1, 94), Color("241a3a"))
 		x += 64.0
 	x = left - fposmod(scroll_x, 128.0)
 	while x < right:
 		if x >= left:
 			runway.draw_rect(Rect2(x + 40, _floor_y + 14, 36, 3), Color(look[1], 0.3 + 0.4 * _kick))
 		x += 128.0
+	_draw_rig(look, left, right)
 	if _divider_alpha <= 0.0:
 		return
 	# 隔板：上层站位面（上层音符中心下方 LANE_FOOT），从舞台左缘延伸到 Boss 前
@@ -310,14 +289,36 @@ func _draw_runway() -> void:
 	runway.draw_rect(Rect2(end_x - 6, top - 6, 6, 28), Color(Color("3a3350"), a))
 
 
-func _draw_speaker(top_left: Vector2, energy: float) -> void:
-	draw_texture(_tex.stage_speaker, top_left)
-	var woofer: Texture2D = _tex.stage_woofer
-	var s := 1.0 + 0.12 * _kick * energy
-	for cy in [62.0, 174.0]:
-		draw_set_transform(top_left + Vector2(56, cy), 0.0, Vector2(s, s))
-		draw_texture(woofer, -woofer.get_size() * 0.5)
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+## 当前视野内的摇头灯：[世界 x, 稳定编号]。灯架随跑道移动，编号跟着灯走，扫动相位不跳变。
+func _spots() -> Array:
+	var view := _view_x()
+	var result := []
+	var k0 := floori((view.x + scroll_x) / RIG_SPACING)
+	var k1 := floori((view.y + scroll_x) / RIG_SPACING)
+	for k in range(k0, k1 + 1):
+		result.append([k * RIG_SPACING - scroll_x + RIG_SPACING * 0.5, k])
+	return result
+
+
+## 顶部灯架：盖住静止的天花板瓦片，双弦桁架 + 斜腹杆随跑道滚动，下挂摇头灯。
+func _draw_rig(look: Array, left: float, right: float) -> void:
+	var top := RIG_TOP
+	runway.draw_rect(Rect2(left, top, right - left, SPOT_Y - top), Color("0d0918"))
+	runway.draw_rect(Rect2(left, top + 4, right - left, 3), Color("2a2340"))
+	runway.draw_rect(Rect2(left, SPOT_Y - 6, right - left, 3), Color("2a2340"))
+	runway.draw_rect(Rect2(left, SPOT_Y - 3, right - left, 1), Color(look[0], 0.3 + 0.3 * _kick))
+	var x := left - fposmod(scroll_x + left, 36.0)
+	var flip := posmod(floori((scroll_x + left) / 36.0), 2) == 1
+	while x < right:
+		var y0 := top + 7.0 if flip else SPOT_Y - 6.0
+		var y1 := SPOT_Y - 6.0 if flip else top + 7.0
+		runway.draw_line(Vector2(x, y0), Vector2(x + 36.0, y1), Color("1f1933"), 2.0)
+		runway.draw_rect(Rect2(x, top + 4, 2, SPOT_Y - top - 7), Color("1f1933"))
+		flip = not flip
+		x += 36.0
+	var spot: Texture2D = _tex.stage_spot
+	for item: Array in _spots():
+		runway.draw_texture(spot, Vector2(float(item[0]) - 14.0, SPOT_Y - 4.0))
 
 
 # ------------------------------------------------------------------ 叠加层（ADD）
@@ -334,11 +335,12 @@ func _draw_glow() -> void:
 	# 追光灯束
 	var speed: float = {"idle": 0.12, "count": 0.2, "intro": 0.2, "verse": 0.3, "build": 0.45, "drop": 0.55, "finale": 0.7, "end": 0.3}[_section]
 	var amp := 0.18 + 0.32 * energy
-	for i in SPOT_XS.size():
-		var origin := Vector2(SPOT_XS[i], SPOT_Y + 20)
-		var angle := sin(_beat * PI * speed + i * 0.8) * amp * (1.0 if i % 2 == 0 else -1.0)
+	for item: Array in _spots():
+		var i: int = item[1]
+		var origin := Vector2(float(item[0]), SPOT_Y + 16)
+		var angle := sin(_beat * PI * speed + i * 0.8) * amp * (1.0 if posmod(i, 2) == 0 else -1.0)
 		var swap := drop and posmod(floori(_beat / 4.0), 2) == 1
-		var col: Color = look[(i + (1 if swap else 0)) % 2]
+		var col: Color = look[posmod(i + (1 if swap else 0), 2)]
 		var alpha := 0.07 + 0.16 * strobe * energy
 		_beam(origin, angle, 0.085, Color(col, alpha))
 		_beam(origin, angle, 0.03, Color(col.lerp(Color.WHITE, 0.5), alpha * 0.9))

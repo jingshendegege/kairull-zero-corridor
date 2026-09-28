@@ -3,8 +3,8 @@
 背景低分辨率 384×256 绘制 → 最近邻 ×4（与 M06 相同：GameBackground SCALE 0.75 显示为 3px 像素块）。
 输出：
   godot/assets/bg/m07/M07_L0_hall.png      远景场馆（固定层）：地平线品红光晕 + 放射光芒 + 灯塔 + 看台手机灯海
-  godot/assets/bg/m07/M07_L1_speakers.png  前排观众剪影 + 荧光棒（慢视差，可镜像平铺）
-  godot/assets/bg/m07/M07_L2_truss.png     顶部灯光桁架 + 聚光灯 + 垂缆（中视差，可镜像平铺）
+  godot/assets/bg/m07/M07_L1_speakers.png  前排观众剪影 + 荧光棒/应援牌（4 倍宽、首尾无缝、不镜像）
+  godot/assets/bg/m07/M07_L2_truss.png     顶部远处桁架（中视差，可镜像平铺；摇头灯由舞台层绘制）
   godot/assets/boss/beat_warden/note_*.png  音符：normal/heavy/bomb（地面轨）与 *_air（空中轨，带翼）
   godot/assets/boss/beat_warden/judge_ring.png   判定环（运行时按拍脉动/着色）
   godot/assets/boss/beat_warden/note_burst.png   击碎特效 4 帧横排（48×48/帧，白底色，运行时按音符类型着色）
@@ -120,48 +120,64 @@ def hall() -> Image.Image:
     return img
 
 
+CROWD_W = LW * 4   # 观众层 4 倍宽且首尾无缝：边跑边打时不再镜像平铺出明显重复
+
+
 def speakers() -> Image.Image:
-    """中景（可镜像平铺）：前排观众剪影，举手与荧光棒。"""
+    """中景：前排观众剪影（举手、荧光棒、偶尔的应援牌），CROWD_W 宽、横向首尾无缝，不镜像。"""
     rnd = random.Random(128)
-    img = Image.new("RGBA", (LW, LH), (0, 0, 0, 0))
+    W = CROWD_W
+    img = Image.new("RGBA", (W, LH), (0, 0, 0, 0))
     px = img.load()
-    base = 206
+
+    def wput(x, y, col):
+        if 0 <= y < LH:
+            px[x % W, y] = hx(col)
+
     x = 0
-    while x < LW:
-        w = rnd.randint(7, 11)
-        h = rnd.randint(14, 24)
+    while x < W:
+        w = rnd.randint(6, 12)
+        base = 206 + rnd.randint(-2, 3)
+        h = rnd.randint(13, 26)
         top = base - h
         cx = x + w // 2
+        body = "#07040d" if rnd.random() < 0.8 else "#0a0613"
         for yy in range(top + 5, LH):                       # 身体
             for xx in range(x + 1, x + w - 1):
-                put(px, LW, LH, xx, yy, "#07040d")
+                wput(xx, yy, body)
         for yy in range(top, top + 6):                       # 头
             for xx in range(cx - 2, cx + 3):
                 if (xx - cx) ** 2 + (yy - top - 3) ** 2 <= 7:
-                    put(px, LW, LH, xx, yy, "#07040d")
-        if rnd.random() < 0.55:                              # 举手 + 荧光棒
+                    wput(xx, yy, body)
+        r = rnd.random()
+        if r < 0.5:                                          # 举手 + 荧光棒
             side = rnd.choice((-1, 1))
             hx0 = cx + side * (w // 2)
-            for i in range(9):
-                put(px, LW, LH, hx0 + side * (i // 4), top + 6 - i, "#07040d")
-            stick = rnd.choice(["#8ff8ff", "#ff5aa8", "#ffe28a", "#b08cff"])
-            for i in range(5):
-                put(px, LW, LH, hx0 + side * 2, top - 3 - i, stick)
-            put(px, LW, LH, hx0 + side * 2 - 1, top - 5, "#3a2a55")
-        if False:                                            # 旗帜：远看像飘浮方块，已停用
-            for i in range(28):
-                put(px, LW, LH, cx, top - i, "#1a1026")
-            flag = rnd.choice(["#3a1a6a", "#5a1348"])
-            for yy in range(top - 28, top - 18):
-                for xx in range(cx + 1, cx + 13):
-                    if (xx + yy) % 5:
-                        put(px, LW, LH, xx, yy + int(math.sin(xx * 0.6)), flag)
+            arm = rnd.randint(6, 10)
+            for k in range(arm):
+                wput(hx0 + side * (k // 4), top + 6 - k, body)
+            stick = rnd.choice(["#8ff8ff", "#ff5aa8", "#ffe28a", "#b08cff", "#8ff8ff"])
+            for k in range(5):
+                wput(hx0 + side * 2, top + 6 - arm - k, stick)
+        elif r < 0.56:                                       # 双手举应援牌
+            sw = rnd.randint(10, 16)
+            col = rnd.choice(["#ff5aa8", "#8ff8ff", "#ffe28a"])
+            for yy in range(top - 12, top - 4):
+                for xx in range(cx - sw // 2, cx + sw // 2):
+                    edge = yy in (top - 12, top - 5) or xx in (cx - sw // 2, cx + sw // 2 - 1)
+                    wput(xx, yy, "#1a1026" if edge else ("#241838" if (xx + yy) % 3 else col))
+            for yy in range(top - 4, top + 6):
+                wput(cx - sw // 2 + 1, yy, body)
+                wput(cx + sw // 2 - 2, yy, body)
+        elif r < 0.62:                                       # 手机闪光灯
+            wput(cx + 3, top - 4, "#fff6e0")
+            wput(cx + 3, top - 3, body)
         x += w - rnd.randint(1, 3)
     # 观众头顶被舞台光擦亮的边
-    for x in range(LW):
-        for y in range(LH):
-            if px[x, y][3] and (y == 0 or px[x, y - 1][3] == 0) and px[x, y][:3] == (7, 4, 13):
-                px[x, y] = hx("#3a2058")
+    for xx in range(W):
+        for yy in range(1, LH):
+            if px[xx, yy][3] and px[xx, yy - 1][3] == 0 and px[xx, yy][:3] in ((7, 4, 13), (10, 6, 19)):
+                px[xx, yy] = hx("#3a2058")
     return img
 
 
@@ -179,18 +195,6 @@ def truss() -> Image.Image:
     for x in range(0, LW, 12):
         for y in range(top, bot + 2):
             put(px, LW, LH, x, y, "#1f1933")
-    # 聚光灯（交替青/品红镜头）+ 垂缆
-    for i, x in enumerate(range(18, LW, 48)):
-        lens = "#8ff8ff" if i % 2 == 0 else "#ff5aa8"
-        for y in range(bot + 2, bot + 12):
-            for dx in range(-4, 5):
-                edge = abs(dx) == 4 or y == bot + 11
-                put(px, LW, LH, x + dx, y, "#060409" if edge else "#241c3c")
-        for dx in range(-2, 3):
-            put(px, LW, LH, x + dx, bot + 12, lens)
-            put(px, LW, LH, x + dx, bot + 13, "#3a2a55")
-        for y in range(bot + 2, bot + 30 + (i * 17) % 24):
-            put(px, LW, LH, x + 7 + int(2 * math.sin(y * 0.2)), y, "#0d0a17")
     return img
 
 

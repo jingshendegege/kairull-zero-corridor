@@ -44,6 +44,11 @@ func _ready() -> void:
 	game.add_child(stage_fx)
 	game.move_child(stage_fx, game.level.get_index())
 	stage_fx.setup(game, arena)
+	# 节奏战专用 HUD（双轨锁定期间替代通用 HUD，击破后显示结算）
+	var beat_hud := preload("res://scripts/beat_hud.gd").new()
+	beat_hud.name = "BeatHud"
+	game.add_child(beat_hud)
+	beat_hud.setup(game, arena)
 	# A retry may inherit a stopped backstage player after the boss song.
 	if game.music != null and not game.music.playing:
 		game.music.stream_paused = false

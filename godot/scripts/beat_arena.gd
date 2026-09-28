@@ -34,6 +34,9 @@ var hp_bar: ProgressBar
 var judge_label: Label
 var _death_time := 0.0
 var _pulse_beat := 0.0
+signal rated(value: String, lane: String)   ## 每次评价（含 Miss），供 BeatHud 弹字
+var counts := {"Perfect": 0, "Great": 0, "Hit": 0, "Miss": 0}
+var max_combo := 0
 var rhythm_lock := false         ## true = 双轨操作接管主角（倒数起到击破/重置）
 var player_lane := "ground"
 var _prev_up := false
@@ -129,6 +132,9 @@ func reset_fight(resume_ambience := false) -> void:
 	rating = ""
 	rating_time = 0.0
 	swing = 0
+	for key in counts:
+		counts[key] = 0
+	max_combo = 0
 	_release_rhythm()
 	CorridorLevel.active_exit_requires_boss = true
 	hud_layer.visible = false
@@ -240,7 +246,7 @@ func _contact_note(note: BeatNote) -> void:
 	else:
 		if note.reflected:
 			note.reflection_target = boss.target_point()
-		show_rating(rate(conductor.time - note.hit_time))
+		show_rating(rate(conductor.time - note.hit_time), note.lane)
 		host.play_action("metal_impact" if note.kind == "heavy" else "body_hit")
 
 func _advance_notes(dt: float) -> void:
@@ -305,7 +311,7 @@ func _advance_notes(dt: float) -> void:
 		if not note.contacted and not note.missed and note.kind != "bomb" \
 				and conductor.time - note.hit_time > (RHYTHM_WINDOW if rhythm_lock else 0.150):
 			note.missed = true
-			show_rating("Miss")
+			show_rating("Miss", note.lane)
 		if note.position.x < float(config.stage_rect[0]):
 			note.spent = true
 	for index in range(notes.size() - 1, -1, -1):
@@ -320,7 +326,7 @@ static func rate(error: float) -> String:
 		return "Great"
 	return "Hit"
 
-func show_rating(value: String) -> void:
+func show_rating(value: String, lane := "") -> void:
 	rating = value
 	rating_time = 0.6
 	if value == "Miss":
@@ -328,6 +334,9 @@ func show_rating(value: String) -> void:
 	else:
 		combo += 1
 		score += {"Perfect": 100, "Great": 70, "Hit": 40}[value]
+	counts[value] = int(counts.get(value, 0)) + 1
+	max_combo = maxi(max_combo, combo)
+	rated.emit(value, lane)
 
 func _on_boss_died() -> void:
 	_clear_notes()
@@ -387,6 +396,9 @@ func _engage_rhythm() -> void:
 	p.face = 1
 	p.set_state("gun_idle")
 	_place_player()
+	host.hud.visible = false       # 通用 HUD 与节奏战 HUD（beat_hud.gd）互斥
+	hud_layer.visible = false
+	judge_label.visible = false
 
 
 func _release_rhythm() -> void:
@@ -397,6 +409,8 @@ func _release_rhythm() -> void:
 	var p: Node2D = host.player
 	p.keys.clear()
 	p.auto_input = true
+	host.hud.visible = true
+	judge_label.visible = state == "waiting"   # 击破后不再显示旧的判定文字（结算由 BeatHud 负责）
 	if not p.dead:
 		_place_player()
 		p.set_state("gun_idle")
@@ -438,10 +452,11 @@ func _rhythm_tick(dt: float) -> void:
 
 ## 一次出手：瞬移到该层（并停留）挥棒；在该轨判定窗内取时间误差最小的音符反弹（炸弹不可打）。
 func rhythm_press(lane: String) -> BeatNote:
+	var rising := lane == "air" and player_lane == "ground"
 	player_lane = lane
 	var p: Node2D = host.player
 	p.state = ""
-	p.set_state("bat2")
+	p.set_state("bat3" if rising else "bat2")   # 用户要求：从下层切到上层用连击第三段
 	_place_player()
 	swing += 1
 	if state != "playing" or frozen:
@@ -462,6 +477,6 @@ func rhythm_press(lane: String) -> BeatNote:
 	best.last_swing = swing
 	best.reflection_target = boss.target_point()
 	_burst(best.position, best.kind)
-	show_rating(rate(best_error))
+	show_rating(rate(best_error), lane)
 	host.play_action("metal_impact" if best.kind == "heavy" else "body_hit")
 	return best
