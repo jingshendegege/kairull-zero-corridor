@@ -153,7 +153,7 @@ func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)   ## 系统光标藏起来，全程用自绘准星
 	db = AtlasDB.new("res://assets/clips", [
 		"res://assets/clips/bat/bat_atlas.json",
-		"res://assets/clips/hero/hero_atlas.json",
+		"res://assets/clips/hero_px/hero_px_atlas.json", # 2026-09-28 主角像素复刻图集（1:1 显示）；旧 hero/ 保留
 	])
 	_load_sfx()
 	# 新技能/环境声按用途路由；已认可的冲刺、挥棒、命中与击杀优先使用原声。

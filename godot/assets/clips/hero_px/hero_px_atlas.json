@@ -1,0 +1,106 @@
+{
+ "scale": 1.0,
+ "fps": 24,
+ "source": "OneDrive/图片/人物素材（用户原素材），tools/art/hero/build_hero_pixel.py",
+ "actions": {
+  "hero_idle": {
+   "file": "hero_px/hero_idle.png",
+   "frames": 8,
+   "fw": 59,
+   "fh": 94,
+   "cols": 3,
+   "rows": 3,
+   "foot_y": 94.0,
+   "body_cx": 29.6,
+   "raw_scale": 2.5
+  },
+  "hero_run": {
+   "file": "hero_px/hero_run.png",
+   "frames": 16,
+   "fw": 79,
+   "fh": 94,
+   "cols": 4,
+   "rows": 4,
+   "foot_y": 94.0,
+   "body_cx": 39.7,
+   "raw_scale": 2.5
+  },
+  "hero_jump": {
+   "file": "hero_px/hero_jump.png",
+   "frames": 4,
+   "fw": 72,
+   "fh": 94,
+   "cols": 2,
+   "rows": 2,
+   "foot_y": 94.0,
+   "body_cx": 36.2,
+   "raw_scale": 2.5
+  },
+  "hero_hurt": {
+   "file": "hero_px/hero_hurt.png",
+   "frames": 5,
+   "fw": 69,
+   "fh": 94,
+   "cols": 3,
+   "rows": 2,
+   "foot_y": 94.0,
+   "body_cx": 34.4,
+   "raw_scale": 2.5
+  },
+  "hero_death": {
+   "file": "hero_px/hero_death.png",
+   "frames": 15,
+   "fw": 102,
+   "fh": 94,
+   "cols": 4,
+   "rows": 4,
+   "foot_y": 94.0,
+   "body_cx": 50.8,
+   "raw_scale": 2.5
+  },
+  "hero_bat1": {
+   "file": "hero_px/hero_bat1.png",
+   "frames": 27,
+   "fw": 132,
+   "fh": 94,
+   "cols": 6,
+   "rows": 5,
+   "foot_y": 94.0,
+   "body_cx": 65.9,
+   "raw_scale": 2.5
+  },
+  "hero_bat2": {
+   "file": "hero_px/hero_bat2.png",
+   "frames": 8,
+   "fw": 104,
+   "fh": 94,
+   "cols": 3,
+   "rows": 3,
+   "foot_y": 94.0,
+   "body_cx": 51.9,
+   "raw_scale": 2.5
+  },
+  "hero_bat3": {
+   "file": "hero_px/hero_bat3.png",
+   "frames": 21,
+   "fw": 135,
+   "fh": 94,
+   "cols": 5,
+   "rows": 5,
+   "foot_y": 94.0,
+   "body_cx": 67.6,
+   "raw_scale": 2.5
+  },
+  "hero_roll": {
+   "file": "hero_px/hero_roll.png",
+   "frames": 6,
+   "fw": 168,
+   "fh": 168,
+   "cols": 6,
+   "rows": 1,
+   "foot_y": 164.0,
+   "body_cx": 84.0,
+   "raw_scale": 2.5
+  }
+ }
+}

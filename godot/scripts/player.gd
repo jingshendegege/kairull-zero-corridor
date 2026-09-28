@@ -1871,8 +1871,9 @@ func _apply_sprite(clip_name: String, f: int) -> void:
 	_sprite.region_enabled = true
 	_sprite.region_rect = db.frame_rect(clip_name, f)
 	_sprite.centered = false
-	# H3 原片逐剪辑缩放归一化（以 aim 的角色源高 234px 实测对齐）；预处理素材系数 1.0
-	var eff_scale: float = CHAR_SCALE * float(RAW_SCALE.get(clip_name, 1.0))
+	# H3 原片逐剪辑缩放归一化（以 aim 的角色源高 234px 实测对齐）；预处理素材系数 1.0。
+	# 像素复刻图集（hero_px）在元数据里带 raw_scale = 1/CHAR_SCALE → 以 1.0 整数缩放显示。
+	var eff_scale: float = CHAR_SCALE * float(act.get("raw_scale", RAW_SCALE.get(clip_name, 1.0)))
 	_sprite.scale = Vector2.ONE * eff_scale
 	var fw: float = act["fw"]
 	var bcx: float = act["body_cx"]
@@ -1901,6 +1902,9 @@ func _sync_readability() -> void:
 		_outline.flip_h = _sprite.flip_h
 		_outline.scale = _sprite.scale
 		_outline.global_position = _sprite.global_position
+		# 描边保持屏幕约 1px：步长（texel）随当前缩放换算，0.4 缩放时仍为原 2.5
+		_outline_mat.set_shader_parameter("texel_step",
+				OUTLINE_TEXEL_STEP * CHAR_SCALE / maxf(0.01, _sprite.scale.x))
 		_outline.modulate.a = _sprite.modulate.a   ## 受击闪烁同步
 		var ts := Vector2(_sprite.texture.get_size())
 		var rr: Rect2 = _sprite.region_rect
