@@ -541,7 +541,7 @@ func _play_hit(heavy: bool) -> void:
 			_hit_voices.append(voice)
 	var voice := _hit_voices[_hit_voice_i]
 	_hit_voice_i = (_hit_voice_i + 1) % _hit_voices.size()
-	voice.pitch_scale = 0.82 if heavy else 1.0
+	voice.pitch_scale = 0.9 if heavy else 1.0
 	voice.volume_db = 0.0 if heavy else -3.0
 	voice.play()
 

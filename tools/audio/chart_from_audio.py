@@ -6,7 +6,8 @@
   2. 分频段谱通量：低频（底鼓，40–150Hz）、中高频（军鼓/镲，1.5–8kHz）、全频能量。
   3. 速度：全频起音包络自相关，在 --bpm 附近（±15%）找峰；相位：按拍网格累加起音强度取最大。
   4. 段落：每 4 小节的 RMS 能量排序 → 低能量=intro/verse，渐强=build，高能量=drop，最后一段高能量=finale。
-  5. 音符：八分音符网格上，底鼓强 → ground，军鼓/镲强 → air，二者都强 → 同拍双音符（仅 drop/finale）；
+  5. 音符：只在真实打击处放——FFT 分频 3ms 包络找瞬态，量化到十六分网格（偏差 ≤40ms），
+     底鼓 → ground，军鼓/镲 → air，只有吉他重音时交替；每小节按段落设上限（不凑数）；
      每两小节首拍的强起音 → heavy（运行时为上下同时按的双键音符，同拍其他音符让位）；drop/finale 的空拍按固定图样放 bomb（与前后音符留出换层时间）。
   6. 谱面合同与 beat_warden_song.py 相同（bpm/offset_sec/sections/notes/loop/boss_hp…），运行时无需改动。
 """
@@ -92,6 +93,35 @@ def phase(env: np.ndarray, bpm: float) -> float:
     return float(best_off)
 
 
+def transients(x: np.ndarray, lo: float, hi: float) -> tuple[np.ndarray, np.ndarray]:
+    """整段 FFT 分频 → 3ms 包络 → 上升沿峰值（0.73ms 分辨率）；阈值按 1 秒块内最大值自适应，
+    返回 (真实时刻秒, 相对强度 0..1)。用于"只在真的有打击的位置放音符"。"""
+    X = np.fft.rfft(x.astype(np.float64))
+    f = np.fft.rfftfreq(len(x), 1.0 / SR)
+    y = np.fft.irfft(X * ((f >= lo) & (f < hi)), n=len(x))
+    env = np.convolve(np.abs(y), np.ones(64) / 64, mode="same")
+    step = 16
+    d = np.maximum(0.0, np.diff(env[::step]))
+    d = np.convolve(d, np.ones(8) / 8, mode="same")
+    blk = int(SR / step)                                 # 1 秒一块
+    nb = int(np.ceil(len(d) / blk))
+    bmax = np.array([d[i * blk:(i + 1) * blk].max() for i in range(nb)])
+    local = np.maximum(np.interp(np.arange(len(d)), np.arange(nb) * blk + blk / 2, bmax), 1e-12)
+    floor = np.percentile(d, 90)
+    peaks = np.where((d[1:-1] > d[:-2]) & (d[1:-1] >= d[2:]) & (d[1:-1] > 0.3 * local[1:-1])
+                     & (d[1:-1] > floor))[0] + 1
+    times, strength = [], []
+    for i in peaks:
+        t = i * step / SR
+        if times and t - times[-1] < 0.07:
+            if d[i] / local[i] > strength[-1]:
+                times[-1], strength[-1] = t, float(d[i] / local[i])
+            continue
+        times.append(t)
+        strength.append(float(min(1.0, d[i] / local[i])))
+    return np.array(times), np.array(strength)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("audio")
@@ -143,41 +173,90 @@ def main() -> None:
     for i, l in enumerate(labels):
         if not sections or sections[-1]["name"] != l:
             sections.append({"name": l, "from_beat": i * 16})
-    # 音符：每小节 8 个八分音符位，按段落目标密度挑起音最强的位置（拍点加权），底鼓→下层，军鼓/镲→上层
-    density = {"intro": 3, "verse": 5, "build": 6, "drop": 7, "finale": 8}
+    # 音符：只放在真实打击处（用户反馈"有的卡点没做好"：旧版按密度硬凑，45% 音符附近没有鼓点）。
+    # 瞬态量化到十六分音符网格（偏差 ≤ 40ms 才算）；底鼓 → 下层，军鼓/镲 → 上层，吉他重音作补充。
+    grid0 = off + ONSET_LATENCY                          # 真实时间轴上的第 0 拍
+    q = spb / 4.0
+    bands = {"kick": transients(x, 40, 120), "snare": transients(x, 1500, 6000),
+             "cymbal": transients(x, 6000, 11000), "guitar": transients(x, 200, 1200)}
+    # 每首歌自动校准首拍：鼓点瞬态相对网格偏差的中位数（分析窗造成的系统偏移因曲而异）
+    devs = []
+    for name in ("kick", "snare"):
+        for t in bands[name][0]:
+            k = int(round((t - grid0) / q))
+            if abs(t - (grid0 + k * q)) <= 0.04:
+                devs.append(t - (grid0 + k * q))
+    if devs:
+        grid0 += float(np.median(devs))
+    slot_hits: dict[int, dict[str, float]] = {}
+    for name, (times, strength) in bands.items():
+        for t, st in zip(times, strength):
+            k = int(round((t - grid0) / q))
+            if k >= 0 and abs(t - (grid0 + k * q)) <= 0.04:
+                cur = slot_hits.setdefault(k, {})
+                cur[name] = max(cur.get(name, 0.0), st)
+    cap = {"intro": 4, "verse": 6, "build": 7, "drop": 8, "finale": 10}
+    sixteenth_ok = {"intro": 1.1, "verse": 1.1, "build": 0.9, "drop": 0.7, "finale": 0.45}   # 十六分位所需强度
     notes = []
+    last_heavy_bar = -9
     for bar in range(bars):
         sec = labels[min(len(labels) - 1, bar // 4)]
-        dense = sec in ("drop", "finale")
-        slots = []
-        for e in range(8):
-            beat = bar * 4 + e / 2.0
-            t = off + beat * spb
-            bonus = 0.12 if e % 2 == 0 else 0.0
-            slots.append((beat, at(kick, t) + bonus, at(snare, t) + bonus))
-        want = density[sec]
-        n_ground = (want + 1) // 2
-        ground = sorted(slots, key=lambda v: -v[1])[:n_ground]
-        ground = [v for v in ground if v[1] > 0.18]
-        taken = {v[0] for v in ground}
-        air_pool = [v for v in slots if dense or v[0] not in taken]
-        air = [v for v in sorted(air_pool, key=lambda v: -v[2])[:want - len(ground)] if v[2] > 0.18]
-        strongest = max(slots[0][1], 0.0)
-        for beat, k, _s in ground:
-            heavy = beat == bar * 4 and sec != "intro" and strongest >= 0.75 and bar % 2 == 0
-            notes.append({"beat": beat, "lane": "ground", "kind": "heavy" if heavy else "normal"})
-        for beat, _k, _s2 in air:
-            notes.append({"beat": beat, "lane": "air", "kind": "normal"})
-        if dense and bar % 2 == 1:
-            # 每两小节在第 4 拍反拍放一颗炸弹（上下层交替），并清掉该层前后八分音符位的音符，给换层留时间
-            beat = bar * 4 + 3.5
+        cands = []
+        for e in range(16):
+            k = bar * 16 + e
+            h = slot_hits.get(k, {})
+            if not h:
+                continue
+            beat = bar * 4 + e / 4.0
+            g = h.get("kick", 0.0)
+            a = max(h.get("snare", 0.0), h.get("cymbal", 0.0) * 0.9)
+            gt = h.get("guitar", 0.0)
+            if e % 2 == 1 and max(g, a) < sixteenth_ok[sec]:
+                continue                                  # 十六分位只收足够强的打击
+            bonus = 0.15 if e % 4 == 0 else 0.05 if e % 2 == 0 else 0.0
+            if e == 0 and sec != "intro" and bar - last_heavy_bar >= 2 and g >= 0.55 and h.get("cymbal", 0.0) >= 0.5:
+                cands.append((9.0, beat, "dual"))         # 镲 + 底鼓同时砸下的小节首拍 → 双键
+                continue
+            if g >= 0.35:
+                cands.append((g + bonus, beat, "ground"))
+            if a >= 0.35:
+                cands.append((a + bonus, beat, "air"))
+            if g < 0.35 and a < 0.35 and gt >= 0.6:       # 只有吉他重音：按拍位交替上下层
+                cands.append((gt * 0.8 + bonus, beat, "ground" if e % 8 < 4 else "air"))
+        cands.sort(key=lambda c: -c[0])
+        chosen = cands[:cap[sec]]
+        for _score, beat, lane in chosen:
+            if lane == "dual":
+                notes.append({"beat": beat, "lane": "ground", "kind": "heavy"})
+                last_heavy_bar = bar
+            else:
+                notes.append({"beat": beat, "lane": lane, "kind": "normal"})
+        if sec in ("drop", "finale") and bar % 2 == 1:
+            # 炸弹放在"没有打击"的八分音符空位（不打的东西就放在没声音的地方），上下层交替，同层前后十六分位无音符
             lane = "air" if (bar // 2) % 2 else "ground"
-            notes = [n for n in notes if not (n["lane"] == lane and abs(n["beat"] - beat) <= 0.5)]
-            notes.append({"beat": beat, "lane": lane, "kind": "bomb"})
-    # 重音符 = 上下同时按的双键音符（运行时以两层中间显示）：同拍其他音符全部让位，前后八分音符位也留空
+            for e in (14, 10, 6, 2, 15, 11, 7, 3):
+                k = bar * 16 + e
+                beat = bar * 4 + e / 4.0
+                h = slot_hits.get(k, {})
+                quiet = max(h.get("kick", 0.0), h.get("snare", 0.0), h.get("cymbal", 0.0)) < 0.3   # 没有鼓点（吉他声不算）
+                clear = all(not (n["lane"] == lane and abs(n["beat"] - beat) <= 0.25) and n["beat"] != beat
+                            for n in notes if abs(n["beat"] - beat) < 1)
+                if quiet and clear:
+                    notes.append({"beat": beat, "lane": lane, "kind": "bomb"})
+                    break
+    # 同层十六分音符连打只保留在 finale；其他段落同层间隔 < 八分音符的去掉较弱的后一个
+    notes.sort(key=lambda n: (n["beat"], n["lane"]))
+    kept = []
+    for n in notes:
+        sec = labels[min(len(labels) - 1, int(n["beat"] // 16))]
+        prev = next((m for m in reversed(kept) if m["lane"] == n["lane"] or m["kind"] == "heavy"), None)
+        if prev and sec != "finale" and n["beat"] - prev["beat"] < 0.5 and n["kind"] == "normal":
+            continue
+        kept.append(n)
+    notes = kept
+    # 双键音符：同拍及前后八分音符位的其他音符让位（炸弹除外离得够远）
     heavy_beats = {n["beat"] for n in notes if n["kind"] == "heavy"}
-    notes = [n for n in notes if n["kind"] == "heavy"
-             or all(abs(n["beat"] - hb) > 0.5 for hb in heavy_beats)]
+    notes = [n for n in notes if n["kind"] == "heavy" or all(abs(n["beat"] - hb) > 0.5 for hb in heavy_beats)]
     notes.sort(key=lambda n: (n["beat"], n["lane"]))
     drop_from = next((s["from_beat"] for s in sections if s["name"] == "drop"), 0)
     # 循环终点 = 最后一个 finale 块的末尾（不把歌曲收尾的急停段落循环进去）
@@ -185,7 +264,7 @@ def main() -> None:
     loop_to = (finale_blocks[-1] + 1) * 16 if finale_blocks else beats_total - (beats_total % 4)
     loop_to = min(loop_to, beats_total - (beats_total % 4))
     damage = sum(3 if n["kind"] == "heavy" else 0 if n["kind"] == "bomb" else 1 for n in notes)
-    chart = {"bpm": round(bpm, 3), "offset_sec": round(off + ONSET_LATENCY, 4), "beats_per_bar": 4, "note_speed_px": 520,
+    chart = {"bpm": round(bpm, 3), "offset_sec": round(grid0, 4), "beats_per_bar": 4, "note_speed_px": 520,
              "sections": sections, "notes": notes, "loop_from_beat": drop_from, "loop_to_beat": loop_to,
              "song_seconds": round(dur, 3), "boss_hp": int(round(damage * args.hp_ratio)),
              "note_damage": {"normal": 1, "heavy": 3, "bomb": 0}, "finale_core_multiplier": 2,
@@ -193,7 +272,7 @@ def main() -> None:
              "source": f"tools/audio/chart_from_audio.py 由 {Path(args.audio).name} 自动生成（节拍/段落/音符均来自音频分析）"}
     Path(args.out).write_text(json.dumps(chart, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     kinds = {k: sum(1 for n in notes if n["kind"] == k) for k in ("normal", "heavy", "bomb")}
-    print(f"CHART_OK bpm={bpm:.2f} offset={off + ONSET_LATENCY:.3f}s dur={dur:.1f}s beats={beats_total} notes={len(notes)} {kinds} "
+    print(f"CHART_OK bpm={bpm:.2f} offset={grid0:.3f}s dur={dur:.1f}s beats={beats_total} notes={len(notes)} {kinds} "
           f"boss_hp={chart['boss_hp']} sections={[(s['name'], s['from_beat']) for s in sections]}")
 
 
