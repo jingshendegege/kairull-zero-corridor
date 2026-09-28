@@ -99,10 +99,30 @@ func _add_fleck(point: Vector2, surface: Dictionary, hue: Color,
 		for j in poly.size():
 			poly[j] = Vector2(poly[j].x,
 					point.y + (poly[j].y - point.y) * 0.4).round()
+	poly = _drawable_fleck(poly, point, r)
 	var shade := hue.darkened(rng.randf_range(0.0, 0.22))
 	if rng.randf() > 0.9:
 		shade = hue.lightened(0.18)
 	flecks.append({"polygon": poly, "color": shade})
+
+
+## 地面碎渍纵向压扁 + 取整后，几像素的小多边形常出现重合点/共线点，draw_colored_polygon
+## 会逐帧报 "triangulation failed"（一局上千条带回溯的错误日志）。先去掉相邻重复点；
+## 仍不能三角化时退回同尺寸的扁平小方块，保留视觉而不产生退化多边形。
+func _drawable_fleck(poly: PackedVector2Array, point: Vector2, r: float) -> PackedVector2Array:
+	var clean := PackedVector2Array()
+	for q in poly:
+		if clean.is_empty() or not clean[clean.size() - 1].is_equal_approx(q):
+			clean.append(q)
+	if clean.size() > 1 and clean[0].is_equal_approx(clean[clean.size() - 1]):
+		clean.remove_at(clean.size() - 1)
+	if clean.size() >= 3 and not Geometry2D.triangulate_polygon(clean).is_empty():
+		return clean
+	var half_w := maxf(1.0, roundf(r))
+	var half_h := maxf(1.0, roundf(r * 0.4))
+	var c := point.round()
+	return PackedVector2Array([c + Vector2(-half_w, -half_h), c + Vector2(half_w, -half_h),
+			c + Vector2(half_w, half_h), c + Vector2(-half_w, half_h)])
 
 
 func _trim_flecks() -> void:
