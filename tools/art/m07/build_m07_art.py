@@ -342,7 +342,8 @@ def note_heavy(cracked: bool = False) -> Image.Image:
 
 
 def note_bomb() -> Image.Image:
-    """炸弹：黑色刺雷，刺尖发红，中心红色发光核 + 白色叉。"""
+    """炸弹：荧光品红刺雷 + 亮白金属刺 + 白色外描边（2026-09-28 用户反馈旧黑红版和黑红舞台混在一起看不见，
+    改为与红黑背景、蓝色拨片、金色双键都不撞色的品红/白），中心白色叉。"""
     img = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
     px = img.load()
     for a in range(0, 360, 45):
@@ -353,12 +354,19 @@ def note_bomb() -> Image.Image:
             for dx in range(-half, half + 1):
                 for dy in range(-half, half + 1):
                     if 0 <= x + dx < 32 and 0 <= y + dy < 32:
-                        px[x + dx, y + dy] = hx("#ff3a1a" if r >= 13 else "#2a2a30")
-    disc(px, 32, 32, 16, 16, 10, ["#4a4a55", "#1c1c22", "#0c0c10"], outline=ROCK_INK)
-    disc(px, 32, 32, 16, 16, 5, ["#ffd26a", "#ff3a1a", "#8a1208"], outline="#3a0806")
+                        px[x + dx, y + dy] = hx("#ffffff" if r >= 13 else "#e8e8f4")
+    disc(px, 32, 32, 16, 16, 10, ["#ff9cf6", "#ff2ad8", "#a0108a"], outline=ROCK_INK)
+    disc(px, 32, 32, 16, 16, 5, ["#ffffff", "#ffd0f8", "#ff6ae8"], outline="#6a0a5a")
     for i in range(-3, 4):
-        px[16 + i, 16 + i] = hx("#fff2d0")
-        px[16 + i, 16 - i] = hx("#fff2d0")
+        px[16 + i, 16 + i] = hx(ROCK_INK)
+        px[16 + i, 16 - i] = hx(ROCK_INK)
+    # 外圈白描边：任何深色背景上都有清晰轮廓
+    solid = {(x, y) for y in range(32) for x in range(32) if px[x, y][3]}
+    for (x, y) in list(solid):
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < 32 and 0 <= ny < 32 and (nx, ny) not in solid:
+                px[nx, ny] = hx("#ffffff", 200)
     return img
 
 
@@ -577,7 +585,7 @@ def main() -> None:
              "stage_speaker.png": stage_speaker(), "stage_woofer.png": stage_woofer(), "stage_spot.png": stage_spot(),
              "stage_neon.png": stage_neon()}
     items["note_normal_air.png"] = wings(items["note_normal.png"], 12, "#ffb040", "#b8300e")   # 火焰小翼
-    items["note_bomb_air.png"] = wings(items["note_bomb.png"], 16, "#ff6a4a", "#5a0806")
+    items["note_bomb_air.png"] = wings(items["note_bomb.png"], 16, "#ffb0f4", "#a0108a")
     for name, img in items.items():
         img.save(BOSS_OUT / name)
         print("wrote", name, img.size)

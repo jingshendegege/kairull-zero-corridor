@@ -4,7 +4,7 @@ class_name BeatArena
 const CONDUCTOR := preload("res://scripts/beat_conductor.gd")
 const WARDEN := preload("res://scripts/beat_warden.gd")
 const NOTE := preload("res://scripts/beat_note.gd")
-const COLORS := {"normal": Color("5fe6f0"), "heavy": Color("f0b44a"), "bomb": Color("ff3a1a")}
+const COLORS := {"normal": Color("5fe6f0"), "heavy": Color("f0b44a"), "bomb": Color("ff2ad8")}
 ## 2026-09-28 用户试玩反馈：自由移动+挥棒不好用 → 改为喵斯快跑式双轨。
 ## 倒数开始后主角锁定在判定线前原地奔跑（场景由 m07_beat_stage_fx 向左滚动）：
 ## W/↑ 上到隔板上层并挥棒，S/↓ 回地面下层并挥棒；按一次就停在该层，直到按另一个键切换。
@@ -532,7 +532,7 @@ func _press_dual(lane: String) -> BeatNote:
 	return null
 
 
-## 统一击打音效：所有音符同一个原版采样、同一音调；双键音符只再响 1.5dB。
+## 统一击打音效：所有音符同一个原版采样、同一音调；音量压低到 -4dB（双键 -2.5dB）以免盖过音乐。
 func _play_hit(heavy: bool) -> void:
 	if _hit_voices.is_empty():
 		for i in 4:
@@ -543,6 +543,6 @@ func _play_hit(heavy: bool) -> void:
 	var voice := _hit_voices[_hit_voice_i]
 	_hit_voice_i = (_hit_voice_i + 1) % _hit_voices.size()
 	voice.pitch_scale = 1.0
-	voice.volume_db = 5.0 if heavy else 3.5
+	voice.volume_db = -2.5 if heavy else -4.0   # 用户反馈太响：整体压低，双键只略响
 	voice.play()
 
