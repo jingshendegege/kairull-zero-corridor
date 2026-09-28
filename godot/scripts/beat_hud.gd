@@ -158,6 +158,7 @@ func _draw_hud() -> void:
 		_draw_combo(size)
 		_draw_lane_keys()
 		_draw_popups()
+		_draw_rush(size)
 	if _result_time >= 0.0:
 		_draw_result(size)
 
@@ -275,7 +276,7 @@ func _accuracy() -> float:
 
 
 func _draw_combo(size: Vector2) -> void:
-	if arena.combo < 2:
+	if arena.combo < 2 or arena.rush_state == "counter":   # 反击时让位给连打数
 		return
 	var text := str(arena.combo)
 	var px := 8.0 + 2.0 * _combo_pop
@@ -316,6 +317,31 @@ func _draw_popups() -> void:
 		at.x -= text.length() * 6.0 * px * 0.5 - 30
 		_px_text(text, at + Vector2(0, 2), px, Color(look[2], alpha))
 		_px_text(text, at, px, Color(look[1], alpha))
+
+
+## 冲刺反击：预警时顶部闪 WARNING；时停时画面压暗 + COUNTER! + 1.5 秒倒计时条 + 连打数。
+func _draw_rush(size: Vector2) -> void:
+	var st: String = arena.rush_state
+	if st in ["warn", "dash"]:
+		if fmod(_t, 0.3) < 0.18:
+			var w := 7.0 * 6.0 * 5.0
+			canvas.draw_rect(Rect2((size.x - w) * 0.5 - 16, 58, w + 32, 50), Color(INK, 0.8))
+			_px_text("WARNING", Vector2((size.x - w) * 0.5, 66), 5.0, Color("ff2a1a"))
+	elif st == "counter":
+		canvas.draw_rect(Rect2(Vector2.ZERO, size), Color(0.05, 0.08, 0.2, 0.35))
+		var w := 8.0 * 6.0 * 8.0
+		_px_text("COUNTER!", Vector2((size.x - w) * 0.5, 120), 8.0, Color("ffd84a"))
+		var bar_w := 420.0
+		var ratio := clampf(float(arena.rush_timer) / BeatArena.COUNTER_TIME, 0.0, 1.0)
+		var x0 := (size.x - bar_w) * 0.5
+		canvas.draw_rect(Rect2(x0 - 4, 196, bar_w + 8, 20), INK)
+		canvas.draw_rect(Rect2(x0, 200, bar_w * ratio, 12), Color("ff7a1a"))
+		canvas.draw_rect(Rect2(x0, 200, bar_w * ratio, 4), Color("ffd84a"))
+		var font: Font = game.hud.get_theme_font()
+		canvas.draw_string(font, Vector2(x0, 240), "连打反击！任意攻击键（W/S/↑/↓/左键）", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("fff2d0"))
+		if arena.counter_hits > 0:
+			var txt := "x%d HIT" % arena.counter_hits
+			_px_text(txt, Vector2((size.x - txt.length() * 6.0 * 5.0) * 0.5, 262), 5.0, Color.WHITE)
 
 
 func _draw_result(size: Vector2) -> void:

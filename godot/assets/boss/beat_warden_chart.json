@@ -1307,66 +1307,6 @@
    "kind": "normal"
   },
   {
-   "beat": 204.0,
-   "lane": "ground",
-   "kind": "heavy"
-  },
-  {
-   "beat": 204.75,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 205.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 205.5,
-   "lane": "ground",
-   "kind": "bomb"
-  },
-  {
-   "beat": 206.5,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 207.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 207.5,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 208.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 208.0,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 208.75,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 209.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 210.5,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
    "beat": 211.0,
    "lane": "air",
    "kind": "normal"
@@ -2082,76 +2022,6 @@
    "kind": "normal"
   },
   {
-   "beat": 300.0,
-   "lane": "ground",
-   "kind": "heavy"
-  },
-  {
-   "beat": 301.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 301.0,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 302.5,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 302.5,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 303.5,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 303.5,
-   "lane": "ground",
-   "kind": "bomb"
-  },
-  {
-   "beat": 304.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 305.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 305.0,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 305.5,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 306.0,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 306.25,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 306.5,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
    "beat": 307.0,
    "lane": "air",
    "kind": "normal"
@@ -2509,86 +2379,6 @@
   {
    "beat": 347.0,
    "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 348.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 349.0,
-   "lane": "air",
-   "kind": "bomb"
-  },
-  {
-   "beat": 350.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 350.5,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 350.5,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 351.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 351.5,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 351.5,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 352.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 352.75,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 353.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 353.5,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 353.5,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 354.0,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 354.0,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 354.5,
-   "lane": "ground",
    "kind": "normal"
   },
   {
@@ -3332,10 +3122,15 @@
    "kind": "bomb"
   }
  ],
+ "rushes": [
+  208.0,
+  304.0,
+  352.0
+ ],
  "loop_from_beat": 208,
  "loop_to_beat": 416,
  "song_seconds": 167.614,
- "boss_hp": 580,
+ "boss_hp": 604,
  "note_damage": {
   "normal": 1,
   "heavy": 3,

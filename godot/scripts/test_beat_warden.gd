@@ -318,6 +318,48 @@ func _run() -> void:
 	advance(0.15)
 	check(arena.rhythm_press("air") == null and not late_dual.reflected,
 		"presses more than 120ms apart do not count as a dual hit")
+	# ---- 冲刺反击（2026-09-28 新机制）
+	fresh()
+	arena._engage_rhythm()
+	c.chart["rushes"] = [40.0]
+	var home := arena.boss.position
+	clock_time = c.seconds(36.2)
+	arena.step(1.0 / 60.0)
+	check(arena.rush_state == "warn" and arena.rush_mark.visible, "boss shows ! and winds up 4 beats before the rush")
+	clock_time = c.seconds(39.0)
+	arena.step(1.0 / 60.0)
+	check(arena.rush_state == "dash" and arena.boss.position.x < home.x, "boss dashes toward the player")
+	clock_time = c.seconds(40.01)
+	arena.step(1.0 / 60.0)
+	check(arena.rush_state == "counter" and not c.frozen and not c.music.stream_paused,
+		"arriving at attack range starts bullet time (music keeps playing, not paused)")
+	check(absf(arena.boss.position.x - (game.player.position.x + BeatArena.RUSH_REACH)) < 1.0, "boss stops at attack reach")
+	var hp_before := arena.boss.hp
+	for i in 5:
+		arena.counter_hit()
+	check(arena.boss.hp == hp_before - 5 * BeatArena.COUNTER_DAMAGE and arena.counter_hits == 5, "each counter hit damages the boss")
+	for i in 20:
+		arena.step(1.0 / 60.0)
+	check(is_equal_approx(c.rate, BeatArena.SLOWMO_RATE) and is_equal_approx(c.music.pitch_scale, BeatArena.SLOWMO_RATE),
+		"music and chart ease down to 0.3x speed (pitch drops with it)")
+	var slow_start := c.time
+	clock_time += 0.5
+	arena.step(0.5)
+	check(absf((c.time - slow_start) - 0.5 * BeatArena.SLOWMO_RATE) < 0.001, "chart advances at 0.3x during the counter window")
+	arena.step(0.8)
+	check(arena.rush_state == "knockback", "after 1.5s the boss is knocked back")
+	clock_time += 0.25
+	arena.step(0.25)
+	check(c.rate > BeatArena.SLOWMO_RATE and c.rate < 1.0, "speed ramps back up during the knockback")
+	arena.step(0.3)
+	check(arena.rush_state == "" and arena.boss.position == home and arena.boss.rotation == 0.0 and c.rate == 1.0
+		and c.music.pitch_scale == 1.0, "boss lands back at its post and music is back to normal speed")
+	arena.counter_hit()
+	check(arena.counter_hits == 5, "attack keys outside the counter window do not hit the boss")
+	clock_time = c.seconds(38.0)
+	c.time = c.seconds(38.0)
+	arena.step(1.0 / 60.0)
+	check(arena.rush_state == "", "each rush fires only once per loop cycle")
 	arena.reset_fight()
 	check(not arena.rhythm_lock and game.player.auto_input, "reset releases the player back to free control")
 	boot.free()

@@ -11,6 +11,17 @@ const COLORS := {"normal": Color("5fe6f0"), "heavy": Color("f0b44a"), "bomb": Co
 ## 按键时在该轨 ±RHYTHM_WINDOW 内找最近音符判定（不再看球棒几何）。炸弹靠"不在它那条轨"躲。
 const RHYTHM_WINDOW := 0.20      ## 出手判定窗（秒）；漏判 = 过线超过此值
 const LANE_FOOT := 36.0          ## 音符中心离主角脚底的高度（两层相同）；上层脚底 = 隔板顶面
+## 2026-09-28 新机制「冲刺反击」（用户设计）：谱面 rushes 拍点前 4 拍 Boss 头顶出现「!」原地蓄力 2 拍，
+## 再用 2 拍冲到主角攻击距离 → 子弹时间（音乐与谱面减速到 0.3 倍，音调随之下沉；用户反馈直接暂停太突兀）
+## → 1.5 秒（真实时间）内任意攻击键连打 Boss → 击退回原位，击退期间速度拉回 1.0，继续打谱。
+const RUSH_WARN_BEATS := 2.0
+const RUSH_DASH_BEATS := 2.0
+const COUNTER_TIME := 1.5
+const COUNTER_DAMAGE := 2
+const KNOCKBACK_TIME := 0.5
+const SLOWMO_RATE := 0.3
+const SLOWMO_EASE_IN := 0.15   ## 降速过渡时长（秒）
+const RUSH_REACH := 150.0      ## Boss 冲到主角前方多远停下（脚底距离）
 const DUAL_GAP := 0.12          ## 双键音符：上下两次按键允许的最大间隔（秒）
 const HEAVY_FLY_TIME := 0.6     ## 双键音符被击飞到 Boss 的弧线时长
 ## 统一击打音效：用户选定原版第一个球棒命中声（06_bat_hit_normal，原增益 +3.5dB），所有音符同一采样、不随机
@@ -43,6 +54,15 @@ var counts := {"Perfect": 0, "Great": 0, "Hit": 0, "Miss": 0}
 var max_combo := 0
 var _hit_voices: Array[AudioStreamPlayer] = []
 var _hit_voice_i := 0
+var rush_state := ""            ## "" / warn / dash / counter / knockback
+var rush_timer := 0.0
+var counter_hits := 0
+var _rush_beat := 0.0
+var _rush_done := {}
+var _boss_home := Vector2.ZERO
+var _knock_from := Vector2.ZERO
+var _prev_click := false
+var rush_mark: Node2D
 var rhythm_lock := false         ## true = 双轨操作接管主角（倒数起到击破/重置）
 var player_lane := "ground"
 var _prev_up := false
@@ -57,6 +77,12 @@ func setup(game: Node2D, arena_config: Dictionary) -> void:
 	var chart: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(config.chart))
 	boss.setup(config.boss_atlas, int(chart.boss_hp))
 	boss.boss_died.connect(_on_boss_died)
+	_boss_home = boss.position
+	rush_mark = Node2D.new()
+	rush_mark.name = "RushMark"
+	rush_mark.visible = false
+	rush_mark.draw.connect(_draw_rush_mark)
+	add_child(rush_mark)
 	conductor = CONDUCTOR.new()
 	add_child(conductor)
 	conductor.setup(config, {"ground": boss.anchor("horn_ground_world").x,
@@ -140,6 +166,8 @@ func reset_fight(resume_ambience := false) -> void:
 	swing = 0
 	for key in counts:
 		counts[key] = 0
+	_end_rush(true)
+	_rush_done.clear()
 	max_combo = 0
 	_release_rhythm()
 	CorridorLevel.active_exit_requires_boss = true
@@ -158,6 +186,15 @@ func blocks_exit() -> bool:
 func set_frozen(value: bool) -> void:
 	frozen = value
 	conductor.set_frozen(value)
+
+## 舞台/HUD 用：玩家时停或冲刺反击时停都算「时间停止」。
+func time_stopped() -> bool:
+	return frozen
+
+
+## 当前播放速率（子弹时间 < 1），供舞台/HUD 同步减速。
+func time_rate() -> float:
+	return conductor.rate
 
 func step(dt: float) -> void:
 	if rhythm_lock:
@@ -197,6 +234,9 @@ func step(dt: float) -> void:
 		var elapsed := conductor.time - before
 		visual_dt = elapsed
 		_pulse_beat = conductor.song_beat()
+		_update_rush(dt)
+		if state != "playing":
+			return
 		_rhythm_tick(dt)
 		if conductor.finale_started():
 			boss.expose()
@@ -356,6 +396,7 @@ func show_rating(value: String, lane := "") -> void:
 	rated.emit(value, lane)
 
 func _on_boss_died() -> void:
+	_end_rush(false)
 	_clear_notes()
 	state = "dying"
 	_death_time = 0.0
@@ -452,17 +493,23 @@ func _rhythm_tick(dt: float) -> void:
 		return
 	var up := Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP)
 	var down := Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN)
-	if up and not _prev_up:
-		rhythm_press("air")
-	if down and not _prev_down:
-		rhythm_press("ground")
+	var click := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	if rush_state == "counter":
+		if (up and not _prev_up) or (down and not _prev_down) or (click and not _prev_click):
+			counter_hit()
+	else:
+		if up and not _prev_up:
+			rhythm_press("air")
+		if down and not _prev_down:
+			rhythm_press("ground")
+	_prev_click = click
 	_prev_up = up
 	_prev_down = down
 	var p: Node2D = host.player
 	p.invuln_t = maxf(0.0, p.invuln_t - dt)
 	_place_player()
 	if not p.batting():
-		p.set_state("run")   # 两层都原地奔跑
+		p.set_state("gun_idle" if rush_state == "counter" else "run")   # 两层都原地奔跑；反击时站定
 	p._advance_frame(dt)
 	p._sync_sprite()
 
@@ -545,4 +592,111 @@ func _play_hit(heavy: bool) -> void:
 	voice.pitch_scale = 1.0
 	voice.volume_db = -2.5 if heavy else -4.0   # 用户反馈太响：整体压低，双键只略响
 	voice.play()
+
+
+# ------------------------------------------------------------------ 冲刺反击
+func _update_rush(dt: float) -> void:
+	var rushes: Array = conductor.chart.get("rushes", [])
+	if rush_state == "":
+		for rb in rushes:
+			var b := float(rb)
+			var key := "%d:%s" % [conductor.loop_count, b]
+			if _rush_done.has(key) or _pulse_beat < b - RUSH_WARN_BEATS - RUSH_DASH_BEATS or _pulse_beat >= b:
+				continue
+			_rush_done[key] = true
+			_rush_beat = b
+			rush_state = "warn"
+			rush_mark.visible = true
+			break
+	match rush_state:
+		"warn":
+			boss.position = _boss_home + Vector2(sin(Time.get_ticks_msec() * 0.06) * 3.0, 0)   # 原地蓄力抖动
+			if _pulse_beat >= _rush_beat - RUSH_DASH_BEATS:
+				rush_state = "dash"
+				_update_rush(0.0)   # 切换当帧就开始冲刺位移
+		"dash":
+			var k := clampf((_pulse_beat - (_rush_beat - RUSH_DASH_BEATS)) / RUSH_DASH_BEATS, 0.0, 1.0)
+			var reach_x: float = host.player.position.x + RUSH_REACH
+			boss.position = Vector2(lerpf(_boss_home.x, reach_x, k * k), _boss_home.y)   # 加速冲刺
+			boss.rotation = -0.12 * k
+			if _pulse_beat >= _rush_beat:
+				_start_counter()
+		"counter":
+			rush_timer -= dt
+			conductor.set_rate(move_toward(conductor.rate, SLOWMO_RATE, dt * (1.0 - SLOWMO_RATE) / SLOWMO_EASE_IN))
+			boss.step(dt, _pulse_beat)
+			if rush_timer <= 0.0:
+				_start_knockback()
+		"knockback":
+			rush_timer -= dt
+			var k := 1.0 - clampf(rush_timer / KNOCKBACK_TIME, 0.0, 1.0)
+			boss.position = _knock_from.lerp(_boss_home, 1.0 - pow(1.0 - k, 3.0)) + Vector2(0, -90.0 * sin(PI * k))
+			boss.rotation = 0.5 * sin(PI * k)
+			conductor.set_rate(lerpf(SLOWMO_RATE, 1.0, k * k))   # 磁带回速：先慢后快拉回原速
+			if rush_timer <= 0.0:
+				_end_rush(false)
+	rush_mark.position = boss.position + Vector2(0, -300)
+	if rush_mark.visible:
+		rush_mark.queue_redraw()
+
+
+func _start_counter() -> void:
+	rush_state = "counter"
+	rush_timer = COUNTER_TIME
+	counter_hits = 0
+	rush_mark.visible = false
+	boss.rotation = 0.0
+	if host.has_method("add_camera_shake"):
+		host.add_camera_shake(Vector2.LEFT, 0.4)
+
+
+## 反击期间每按一次攻击键：挥棒 + Boss 扣 COUNTER_DAMAGE 血（终段露核同样 ×2）。
+func counter_hit() -> void:
+	if rush_state != "counter" or boss.dead:
+		return
+	counter_hits += 1
+	var p: Node2D = host.player
+	p.state = ""
+	p.set_state(["bat1", "bat2", "bat3"][counter_hits % 3])
+	var damage := COUNTER_DAMAGE * (int(conductor.chart.finale_core_multiplier) if conductor.finale_started() else 1)
+	_burst(boss.target_point() + Vector2(randf_range(-20, 20), randf_range(-20, 20)), "heavy")
+	_play_hit(counter_hits % 4 == 0)
+	boss.take_reflected_hit(damage)
+	if host.has_method("add_camera_shake"):
+		host.add_camera_shake(Vector2.RIGHT, 0.12)
+	if boss.dead:
+		_end_rush(true)
+
+
+func _start_knockback() -> void:
+	rush_state = "knockback"
+	rush_timer = KNOCKBACK_TIME
+	_knock_from = boss.position
+	_play_hit(true)
+	if host.has_method("add_camera_shake"):
+		host.add_camera_shake(Vector2.RIGHT, 0.5)
+
+
+func _end_rush(force: bool) -> void:
+	rush_state = ""
+	rush_timer = 0.0
+	if rush_mark != null:
+		rush_mark.visible = false
+	if boss != null and (force or not boss.dead):
+		boss.position = _boss_home
+		boss.rotation = 0.0
+	if conductor != null:
+		conductor.set_rate(1.0)
+
+
+## Boss 头顶的「!」：黑底白边红字，快速脉动。
+func _draw_rush_mark() -> void:
+	var pulse := 1.0 + 0.15 * sin(Time.get_ticks_msec() * 0.03)
+	rush_mark.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE * pulse)
+	rush_mark.draw_rect(Rect2(-18, -40, 36, 80), Color("0a0606"))
+	rush_mark.draw_rect(Rect2(-16, -38, 32, 76), Color.WHITE)
+	rush_mark.draw_rect(Rect2(-13, -35, 26, 70), Color("ff2a1a"))
+	rush_mark.draw_rect(Rect2(-5, -29, 10, 40), Color.WHITE)
+	rush_mark.draw_rect(Rect2(-5, 18, 10, 10), Color.WHITE)
+	rush_mark.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 

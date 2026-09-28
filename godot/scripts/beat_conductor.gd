@@ -10,6 +10,7 @@ var time := 0.0
 var loop_count := 0
 var running := false
 var frozen := false
+var rate := 1.0   ## 播放速率：1 = 正常；冲刺反击的子弹时间降到 0.3（music.pitch_scale 同步，谱面时间按实际播放推进）
 var _last_clock := 0.0
 var _scheduled_cycle := -1
 var _pending: Array[Dictionary] = []
@@ -60,10 +61,18 @@ func reset() -> void:
 	_scheduled_cycle = -1
 	_seek_waiting = false
 	_pending.clear()
+	rate = 1.0
 	if music != null:
 		music.stop()
 		music.stream_paused = false
+		music.pitch_scale = 1.0
 		music.volume_db = -14.0
+
+func set_rate(value: float) -> void:
+	rate = clampf(value, 0.05, 1.0)
+	if music != null:
+		music.pitch_scale = rate
+
 
 func set_frozen(value: bool) -> void:
 	if frozen == value:
@@ -79,7 +88,7 @@ func advance() -> Array[Dictionary]:
 		return due
 	if clock.is_valid():
 		var now := float(clock.call())
-		time += maxf(0.0, now - _last_clock)
+		time += maxf(0.0, now - _last_clock) * rate
 		_last_clock = maxf(now, _last_clock)
 	else:
 		var audible := float(playback_clock.call()) if playback_clock.is_valid() else \

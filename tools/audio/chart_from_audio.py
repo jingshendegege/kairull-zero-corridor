@@ -273,21 +273,30 @@ def main() -> None:
     heavy_beats = {n["beat"] for n in notes if n["kind"] == "heavy"}
     notes = [n for n in notes if n["kind"] == "heavy" or all(abs(n["beat"] - hb) > 0.5 for hb in heavy_beats)]
     notes.sort(key=lambda n: (n["beat"], n["lane"]))
+    # 冲刺反击（用户设计的新机制）：进入高潮/终段的首拍，Boss 提前 4 拍预警 + 冲刺，到拍触发时停反击。
+    # 同一时间窗 [B-4, B+3) 内不放音符（冲刺 + 子弹时间反击期间专心打 Boss）。
+    rushes = []
+    for sec_ in sections:
+        b = float(sec_["from_beat"])
+        if sec_["name"] in ("drop", "finale") and b >= 8 and (not rushes or b - rushes[-1] >= 40):
+            rushes.append(b)
+    notes = [n for n in notes if not any(rb - 4.0 <= n["beat"] < rb + 3.0 for rb in rushes)]
     drop_from = next((s["from_beat"] for s in sections if s["name"] == "drop"), 0)
     # 循环终点 = 最后一个 finale 块的末尾（不把歌曲收尾的急停段落循环进去）
     finale_blocks = [i for i, l in enumerate(labels) if l == "finale"]
     loop_to = (finale_blocks[-1] + 1) * 16 if finale_blocks else beats_total - (beats_total % 4)
     loop_to = min(loop_to, beats_total - (beats_total % 4))
     damage = sum(3 if n["kind"] == "heavy" else 0 if n["kind"] == "bomb" else 1 for n in notes)
+    damage += len(rushes) * 12 * 2          # 每次反击约 12 下 × 2 血
     chart = {"bpm": round(bpm, 3), "offset_sec": round(grid0, 4), "beats_per_bar": 4, "note_speed_px": 520,
-             "sections": sections, "notes": notes, "loop_from_beat": drop_from, "loop_to_beat": loop_to,
+             "sections": sections, "notes": notes, "rushes": rushes, "loop_from_beat": drop_from, "loop_to_beat": loop_to,
              "song_seconds": round(dur, 3), "boss_hp": int(round(damage * args.hp_ratio)),
              "note_damage": {"normal": 1, "heavy": 3, "bomb": 0}, "finale_core_multiplier": 2,
              "music": args.music,
              "source": f"tools/audio/chart_from_audio.py 由 {Path(args.audio).name} 自动生成（节拍/段落/音符均来自音频分析）"}
     Path(args.out).write_text(json.dumps(chart, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     kinds = {k: sum(1 for n in notes if n["kind"] == k) for k in ("normal", "heavy", "bomb")}
-    print(f"CHART_OK bpm={bpm:.2f} offset={grid0:.3f}s dur={dur:.1f}s beats={beats_total} notes={len(notes)} {kinds} "
+    print(f"CHART_OK rushes={rushes} bpm={bpm:.2f} offset={grid0:.3f}s dur={dur:.1f}s beats={beats_total} notes={len(notes)} {kinds} "
           f"boss_hp={chart['boss_hp']} sections={[(s['name'], s['from_beat']) for s in sections]}")
 
 

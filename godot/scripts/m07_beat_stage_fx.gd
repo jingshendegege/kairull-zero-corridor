@@ -95,9 +95,9 @@ func setup(host: Node2D, beat_arena: Node2D) -> void:
 func _process(dt: float) -> void:
 	if arena == null or not is_instance_valid(arena):
 		return
-	var frozen: bool = arena.frozen
+	var frozen: bool = arena.time_stopped()   # 玩家时停冻结舞台；冲刺反击的子弹时间按速率减速
 	if not frozen:
-		_t += dt
+		_t += dt * arena.time_rate()
 		_hit_flash = maxf(0.0, _hit_flash - dt * 4.0)
 	var state: String = arena.state
 	if state == "playing" or state == "count_in":
