@@ -69,10 +69,10 @@ func _run() -> void:
 	arena.spawn_note({"kind":"normal","lane":"ground","time":2.0})
 	game.attempt_timeline.record(game, 0, true)
 	game.player.force_death(2000)
-	check(arena.state == "waiting" and arena.boss.hp == 160 and arena.notes.is_empty() and not arena.conductor.music.playing, "real campaign death resets full fight")
+	check(arena.state == "waiting" and arena.boss.hp == arena.boss.max_hp and arena.notes.is_empty() and not arena.conductor.music.playing, "real campaign death resets full fight")
 	game._begin_rewind()
 	game.attempt_timeline.apply_rewind(game, 0.5)
-	check(arena.boss.hp == 160 and arena.notes.is_empty(), "timeline does not restore partial encounter")
+	check(arena.boss.hp == arena.boss.max_hp and arena.notes.is_empty(), "timeline does not restore partial encounter")
 	game._advance_rewind(game.REWIND_DURATION + game.INTERFERENCE_DURATION + 0.01)
 	for frame in 4:
 		await process_frame
@@ -80,14 +80,14 @@ func _run() -> void:
 	prepare(game)
 	arena = game.beat_arena
 	check(game._checkpoint_index == 1 and game.player.position.distance_to(point) < 1 and game.player.hp == 3, "retry truly rebuilds at green-room checkpoint with difficulty health")
-	check(arena.state == "waiting" and arena.boss.hp == 160 and arena.conductor.time == 0 and arena.notes.is_empty(), "new encounter remains idle after checkpoint restore")
+	check(arena.state == "waiting" and arena.boss.hp == arena.boss.max_hp and arena.conductor.time == 0 and arena.notes.is_empty(), "new encounter remains idle after checkpoint restore")
 	check(game.music.playing and not arena.conductor.music.playing, "retry restores backstage music without overlapping boss song")
 	check(SESSION.checkpoint.id == saved.id and SNAPSHOT.signature() == saved.signature, "checkpoint remains compatible and carries no boss snapshot")
 	game.player.position = Vector2(1200, 736)
 	arena.step(0)
 	check(arena.state == "count_in" and arena.judge_label.text == "3", "re-enter stage counts in again")
 	arena.step(arena.conductor.seconds(4))
-	arena.boss.take_reflected_hit(160)
+	arena.boss.take_reflected_hit(arena.boss.max_hp)
 	arena.step(0.5)
 	game.player.position = game.level.exit_point
 	game._physics_process(0)

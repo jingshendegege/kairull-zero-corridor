@@ -2,7 +2,7 @@ extends RefCounted
 
 ## 05 节拍广播塔编译数据；唯一布局真源为 godot/maps/m07_beat_tower.ldtk。
 ## 由 playground/tools/gen_m07_beat_tower.py 生成，禁止手改。
-const SOURCE_SHA256 := "ade2ac1327fc10f48decf4d264fba27555a6d2b5b6456d402cb7b47feb637992"
+const SOURCE_SHA256 := "41835514001cef7795bbcb51dae51772dc91a0af3831a8c56bb83ae2f3eaf337"
 const TILE_SIZE := 32
 const MAP_WIDTH := 80
 const MAP_HEIGHT := 25
@@ -698,7 +698,7 @@ const BOSS_ARENA: Dictionary = {
     736
   ],
   "chart": "res://assets/boss/beat_warden_chart.json",
-  "music": "res://assets/bgm/beat_warden.ogg",
+  "music": "res://assets/bgm/final_stand.ogg",
   "boss_atlas": "res://assets/boss/beat_warden/atlas.json",
   "exit_requires_boss": true
 }

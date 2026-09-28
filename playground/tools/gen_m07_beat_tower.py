@@ -82,7 +82,7 @@ BOSS_ARENA = {
     "boss_feet": [STAGE_RIGHT - 6 * TS, FLOOR_Y],   # Boss 精灵脚底中点（atlas 面朝右，运行时水平翻转朝左）
     "player_start": [STAGE_LEFT + 4 * TS, FLOOR_Y],
     "chart": "res://assets/boss/beat_warden_chart.json",
-    "music": "res://assets/bgm/beat_warden.ogg",
+    "music": "res://assets/bgm/final_stand.ogg",           # 用户用 Suno 生成（免费、非商用）
     "boss_atlas": "res://assets/boss/beat_warden/atlas.json",
     "exit_requires_boss": True,
 }

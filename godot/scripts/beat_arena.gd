@@ -11,6 +11,9 @@ const COLORS := {"normal": Color("5fe6f0"), "heavy": Color("f0b44a"), "bomb": Co
 ## 按键时在该轨 ±RHYTHM_WINDOW 内找最近音符判定（不再看球棒几何）。炸弹靠"不在它那条轨"躲。
 const RHYTHM_WINDOW := 0.20      ## 出手判定窗（秒）；漏判 = 过线超过此值
 const LANE_FOOT := 36.0          ## 音符中心离主角脚底的高度（两层相同）；上层脚底 = 隔板顶面
+const DUAL_GAP := 0.12          ## 双键音符：上下两次按键允许的最大间隔（秒）
+const HEAVY_FLY_TIME := 0.6     ## 双键音符被击飞到 Boss 的弧线时长
+const HIT_SFX := preload("res://assets/sfx/beat_hit.wav")   ## 统一击打音效（tools/audio/beat_hit_sfx.py）
 const PLAYER_OFFSET := -34.0     ## 主角站在判定环左侧，挥棒扫过判定环
 var host: Node2D
 var config: Dictionary
@@ -37,6 +40,8 @@ var _pulse_beat := 0.0
 signal rated(value: String, lane: String)   ## 每次评价（含 Miss），供 BeatHud 弹字
 var counts := {"Perfect": 0, "Great": 0, "Hit": 0, "Miss": 0}
 var max_combo := 0
+var _hit_voices: Array[AudioStreamPlayer] = []
+var _hit_voice_i := 0
 var rhythm_lock := false         ## true = 双轨操作接管主角（倒数起到击破/重置）
 var player_lane := "ground"
 var _prev_up := false
@@ -247,7 +252,7 @@ func _contact_note(note: BeatNote) -> void:
 		if note.reflected:
 			note.reflection_target = boss.target_point()
 		show_rating(rate(conductor.time - note.hit_time), note.lane)
-		host.play_action("metal_impact" if note.kind == "heavy" else "body_hit")
+		_play_hit(note.kind == "heavy")
 
 func _advance_notes(dt: float) -> void:
 	# The existing active strike starts at BAT_HIT_AT and recovery/cancel opens at BAT_CANCEL_OPEN.
@@ -258,7 +263,18 @@ func _advance_notes(dt: float) -> void:
 			continue
 		if note.reflected:
 			var target := note.reflection_target
-			note.position = note.position.move_toward(target, 900.0 * dt)
+			if note.fly_t >= 0.0:   # 双键音符：高抛弧线 + 旋转 + 放大，被击飞砸向 Boss
+				note.fly_t = minf(HEAVY_FLY_TIME, note.fly_t + dt)
+				var k := note.fly_t / HEAVY_FLY_TIME
+				note.position = note.fly_from.lerp(target, k) + Vector2(0, -260.0 * sin(PI * k))
+				note.rotation += 18.0 * dt
+				note.scale = Vector2.ONE * (1.0 + 0.5 * sin(PI * k))
+				if k >= 1.0:
+					note.position = target
+					if host.has_method("add_camera_shake"):
+						host.add_camera_shake(Vector2.RIGHT, 0.35)
+			else:
+				note.position = note.position.move_toward(target, 900.0 * dt)
 			if note.position.distance_to(target) < 0.001:
 				note.spent = true
 				_burst(target, note.kind)
@@ -461,10 +477,13 @@ func rhythm_press(lane: String) -> BeatNote:
 	swing += 1
 	if state != "playing" or frozen:
 		return null
+	var dual := _press_dual(lane)
+	if dual != null:
+		return dual
 	var best: BeatNote = null
 	var best_error := INF
 	for note: BeatNote in notes:
-		if note.spent or note.reflected or note.contacted or note.kind == "bomb" or note.lane != lane:
+		if note.spent or note.reflected or note.contacted or note.kind in ["bomb", "heavy"] or note.lane != lane:
 			continue
 		var error := conductor.time - note.hit_time
 		if absf(error) <= RHYTHM_WINDOW and absf(error) < absf(best_error):
@@ -478,5 +497,51 @@ func rhythm_press(lane: String) -> BeatNote:
 	best.reflection_target = boss.target_point()
 	_burst(best.position, best.kind)
 	show_rating(rate(best_error), lane)
-	host.play_action("metal_impact" if best.kind == "heavy" else "body_hit")
+	_play_hit(false)
 	return best
+
+
+## 双键音符：记录这一层的按键；上下两层都在判定窗内、且两次按键间隔 ≤ DUAL_GAP → 击飞。
+func _press_dual(lane: String) -> BeatNote:
+	for note: BeatNote in notes:
+		if note.kind != "heavy" or note.spent or note.reflected or note.contacted:
+			continue
+		var error := conductor.time - note.hit_time
+		if absf(error) > RHYTHM_WINDOW:
+			continue
+		note.dual_press[lane] = conductor.time
+		var other: float = note.dual_press["ground" if lane == "air" else "air"]
+		if conductor.time - other > DUAL_GAP:
+			return null
+		note.contacted = true
+		note.reflected = true
+		note.last_swing = swing
+		note.reflection_target = boss.target_point()
+		note.fly_from = note.position
+		note.fly_t = 0.0
+		var beam := note.get_node_or_null("DualBeam")
+		if beam != null:
+			beam.visible = false   # 击飞后不再显示上下连接光柱
+		host.player.state = ""
+		host.player.set_state("bat3")   # 双键击飞用最重的一击
+		_burst(note.position, note.kind)
+		show_rating(rate((conductor.time + other) * 0.5 - note.hit_time), "dual")
+		_play_hit(true)
+		return note
+	return null
+
+
+## 统一击打音效：所有音符同一个采样；双键音符只降一点音调、加音量（不换音色）。
+func _play_hit(heavy: bool) -> void:
+	if _hit_voices.is_empty():
+		for i in 4:
+			var voice := AudioStreamPlayer.new()
+			voice.stream = HIT_SFX
+			add_child(voice)
+			_hit_voices.append(voice)
+	var voice := _hit_voices[_hit_voice_i]
+	_hit_voice_i = (_hit_voice_i + 1) % _hit_voices.size()
+	voice.pitch_scale = 0.82 if heavy else 1.0
+	voice.volume_db = 0.0 if heavy else -3.0
+	voice.play()
+

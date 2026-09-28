@@ -733,7 +733,7 @@
           "__identifier": "BossArena",
           "__tile": null,
           "__type": "String",
-          "__value": "{\"room_id\": \"beat_stage\", \"stage_rect\": [1120, 128, 1408, 608], \"floor_y\": 736, \"judge_x\": 1408, \"lane_ground_y\": 700, \"lane_air_y\": 596, \"boss_feet\": [2336, 736], \"player_start\": [1248, 736], \"chart\": \"res://assets/boss/beat_warden_chart.json\", \"music\": \"res://assets/bgm/beat_warden.ogg\", \"boss_atlas\": \"res://assets/boss/beat_warden/atlas.json\", \"exit_requires_boss\": true}",
+          "__value": "{\"room_id\": \"beat_stage\", \"stage_rect\": [1120, 128, 1408, 608], \"floor_y\": 736, \"judge_x\": 1408, \"lane_ground_y\": 700, \"lane_air_y\": 596, \"boss_feet\": [2336, 736], \"player_start\": [1248, 736], \"chart\": \"res://assets/boss/beat_warden_chart.json\", \"music\": \"res://assets/bgm/final_stand.ogg\", \"boss_atlas\": \"res://assets/boss/beat_warden/atlas.json\", \"exit_requires_boss\": true}",
           "defUid": 33,
           "realEditorValues": []
         },

@@ -290,7 +290,7 @@ func _test_beat_checkpoint(scene: String) -> void:
 		check(not game.music.playing and arena.conductor.music.playing, "M07 boss song replaces backstage music")
 		var old_id: int = current_scene.get_instance_id()
 		game.player.force_death(2000)
-		check(arena.boss.hp == 160 and arena.notes.is_empty() and not arena.conductor.music.playing, "M07 death discards partial chart and HP")
+		check(arena.boss.hp == arena.boss.max_hp and arena.notes.is_empty() and not arena.conductor.music.playing, "M07 death discards partial chart and HP")
 		game._begin_rewind()
 		game._advance_rewind(game.REWIND_DURATION + game.INTERFERENCE_DURATION + .01)
 		for frame in 4:
@@ -299,7 +299,7 @@ func _test_beat_checkpoint(scene: String) -> void:
 		check(current_scene.get_instance_id() != old_id and game._checkpoint_index == 1, "M07 real reload restores checkpoint")
 		check(game.player.position.distance_to(point) < 1 and game.player.hp == SESSION.max_health() and game.time_charge.energy == 2, "M07 retry restores position health and charge")
 		check(_dead_count() == 2 and game.props[0].dead and not game.props[0].visible, "M07 cleared guards and spent cargo stay cleared")
-		check(game.beat_arena.state == "waiting" and game.beat_arena.boss.hp == 160 and game.beat_arena.conductor.time == 0, "M07 retries never restore partial boss progress")
+		check(game.beat_arena.state == "waiting" and game.beat_arena.boss.hp == game.beat_arena.boss.max_hp and game.beat_arena.conductor.time == 0, "M07 retries never restore partial boss progress")
 		check(game.music.get_instance_id() == music_id and game.music.playing and not game.beat_arena.conductor.music.playing, "M07 retry resumes ambience without two songs")
 		check(SESSION.attempt == cycle + 2 and SESSION.checkpoint_for(scene).elapsed == 88, "M07 attempt increments without changing checkpoint")
 	SESSION.leave_run()

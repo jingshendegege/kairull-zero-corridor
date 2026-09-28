@@ -20,7 +20,9 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 OGG_OUT = ROOT / "godot/assets/bgm/beat_warden.ogg"
-CHART_OUT = ROOT / "godot/assets/boss/beat_warden_chart.json"
+# 2026-09-28 正式配乐已换成用户用 Suno 生成的 Final Stand（谱面由 chart_from_audio.py 生成）；
+# 本脚本保留为旧合成曲，输出改名以免覆盖正式谱面。
+CHART_OUT = ROOT / "godot/assets/boss/beat_warden_synth_chart.json"
 SR = 44100
 BPM = 128.0
 BEAT = 60.0 / BPM

@@ -92,6 +92,8 @@ func setup(host: Node2D, beat_arena: Node2D) -> void:
 
 func _on_rated(value: String, lane: String) -> void:
 	var y: float = arena.config.lane_air_y if lane == "air" else arena.config.lane_ground_y
+	if lane == "dual":   # 双键音符的判定字出在两层中间
+		y = (float(arena.config.lane_air_y) + float(arena.config.lane_ground_y)) * 0.5
 	_popups.append({"value": value, "world": Vector2(float(arena.config.judge_x), y), "life": 0.55})
 	if _popups.size() > 6:
 		_popups.pop_front()

@@ -52,6 +52,16 @@ func _run() -> void:
 	game._sfx.clear()
 	arena = game.beat_arena
 	var c := arena.conductor
+	# 正式配乐：用户用 Suno 生成的 Final Stand（谱面由 tools/audio/chart_from_audio.py 自动生成）
+	var real_chart: Dictionary = c.chart
+	check(arena.config.music == "res://assets/bgm/final_stand.ogg" and ResourceLoader.exists(arena.config.music),
+		"boss arena plays Final Stand")
+	check(real_chart.notes.size() > 300 and absf(float(real_chart.bpm) - 150.0) < 1.0 and float(real_chart.offset_sec) > 0.0
+			and int(real_chart.boss_hp) > 0 and real_chart.sections[-1].name == "finale", "Final Stand chart loads with rising sections")
+	# 以下计时/循环/伤害测试使用确定性的旧合成曲谱面作为夹具（数值固定可复现）
+	c.chart = JSON.parse_string(FileAccess.get_file_as_string("res://assets/boss/beat_warden_synth_chart.json"))
+	arena.boss.max_hp = int(c.chart.boss_hp)
+	arena.boss.reset()
 	check(c.chart.notes.size() == 258 and int(c.chart.boss_hp) == 160, "chart has 258 notes and 160 HP")
 	check(c.chart.sections.map(func(s: Dictionary) -> String: return s.name) == ["intro", "verse", "build", "drop", "finale"], "all five chart sections")
 	check(c.chart.bpm == 128 and c.chart.note_speed_px == 520 and c.chart.offset_sec == 0, "chart timing constants")
@@ -293,10 +303,21 @@ func _run() -> void:
 	fresh()
 	arena._engage_rhythm()
 	var heavy := note("heavy", "ground", 0.1)
+	check(is_equal_approx(heavy.position.y, (596.0 + 700.0) * 0.5), "dual note sits between the two lanes")
 	advance(0.1)
-	check(arena.rhythm_press("ground") == heavy and heavy.reflected, "heavy note reflects with a single press")
+	check(arena.rhythm_press("ground") == null and not heavy.reflected, "one lane alone does not hit a dual note")
+	check(arena.rhythm_press("air") == heavy and heavy.reflected and heavy.fly_t >= 0.0,
+		"pressing up and down together knocks the dual note flying")
 	advance(3.0)
-	check(arena.boss.hp == 157, "reflected heavy deals 3")
+	check(arena.boss.hp == 157, "knocked-away dual note deals 3")
+	fresh()
+	arena._engage_rhythm()
+	var late_dual := note("heavy", "ground", 0.1)
+	advance(0.05)
+	arena.rhythm_press("ground")
+	advance(0.15)
+	check(arena.rhythm_press("air") == null and not late_dual.reflected,
+		"presses more than 120ms apart do not count as a dual hit")
 	arena.reset_fight()
 	check(not arena.rhythm_lock and game.player.auto_input, "reset releases the player back to free control")
 	boot.free()

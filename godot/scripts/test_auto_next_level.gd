@@ -65,7 +65,7 @@ func _run() -> void:
 			game.player.position = Vector2(1200, 736)
 			game.beat_arena.step(0.0)
 			game.beat_arena.step(game.beat_arena.conductor.seconds(4))
-			game.beat_arena.boss.take_reflected_hit(160)
+			game.beat_arena.boss.take_reflected_hit(game.beat_arena.boss.max_hp)
 			game.beat_arena.step(0.5)
 		game.player.position = game.level.exit_point
 		game.player.on_ground = true

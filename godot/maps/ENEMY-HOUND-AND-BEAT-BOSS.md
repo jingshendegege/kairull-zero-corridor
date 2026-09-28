@@ -129,3 +129,13 @@ Boss 大体积精灵（idle 呼吸随拍、发射、受击、降台露核、爆�
   （80×25；后台走廊 2 守卫 + 货箱 + 钢梯 → 候场室检查点 → 44×21 舞台；`BOSS_ARENA` 常量给判定线/轨道/Boss 脚底）。
 - 几何核对：站立受击框 34×82 从空中轨音符（中心离地 108、半径 14）下方通过；跳跃顶点≈121px 可越过地面音符并够到空中音符。
 - 后端（Boss 状态机、指挥器、判定、时停/暂停同步、M07 场景、菜单第 5 关）由 Codex 实现，见其测试 `test_beat_warden.gd`/`test_m07_beat_tower.gd`。
+
+### 2026-09-28 晚：正式配乐换成 Final Stand（用户用 Suno 生成）
+- 音频：`godot/assets/bgm/final_stand.ogg`（由用户提供的 Final Stand.mp3 转码）。**Suno 免费版生成，仅限非商用**；若将来商用/公开发售需用付费账号重新生成或另找授权音乐。
+- 谱面：`tools/audio/chart_from_audio.py` 从音频自动分析（150.02 BPM、首拍 0.702s，开头/中段/结尾拍点对齐无漂移），
+  段落随能量逐段加难：intro → verse → build → drop … → finale（第 352 拍起）。558 音符，Boss 492 血（伤害总量 × 0.85），
+  95% 命中率的自动演奏在第 147 秒（终段）完成击杀。
+- 重音（黄色）改为**上下一起按的双键音符**：显示在两层中间并有金色光柱提示，两次按键相隔 ≤120ms 才算击中，击中后高抛旋转击飞砸向 Boss（3 伤害，终段 ×2）。
+- 击打音效统一为 `godot/assets/sfx/beat_hit.wav`（`tools/audio/beat_hit_sfx.py` 合成）；双键只降调加量，不换音色。
+- 旧合成曲 `beat_warden.ogg` 与 `beat_warden_synth_chart.json` 保留为测试夹具。
+

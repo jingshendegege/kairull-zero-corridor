@@ -7,7 +7,7 @@
   3. 速度：全频起音包络自相关，在 --bpm 附近（±15%）找峰；相位：按拍网格累加起音强度取最大。
   4. 段落：每 4 小节的 RMS 能量排序 → 低能量=intro/verse，渐强=build，高能量=drop，最后一段高能量=finale。
   5. 音符：八分音符网格上，底鼓强 → ground，军鼓/镲强 → air，二者都强 → 同拍双音符（仅 drop/finale）；
-     每小节首拍最强起音 → heavy；drop/finale 的空拍按固定图样放 bomb（与前后音符留出换层时间）。
+     每两小节首拍的强起音 → heavy（运行时为上下同时按的双键音符，同拍其他音符让位）；drop/finale 的空拍按固定图样放 bomb（与前后音符留出换层时间）。
   6. 谱面合同与 beat_warden_song.py 相同（bpm/offset_sec/sections/notes/loop/boss_hp…），运行时无需改动。
 """
 from __future__ import annotations
@@ -98,6 +98,8 @@ def main() -> None:
     ap.add_argument("--bpm", type=float, default=150.0)
     ap.add_argument("--out", default=str(ROOT / "godot/assets/boss/beat_warden_chart.json"))
     ap.add_argument("--music", default="res://assets/bgm/beat_warden.ogg")
+    ap.add_argument("--hp-ratio", type=float, default=0.85,
+                    help="Boss 血量 = 单遍可造成伤害 × 该系数；0.85 让打得准的玩家在终段（露核 ×2）完成击杀")
     args = ap.parse_args()
     x = decode(Path(args.audio))
     dur = len(x) / SR
@@ -172,14 +174,20 @@ def main() -> None:
             lane = "air" if (bar // 2) % 2 else "ground"
             notes = [n for n in notes if not (n["lane"] == lane and abs(n["beat"] - beat) <= 0.5)]
             notes.append({"beat": beat, "lane": lane, "kind": "bomb"})
+    # 重音符 = 上下同时按的双键音符（运行时以两层中间显示）：同拍其他音符全部让位，前后八分音符位也留空
+    heavy_beats = {n["beat"] for n in notes if n["kind"] == "heavy"}
+    notes = [n for n in notes if n["kind"] == "heavy"
+             or all(abs(n["beat"] - hb) > 0.5 for hb in heavy_beats)]
     notes.sort(key=lambda n: (n["beat"], n["lane"]))
-    finale_from = next((s["from_beat"] for s in sections if s["name"] == "finale"), beats_total)
     drop_from = next((s["from_beat"] for s in sections if s["name"] == "drop"), 0)
-    loop_to = beats_total - (beats_total % 4)
+    # 循环终点 = 最后一个 finale 块的末尾（不把歌曲收尾的急停段落循环进去）
+    finale_blocks = [i for i, l in enumerate(labels) if l == "finale"]
+    loop_to = (finale_blocks[-1] + 1) * 16 if finale_blocks else beats_total - (beats_total % 4)
+    loop_to = min(loop_to, beats_total - (beats_total % 4))
     damage = sum(3 if n["kind"] == "heavy" else 0 if n["kind"] == "bomb" else 1 for n in notes)
     chart = {"bpm": round(bpm, 3), "offset_sec": round(off + ONSET_LATENCY, 4), "beats_per_bar": 4, "note_speed_px": 520,
              "sections": sections, "notes": notes, "loop_from_beat": drop_from, "loop_to_beat": loop_to,
-             "song_seconds": round(dur, 3), "boss_hp": int(round(damage * 0.62)),
+             "song_seconds": round(dur, 3), "boss_hp": int(round(damage * args.hp_ratio)),
              "note_damage": {"normal": 1, "heavy": 3, "bomb": 0}, "finale_core_multiplier": 2,
              "music": args.music,
              "source": f"tools/audio/chart_from_audio.py 由 {Path(args.audio).name} 自动生成（节拍/段落/音符均来自音频分析）"}
