@@ -73,7 +73,7 @@ boot 设 `CorridorLevel.active_kill_refresh_dash = true`（默认 false，只本
 
 ## 5. 布局（Claude，生成器 `playground/tools/gen_m06_exhaust_ridge.py`）
 
-实际首版：`330×37` 格，11 房，26 敌（14 近战装卸工 + 12 步枪兵），4 货箱，27 个机关
+实际首版：`330×37` 格，11 房，30 敌（14 近战装卸工 + 12 步枪兵 + 4 检疫猎犬：风扇阵列、冷却塔、索桥基座、封锁泵站各 1），4 货箱，27 个机关
 （8 弹射扇 / 4 玻璃 / 6 冲刺节点 / 3 烟雾 / 2 光栅 / 3 压机 / 1 狙击）。地面统一 row35；
 露天房间上方挖空到世界顶边露出夜空（`QuarantineArchitecture.open_sky_profiles`），两座竖井保留室内墙。
 

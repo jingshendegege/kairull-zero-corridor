@@ -37,8 +37,9 @@ base.W, base.H, base.LEVEL_ID = W, H, LEVEL_ID
 base.LAYER_SPECS = copy.deepcopy(base.LAYER_SPECS)
 base.ENTITY_TO_CHAR = dict(base.ENTITY_TO_CHAR)
 base.ENTITY_TO_CHAR[6] = "D"                      # 房门：所属房间有活敌时锁定（RoomDoor）
+base.ENTITY_TO_CHAR[7] = "h"                      # 检疫猎犬：看到主角蓄力飞扑（QuarantineHound）
 base.LAYER_SPECS["Entities"] = base.LayerSpec(3, {
-    **base.LAYER_SPECS["Entities"].values, 6: ("RoomDoor", "#E75963")})
+    **base.LAYER_SPECS["Entities"].values, 6: ("RoomDoor", "#E75963"), 7: ("QuarantineHound", "#C75BE0")})
 base.ROOM_PROFILES = dict(base.ROOM_PROFILES)
 base.ROOM_PROFILES.update({"roof_hatch": "connector", "fan_array": "main", "skylight_gallery": "main",
                            "cooling_towers": "main", "sniper_mast": "main", "exhaust_shaft": "shaft",
@@ -80,21 +81,22 @@ STAIRS = [{"stair_id": "mast_stair", "room_id": "sniper_mast", "bottom_cell": [1
            "top_cell": [186, 30], "direction": "right_up", "step_run_px": 32, "step_rise_px": 16,
            "steps": 10, "collision_mode": "one_way_heightfield", "enemy_spawns_allowed": False}]
 
-# 实体：(c, 脚底行, 值) 1 出生 2 出口 3 近战 4 枪手 5 货箱 6 房门
+# 实体：(c, 脚底行, 值) 1 出生 2 出口 3 近战 4 枪手 5 货箱 6 房门 7 猎犬
 ENTITIES = [
     (4, 34, 1), (325, 34, 2),
     # 排风扇阵列：地面两近战一货箱，上层步道枪手+近战
-    (27, 34, 3), (40, 34, 3), (32, 34, 5), (44, 28, 4), (52, 28, 3),
+    (27, 34, 3), (40, 34, 3), (32, 34, 5), (44, 28, 4), (52, 28, 3), (55, 34, 7),
     # 玻璃天窗廊：上层廊道玻璃后一枪一近战；地面一近战一枪手一货箱
     (76, 28, 4), (88, 28, 3), (80, 34, 3), (92, 34, 4), (66, 34, 5),
     # 冷却塔跳台：塔顶一枪一近战，地面一近战一枪手
-    (120, 24, 4), (138, 23, 3), (118, 34, 3), (134, 34, 4),
+    (120, 24, 4), (138, 23, 3), (118, 34, 3), (134, 34, 4), (126, 34, 7),
     # 狙击桅杆：近战、玻璃后枪手、桅杆脚枪手
     (164, 34, 3), (174, 34, 4), (194, 34, 4), (161, 34, 5),
     # 高空索桥：三段桥（缺口 8 格需冲刺）上近战/枪手连杀 + 桥下基座三名
-    (232, 13, 3), (246, 13, 4), (236, 19, 4), (248, 19, 3), (254, 19, 3),
+    (232, 13, 3), (246, 13, 4), (236, 19, 4), (248, 19, 3), (254, 19, 3), (242, 19, 7),
     # 封锁泵站（终局竞技场）：六名混合 + 出口侧房门
     (280, 34, 3), (290, 34, 4), (298, 34, 3), (306, 34, 4), (288, 28, 4), (303, 28, 3), (284, 34, 5),
+    (294, 34, 7),
     (311, 34, 6),
 ]
 
@@ -388,7 +390,7 @@ def main() -> int:
             OUTPUT.write_bytes(compiled.encode("utf-8"))
         if args.check and (not OUTPUT.exists() or OUTPUT.read_bytes().decode("utf-8") != compiled):
             raise base.MapError("M06 LDtk 与 generated 不同步")
-        enemies = sum(1 for e in ENTITIES if e[2] in (3, 4))
+        enemies = sum(1 for e in ENTITIES if e[2] in (3, 4, 7))
         print(f"M06_MAP_RESULT: PASS | {W}x{H} | {len(ROOMS)} rooms | {enemies} enemies | "
               f"{len(tactical_metadata())} tactical objects")
         return 0

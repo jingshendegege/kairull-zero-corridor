@@ -25,18 +25,20 @@ func _run() -> void:
 	game._sfx.clear()
 	game.action_audio.stop_all()
 	check(game.level.map_w == 330 and game.level.map_h == 37, "map is 330 x 37")
-	check(game.level.rooms.size() == 11 and game.minions.size() == 26, "11 rooms and 26 actual enemies")
+	check(game.level.rooms.size() == 11 and game.minions.size() == 30, "11 rooms and 30 actual enemies (26 + 4 hounds)")
 	# Compiled ENTITIES names encode LDtk IntGrid values 3 and 4.
-	var expected := {"MeleeInspector": 0, "Gunner": 0}
+	var expected := {"MeleeInspector": 0, "Gunner": 0, "QuarantineHound": 0}
 	for entity: Dictionary in DATA.ENTITIES:
 		if expected.has(entity.kind):
 			expected[entity.kind] += 1
 	var melee := 0
 	var gunners := 0
+	var hounds := 0
 	for enemy: Node2D in game.minions:
 		melee += int(enemy is FreightInspector)
 		gunners += int(enemy is GruntGunner)
-	check(melee == expected.MeleeInspector and gunners == expected.Gunner and melee + gunners == 26,
+		hounds += int(enemy is QuarantineHound)
+	check(melee == expected.MeleeInspector and gunners == expected.Gunner and hounds == expected.QuarantineHound and hounds == 4 and melee + gunners == 26,
 		"FreightInspector/GruntGunner counts match ENTITIES kinds 3/4")
 	check(game.updraft_fans.size() == 8 and game.glass_panels.size() == 4 and game.dash_nodes.size() == 6,
 		"8 fans, 4 glass panels, 6 dash nodes")
@@ -76,9 +78,9 @@ func _run() -> void:
 			var cell: Vector2i = enemy.get_meta("spawn_cell")
 			if game.level.room_at(cell.x * 32 + 16, cell.y * 32 + 16) == 9:
 				defenders.append(enemy)
-		check(defenders.size() == 6, "six pump arena defenders")
+		check(defenders.size() == 7, "seven pump arena defenders (incl. hound)")
 		door._physics_process(0.0)
-		check(door.locked and game.room_alive_count(9) == 6, "door locks with live arena defenders")
+		check(door.locked and game.room_alive_count(9) == 7, "door locks with live arena defenders")
 		for index in defenders.size():
 			defenders[index].take_hit(defenders[index].position.x - 80.0, 999)
 			door._physics_process(0.0)
