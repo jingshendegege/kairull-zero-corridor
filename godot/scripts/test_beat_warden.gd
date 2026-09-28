@@ -149,7 +149,7 @@ func _run() -> void:
 	n = note()
 	arena.step(0.0)
 	check(game.player.hp == 5, "dash invulnerability respected")
-	for test in [[0.0,"Perfect"],[0.06,"Perfect"],[-0.06,"Perfect"],[0.0601,"Great"],[0.12,"Great"],[-0.12,"Great"],[0.1201,"Hit"],[0.5,"Hit"]]:
+	for test in [[0.0,"Perfect"],[0.08,"Perfect"],[-0.08,"Perfect"],[0.0801,"Great"],[0.14,"Great"],[-0.14,"Great"],[0.1401,"Hit"],[0.2,"Hit"]]:
 		check(BeatArena.rate(test[0]) == test[1], "rating window %s" % test[0])
 	fresh()
 	arena.combo = 8
@@ -255,6 +255,49 @@ func _run() -> void:
 	n = note()
 	game.player.force_death(0)
 	check(arena.state == "waiting" and arena.boss.hp == 160 and arena.notes.is_empty() and not c.running, "real death signal resets arena outside rewind")
+	# ---- 2026-09-28 喵斯快跑式双轨操作（用户试玩反馈）
+	fresh()
+	arena._engage_rhythm()
+	check(arena.rhythm_lock and not game.player.auto_input \
+			and game.player.position.is_equal_approx(Vector2(1408 + BeatArena.PLAYER_OFFSET, 735.9)),
+		"rhythm lock pins player just before the judge line")
+	var air_note := note("normal", "air", 0.3)
+	var ground_note := note("normal", "ground", 0.2)
+	advance(0.37)
+	check(arena.rhythm_press("air") == air_note and air_note.reflected and not ground_note.reflected \
+			and arena.rating == "Perfect", "up press hits only the air lane (70ms late = Perfect)")
+	check(arena.player_lane == "air" and is_equal_approx(game.player.position.y, 736.0 - BeatArena.AIR_LIFT - 0.1) \
+			and game.player.batting(), "up press teleports into the air lane and swings")
+	check(arena.rhythm_press("ground") == ground_note and arena.rating == "Hit" and arena.player_lane == "ground",
+		"down press hits the ground lane (170ms late = Hit)")
+	fresh()
+	arena._engage_rhythm()
+	var late := note("normal", "ground", 0.2)
+	advance(0.41)
+	check(late.missed and arena.rating == "Miss" and arena.rhythm_press("ground") == null and game.player.hp == 5,
+		"past the 200ms window: Miss, no late hit, no damage")
+	fresh()
+	arena._engage_rhythm()
+	var bomb := note("bomb", "ground", 0.2)
+	advance(0.1)
+	check(arena.rhythm_press("ground") == null and not bomb.spent, "bombs cannot be hit")
+	arena.rhythm_press("air")
+	advance(0.1)
+	check(game.player.hp == 5 and bomb.contacted and not bomb.spent, "being in the other lane dodges a bomb")
+	advance(0.4)
+	check(arena.player_lane == "ground", "air lane falls back to ground after the hold time")
+	var bomb2 := note("bomb", "ground", 0.8)
+	advance(0.2)
+	check(game.player.hp == 4 and bomb2.spent, "a bomb reaching the judge line in your lane hurts once")
+	fresh()
+	arena._engage_rhythm()
+	var heavy := note("heavy", "ground", 0.1)
+	advance(0.1)
+	check(arena.rhythm_press("ground") == heavy and heavy.reflected, "heavy note reflects with a single press")
+	advance(3.0)
+	check(arena.boss.hp == 157, "reflected heavy deals 3")
+	arena.reset_fight()
+	check(not arena.rhythm_lock and game.player.auto_input, "reset releases the player back to free control")
 	boot.free()
 	current_scene = null
 	SESSION.reset_for_tests()

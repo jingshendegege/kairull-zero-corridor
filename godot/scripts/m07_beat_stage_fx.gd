@@ -137,7 +137,7 @@ func _draw() -> void:
 		draw_rect(Rect2(x, deck.position.y + 14, 20, 4), Color(look[1], 0.25 + 0.5 * _kick * energy))
 	_draw_led(look, energy)
 	# 音箱塔：只放左侧（右侧 Boss 身后留空，避免同色系把 Boss 淹没）
-	for x in [1196.0]:
+	for x in [1124.0]:
 		_draw_speaker(Vector2(x, _floor_y - 224.0), energy)
 	# 霓虹招牌：随拍亮，待机时偶发接触不良闪烁
 	var neon: Texture2D = _tex.stage_neon

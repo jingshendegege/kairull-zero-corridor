@@ -5,6 +5,13 @@ const CONDUCTOR := preload("res://scripts/beat_conductor.gd")
 const WARDEN := preload("res://scripts/beat_warden.gd")
 const NOTE := preload("res://scripts/beat_note.gd")
 const COLORS := {"normal": Color("5fe6f0"), "heavy": Color("f0b44a"), "bomb": Color("ff3f94")}
+## 2026-09-28 用户试玩反馈：自由移动+挥棒不好用 → 改为喵斯快跑式双轨。
+## 倒数开始后主角锁定在判定线前：W/↑ 瞬移到空中轨并挥棒，S/↓ 回地面轨并挥棒；
+## 按键时在该轨 ±RHYTHM_WINDOW 内找最近音符判定（不再看球棒几何）。炸弹靠"不在它那条轨"躲。
+const RHYTHM_WINDOW := 0.20      ## 出手判定窗（秒）；漏判 = 过线超过此值
+const AIR_HOLD := 0.32           ## 空中轨停留时间，期间再按上可续
+const AIR_LIFT := 64.0           ## 空中轨时主角脚底抬高（球棒正好扫过空中轨）
+const PLAYER_OFFSET := -34.0     ## 主角站在判定环左侧，挥棒扫过判定环
 var host: Node2D
 var config: Dictionary
 var conductor: BeatConductor
@@ -27,6 +34,11 @@ var hp_bar: ProgressBar
 var judge_label: Label
 var _death_time := 0.0
 var _pulse_beat := 0.0
+var rhythm_lock := false         ## true = 双轨操作接管主角（倒数起到击破/重置）
+var player_lane := "ground"
+var _air_time := 0.0
+var _prev_up := false
+var _prev_down := false
 
 func setup(game: Node2D, arena_config: Dictionary) -> void:
 	host = game
@@ -64,7 +76,7 @@ func _build_visuals() -> void:
 			add_child(bar)
 			lights.append(bar)
 	judge_label = Label.new()
-	judge_label.position = Vector2(float(config.judge_x) - 145, float(config.lane_air_y) - 95)
+	judge_label.position = Vector2(float(config.judge_x) - 145, float(config.lane_air_y) - 160) # 双轨模式主角会升到空中轨，文字让开头顶
 	judge_label.size = Vector2(290, 80)
 	judge_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	judge_label.add_theme_font_override("font", host.hud.get_theme_font())
@@ -118,9 +130,10 @@ func reset_fight(resume_ambience := false) -> void:
 	rating = ""
 	rating_time = 0.0
 	swing = 0
+	_release_rhythm()
 	CorridorLevel.active_exit_requires_boss = true
 	hud_layer.visible = false
-	judge_label.text = "挥棒反弹 · 跳跃打空轨\n避开粉色炸弹"
+	judge_label.text = "W/↑ 打空中轨 · S/↓ 打地面轨\n粉色炸弹：换到另一条轨躲开"
 	_pulse_beat = 0.0
 	_update_visuals()
 	if resume_ambience and is_instance_valid(host.music) and not host.music.playing:
@@ -136,6 +149,12 @@ func set_frozen(value: bool) -> void:
 	conductor.set_frozen(value)
 
 func step(dt: float) -> void:
+	if rhythm_lock:
+		# 主角的自动输入已关闭；时停键仍需透传给宿主的时停检测。
+		if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+			host.player.keys[MOUSE_BUTTON_RIGHT] = true
+		else:
+			host.player.keys.erase(MOUSE_BUTTON_RIGHT)
 	if frozen or host.player.dead or host.time_phase != "playing" or host.level_cleared:
 		return
 	var visual_dt := dt
@@ -148,8 +167,10 @@ func step(dt: float) -> void:
 			count_time = 0.0
 			hud_layer.visible = true
 			judge_label.text = "3"
+			_engage_rhythm()
 	elif state == "count_in":
 		count_time += maxf(dt, 0.0)
+		_rhythm_tick(dt)
 		_pulse_beat = count_time / conductor.seconds(1.0)
 		judge_label.text = ["3", "2", "1", "GO"][mini(3, floori(_pulse_beat))]
 		if count_time >= conductor.seconds(float(conductor.chart.beats_per_bar)):
@@ -165,6 +186,7 @@ func step(dt: float) -> void:
 		var elapsed := conductor.time - before
 		visual_dt = elapsed
 		_pulse_beat = conductor.song_beat()
+		_rhythm_tick(dt)
 		if conductor.finale_started():
 			boss.expose()
 		boss.step(elapsed, _pulse_beat)
@@ -180,6 +202,7 @@ func step(dt: float) -> void:
 		if _death_time >= 0.5:
 			conductor.music.stop()
 			state = "defeated"
+			_release_rhythm()
 			CorridorLevel.active_exit_requires_boss = false
 			hud_layer.visible = false
 			host.hud.show_msg("BOSS 击破！前往出口 >")
@@ -250,6 +273,8 @@ func _advance_notes(dt: float) -> void:
 		var steps := maxi(1, ceili(travel.length() / 8.0))
 		for index in range(1, steps + 1):
 			note.position = old + travel * (float(index) / steps)
+			if rhythm_lock:
+				break
 			if active_bat and note.body_rect().intersects(host.player._bat_hitbox()):
 				_contact_note(note)
 				if host.player.dead:
@@ -269,8 +294,17 @@ func _advance_notes(dt: float) -> void:
 				break
 		if not note.spent and not note.reflected:
 			note.position = destination
+		if rhythm_lock and note.kind == "bomb" and not note.contacted and not note.spent \
+				and conductor.time >= note.hit_time:
+			note.contacted = true
+			if player_lane == note.lane:
+				note.spent = true
+				_burst(note.position, note.kind)
+				host.player.take_damage(1, note.position.x)
+				if host.player.dead:
+					return
 		if not note.contacted and not note.missed and note.kind != "bomb" \
-				and conductor.time - note.hit_time > 0.150:
+				and conductor.time - note.hit_time > (RHYTHM_WINDOW if rhythm_lock else 0.150):
 			note.missed = true
 			show_rating("Miss")
 		if note.position.x < float(config.stage_rect[0]):
@@ -281,9 +315,9 @@ func _advance_notes(dt: float) -> void:
 			notes.remove_at(index)
 
 static func rate(error: float) -> String:
-	if absf(error) <= 0.060001:
+	if absf(error) <= 0.080001:
 		return "Perfect"
-	if absf(error) <= 0.120001:
+	if absf(error) <= 0.140001:
 		return "Great"
 	return "Hit"
 
@@ -338,3 +372,98 @@ func _update_visuals() -> void:
 	for bar: Sprite2D in lights:
 		bar.modulate = Color(color, 0.25 + 0.75 * pulse)
 	hp_bar.value = boss.hp
+
+
+# ------------------------------------------------------------------ 喵斯快跑式双轨操作
+func _engage_rhythm() -> void:
+	var p: Node2D = host.player
+	rhythm_lock = true
+	player_lane = "ground"
+	_air_time = 0.0
+	_prev_up = true   # 进场时仍按着的键不算一次出手
+	_prev_down = true
+	p.auto_input = false
+	p.keys.clear()
+	p.vx = 0.0
+	p.vy = 0.0
+	p.face = 1
+	p.set_state("gun_idle")
+	_place_player()
+
+
+func _release_rhythm() -> void:
+	if not rhythm_lock:
+		return
+	rhythm_lock = false
+	player_lane = "ground"
+	_air_time = 0.0
+	var p: Node2D = host.player
+	p.keys.clear()
+	p.auto_input = true
+	if not p.dead:
+		_place_player()
+		p.set_state("gun_idle")
+
+
+func _place_player() -> void:
+	var p: Node2D = host.player
+	var lift := AIR_LIFT if player_lane == "air" else 0.0
+	p.position = Vector2(float(config.judge_x) + PLAYER_OFFSET, float(config.floor_y) - lift - 0.1)
+	p.vx = 0.0
+	p.vy = 0.0
+
+
+## 每个物理帧：读上/下键边沿、回落空中轨、推进主角动画与受伤无敌计时（主角 step 已停）。
+func _rhythm_tick(dt: float) -> void:
+	if not rhythm_lock:
+		return
+	var up := Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP)
+	var down := Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN)
+	if up and not _prev_up:
+		rhythm_press("air")
+	if down and not _prev_down:
+		rhythm_press("ground")
+	_prev_up = up
+	_prev_down = down
+	_air_time = maxf(0.0, _air_time - dt)
+	if player_lane == "air" and _air_time <= 0.0:
+		player_lane = "ground"
+	var p: Node2D = host.player
+	p.invuln_t = maxf(0.0, p.invuln_t - dt)
+	_place_player()
+	if not p.batting():
+		p.set_state("gun_jump_air" if player_lane == "air" else "gun_idle")
+	p._advance_frame(dt)
+	p._sync_sprite()
+
+
+## 一次出手：瞬移到该轨并挥棒；在该轨判定窗内取时间误差最小的音符反弹（炸弹不可打）。
+func rhythm_press(lane: String) -> BeatNote:
+	player_lane = lane
+	_air_time = AIR_HOLD if lane == "air" else 0.0
+	var p: Node2D = host.player
+	p.state = ""
+	p.set_state("bat2")
+	_place_player()
+	swing += 1
+	if state != "playing" or frozen:
+		return null
+	var best: BeatNote = null
+	var best_error := INF
+	for note: BeatNote in notes:
+		if note.spent or note.reflected or note.contacted or note.kind == "bomb" or note.lane != lane:
+			continue
+		var error := conductor.time - note.hit_time
+		if absf(error) <= RHYTHM_WINDOW and absf(error) < absf(best_error):
+			best = note
+			best_error = error
+	if best == null:
+		return null
+	best.contacted = true
+	best.reflected = true
+	best.last_swing = swing
+	best.reflection_target = boss.target_point()
+	_burst(best.position, best.kind)
+	show_rating(rate(best_error))
+	host.play_action("metal_impact" if best.kind == "heavy" else "body_hit")
+	return best
