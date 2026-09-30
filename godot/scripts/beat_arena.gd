@@ -9,6 +9,8 @@ const COLORS := {"normal": Color("5fe6f0"), "heavy": Color("f0b44a"), "bomb": Co
 ## 倒数开始后主角锁定在判定线前原地奔跑（场景由 m07_beat_stage_fx 向左滚动）：
 ## W/↑ 上到隔板上层并挥棒，S/↓ 回地面下层并挥棒；按一次就停在该层，直到按另一个键切换。
 ## 按键时在该轨 ±RHYTHM_WINDOW 内找最近音符判定（不再看球棒几何）。炸弹靠"不在它那条轨"躲。
+## VibeHub 创意工坊（ModBridge 写入）：Boss 血量倍率，默认 1；下一次进入 Boss 关生效。
+static var mod_boss_hp_scale := 1.0
 const RHYTHM_WINDOW := 0.20      ## 出手判定窗（秒）；漏判 = 过线超过此值
 const LANE_FOOT := 36.0          ## 音符中心离主角脚底的高度（两层相同）；上层脚底 = 隔板顶面
 ## 2026-09-28 新机制「冲刺反击」（用户设计）：谱面 rushes 拍点前 4 拍 Boss 头顶出现「!」原地蓄力 2 拍，
@@ -93,7 +95,7 @@ func setup(game: Node2D, arena_config: Dictionary) -> void:
 	boss.position = Vector2(config.boss_feet[0], config.boss_feet[1])
 	add_child(boss)
 	var chart: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(config.chart))
-	boss.setup(config.boss_atlas, int(chart.boss_hp))
+	boss.setup(config.boss_atlas, maxi(1, int(round(float(chart.boss_hp) * mod_boss_hp_scale))))
 	boss.boss_died.connect(_on_boss_died)
 	_boss_home = boss.position
 	rush_mark = Node2D.new()

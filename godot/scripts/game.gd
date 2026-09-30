@@ -1252,7 +1252,7 @@ func _update_campaign_progress(dt: float) -> void:
 			if timeline_enabled:
 				# 时停中到达存点只补容量，不偷清active；否则松键时会漏掉统一解冻/音乐复原沿。
 				if time_charge.active:
-					time_charge.energy = CHRONO_CHARGE.MAX_DURATION
+					time_charge.energy = CHRONO_CHARGE.max_duration()
 				else:
 					time_charge.reset()
 				RUN_SESSION.save_checkpoint(CorridorLevel.active_restart_scene,
@@ -1896,7 +1896,7 @@ func _advance_rewind(dt: float) -> void:
 func timeline_view_model() -> Dictionary:
 	return {"enabled": timeline_enabled, "active": time_charge.active,
 		"energy_ratio": time_charge.ratio(), "remaining": time_charge.energy,
-		"max_duration": CHRONO_CHARGE.MAX_DURATION, "lockout": time_charge.lockout,
+		"max_duration": CHRONO_CHARGE.max_duration(), "lockout": time_charge.lockout,
 		"phase": time_phase, "rewind_progress": rewind_progress,
 		"glitch_progress": glitch_progress,
 		"death_prompt_ready": _death_prompt_ready,

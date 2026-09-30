@@ -15,6 +15,7 @@ config/icon="res://assets/aim/peacekeeper.png"
 [autoload]
 
 TouchControls="*res://scripts/touch_controls.gd"
+ModBridge="*res://scripts/mod_bridge.gd"
 
 [display]
 

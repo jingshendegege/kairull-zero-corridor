@@ -40,9 +40,15 @@ run(godot, ['--headless', '--path', resolve(root, 'godot'), '--editor', '--impor
 run(godot, ['--headless', '--path', resolve(root, 'godot'), '--export-release', 'Web', resolve(root, 'dist/index.html')]);
 copyFileSync(resolve(root, 'web/vibehub-bridge.js'), resolve(root, 'dist/vibehub-bridge.js'));
 copyFileSync(resolve(root, 'web/audio-unlock.js'), resolve(root, 'dist/audio-unlock.js'));
+copyFileSync(resolve(root, 'web/kairull-mods.js'), resolve(root, 'dist/kairull-mods.js'));
 const html = readFileSync(resolve(root, 'dist/index.html'), 'utf8');
 if (!html.includes('https://vibe.lumigrav.space/sdk/v3/vibehub.js')) throw new Error('Missing VibeHub SDK');
 if (!html.includes('vibehub-bridge.js')) throw new Error('Missing VibeHub authentication UI');
+if (!html.includes('https://gamesvibe.app/workshop/loader/v1.js')) throw new Error('Missing VibeHub Workshop loader');
+if (!html.includes('kairull-mods.js') || html.indexOf('kairull-mods.js') > html.indexOf('workshop/loader/v1.js')) {
+  throw new Error('Mod API (kairull-mods.js) must load before the Workshop loader');
+}
+if (!html.includes('KairullBoot')) throw new Error('Custom HTML shell with Workshop start order missing');
 for (const name of readdirSync(resolve(root, 'dist'), { recursive: true })) {
   const file = resolve(root, 'dist', name);
   if (statSync(file).isFile() && statSync(file).size > 100 * 1024 * 1024) {
