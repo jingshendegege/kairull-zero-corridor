@@ -301,7 +301,9 @@ def main() -> None:
         b = float(sec_["from_beat"])
         if sec_["name"] in ("drop", "finale") and b >= 8 and (not rushes or b - rushes[-1] >= 40):
             rushes.append(b)
-    notes = [n for n in notes if not any(rb - 4.0 <= n["beat"] < rb + 4.0 for rb in rushes)]
+    # 冲刺前 4 拍（预警 + 冲刺）与之后 8 拍清空：反击子弹时间 + 击退约占 3 拍，
+    # 音符又要提前约 3.75 拍从 Boss 处发出——只清后 4 拍会让音符在反击期间刷出来（2026-09-30 用户反馈）。
+    notes = [n for n in notes if not any(rb - 4.0 <= n["beat"] < rb + 8.0 for rb in rushes)]
     drop_from = next((s["from_beat"] for s in sections if s["name"] == "drop"), 0)
     # 循环终点 = 最后一个 finale 块的末尾（不把歌曲收尾的急停段落循环进去）
     finale_blocks = [i for i, l in enumerate(labels) if l == "finale"]

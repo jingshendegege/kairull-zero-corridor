@@ -74,6 +74,7 @@ var _counter_buffer := 0
 var _hitstop := 0.0
 var _counter_pos := Vector2.ZERO
 var _lunge := 0.0                  ## 反击每击的前冲位移（像素），顿帧后回位
+var _held_events: Array[Dictionary] = []   ## 冲刺反击期间到点的音符，结束后再放出
 var _afterimages: Array[Dictionary] = []   ## 换层残影：{sprite, life}
 const AFTERIMAGE_TIME := 0.3
 signal damage_popped(amount: int, world: Vector2, tier: int)   ## tier 0/1/2 = 档位，3 = 终结重击
@@ -188,6 +189,7 @@ func reset_fight(resume_ambience := false) -> void:
 		counts[key] = 0
 	_end_rush(true)
 	_rush_done.clear()
+	_held_events.clear()
 	max_combo = 0
 	_release_rhythm()
 	CorridorLevel.active_exit_requires_boss = true
@@ -236,21 +238,37 @@ func step(dt: float) -> void:
 			hud_layer.visible = true
 			judge_label.text = "3"
 			_engage_rhythm()
+			# 2026-09-30 修复「音符刷在脸前」：倒数一开始就让谱面时钟从 -1 小节走起，
+			# 开头几个音符按正常飞行时间从 Boss 处发出；音乐在 GO 之后的正拍响起。
+			conductor.start(conductor.seconds(float(conductor.chart.beats_per_bar)))
+			_held_events.clear()
 	elif state == "count_in":
 		count_time += maxf(dt, 0.0)
 		_rhythm_tick(dt)
+		var before_count := conductor.time
+		for event: Dictionary in conductor.advance():
+			spawn_note(event)
+		_advance_notes(maxf(0.0, conductor.time - before_count))
 		_pulse_beat = count_time / conductor.seconds(1.0)
 		judge_label.text = ["3", "2", "1", "GO"][mini(3, floori(_pulse_beat))]
 		if count_time >= conductor.seconds(float(conductor.chart.beats_per_bar)):
 			state = "playing"
 			if is_instance_valid(host.music):
 				host.music.stop()
-			conductor.start()
+			conductor.begin_audio()
 			judge_label.text = "GO\nCOMBO 0"
 	elif state == "playing":
 		var before := conductor.time
+		var rushing := rush_state in ["counter", "knockback"]
 		for event: Dictionary in conductor.advance():
-			spawn_note(event)
+			if rushing:
+				_held_events.append(event)   # Boss 贴脸反击 / 击退期间不刷音符（用户反馈）
+			else:
+				spawn_note(event)
+		if not rushing and not _held_events.is_empty():
+			for event: Dictionary in _held_events:
+				spawn_note(event)
+			_held_events.clear()
 		var elapsed := conductor.time - before
 		visual_dt = elapsed
 		_pulse_beat = conductor.song_beat()

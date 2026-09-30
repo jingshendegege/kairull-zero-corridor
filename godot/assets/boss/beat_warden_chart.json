@@ -1202,46 +1202,6 @@
    "kind": "normal"
   },
   {
-   "beat": 212.0253,
-   "lane": "ground",
-   "kind": "heavy"
-  },
-  {
-   "beat": 212.9705,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 213.5656,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 213.9793,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 214.5671,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 214.9717,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 215.5,
-   "lane": "ground",
-   "kind": "bomb"
-  },
-  {
-   "beat": 215.7573,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
    "beat": 216.8169,
    "lane": "ground",
    "kind": "normal"
@@ -1867,41 +1827,6 @@
    "kind": "heavy"
   },
   {
-   "beat": 308.7112,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 308.9852,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 309.7109,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 309.983,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 310.4856,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 311.4816,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 311.986,
-   "lane": "ground",
-   "kind": "heavy"
-  },
-  {
    "beat": 312.768,
    "lane": "air",
    "kind": "normal"
@@ -2188,61 +2113,6 @@
   },
   {
    "beat": 347.989,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 356.7339,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 356.7339,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 357.0151,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 357.4905,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 357.4905,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 357.9894,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 358.8113,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 358.8113,
-   "lane": "ground",
-   "kind": "normal"
-  },
-  {
-   "beat": 359.4935,
-   "lane": "air",
-   "kind": "normal"
-  },
-  {
-   "beat": 359.5,
-   "lane": "ground",
-   "kind": "bomb"
-  },
-  {
-   "beat": 359.9924,
    "lane": "air",
    "kind": "normal"
   },
@@ -2930,7 +2800,7 @@
  "loop_from_beat": 208,
  "loop_to_beat": 416,
  "song_seconds": 167.614,
- "boss_hp": 772,
+ "boss_hp": 734,
  "note_damage": {
   "normal": 1,
   "heavy": 3,

@@ -38,7 +38,7 @@ func _run() -> void:
 		await process_frame
 	var game: Node2D = boot.get_node("Game")
 	check(game.player.max_hp == 7, "modded difficulty health reaches the real player")
-	check(game.beat_arena.boss.max_hp == int(round(772 * 0.5)), "boss HP scale reaches the rhythm boss")
+	check(game.beat_arena.boss.max_hp == int(round(float(game.beat_arena.conductor.chart.boss_hp) * 0.5)), "boss HP scale reaches the rhythm boss")
 	var names: Array = bridge.events_log.map(func(e: Dictionary) -> String: return e.name)
 	check(names.has("game:ready") and names.has("level:start"), "game:ready and level:start events emitted")
 	var start: Dictionary = bridge.events_log.filter(func(e: Dictionary) -> bool: return e.name == "level:start")[-1].payload

@@ -5,6 +5,7 @@ var passed := 0
 var failed := 0
 var clock_time := 0.0
 var playback_time := 0.0
+var real_time := 0.0
 var game: Node2D
 var arena: BeatArena
 
@@ -26,6 +27,8 @@ func fresh() -> void:
 	game._set_temporal_nodes_paused(false)
 	clock_time = 0.0
 	arena.conductor.clock = func() -> float: return clock_time
+	real_time = 0.0
+	arena.conductor.real_clock = func() -> float: return real_time
 	arena.conductor.start()
 	arena.state = "playing"
 
@@ -35,6 +38,18 @@ func advance(seconds: float) -> void:
 
 func note(kind := "normal", lane := "ground", at_time := 0.0) -> BeatNote:
 	return arena.spawn_note({"kind": kind, "lane": lane, "time": at_time})
+
+func rush_holds_notes() -> void:
+	fresh()
+	var before := arena.notes.size()
+	arena.rush_state = "counter"
+	arena.rush_timer = 99.0
+	advance(3.0)
+	var during := arena.notes.size()
+	arena._end_rush(true)
+	advance(0.016)
+	check(during == before and arena.notes.size() > before, "notes due during the boss rush counter are held, then released after it")
+
 
 func hit(n: BeatNote) -> void:
 	arena._on_swing_started(0)
@@ -222,9 +237,50 @@ func _run() -> void:
 	c.advance()
 	check(c.loop_count == 1 and c.time == seam, "stale audio sample after asynchronous seek cannot skip another loop")
 	playback_time = c.seconds(112) + 0.04
+	real_time += 0.04
 	c.advance()
 	check(c.loop_count == 1 and is_equal_approx(c.time, seam + 0.04), "post-seek audio sample resumes monotonic timeline")
+	# 2026-09-30 修复「卡一会才动」：音频位置停住（刚开始播放 / 缓冲）时，时间仍按真实时间前进
+	var stall_from := c.time
+	for i in 5:
+		real_time += 0.02
+		c.advance()
+	check(c.time > stall_from + 0.09 and c.time < stall_from + 0.1001, "audio stall does not freeze notes: clock keeps real-time pace (<=5% pull)")
+	playback_time += 0.6
+	real_time += 0.016
+	c.advance()
+	check(is_equal_approx(c.time, c.seconds(112) + 0.64 + c.loop_duration()), "large drift snaps back onto the audio")
 	c.playback_clock = Callable()
+	# 预倒数：从 -1 小节开始走，开头音符按正常飞行时间从 Boss 处发出，音乐到 0 才播放
+	fresh()
+	c.clock = Callable()
+	var saved_notes: Array = c.chart.notes
+	c.chart.notes = [{"beat": 0.02, "lane": "ground", "kind": "normal"}]   # 真实谱面第一拍就有音符
+	c.playback_clock = func() -> float: return 0.0   # 模拟音频刚开始播放、位置还停在 0
+	c.start(c.seconds(4))
+	check(c.time < 0.0 and not c.music.playing, "pre-roll starts the chart clock one bar early without music")
+	var early: Array[Dictionary] = []
+	var released_before_music := false
+	var after_zero := 0
+	for i in 200:
+		real_time += 0.05
+		var due := c.advance()
+		early.append_array(due)
+		released_before_music = released_before_music or (not due.is_empty() and c.time < 0.0)
+		if c.time >= 0.0:
+			after_zero += 1
+			if after_zero > 8:
+				break
+	check(c.time >= 0.0 and c.music.playing and not early.is_empty(), "pre-roll reaches 0, starts the song and has already released the opening notes")
+	var first_spawn := INF
+	for e: Dictionary in early:
+		first_spawn = minf(first_spawn, float(e.spawn_time))
+	check(first_spawn < 0.0 and released_before_music, "opening notes spawn during the count-in, not on top of the player")
+	check(c.time > 0.35, "after the song starts the clock keeps moving even while audio reports position 0")
+	c.chart.notes = saved_notes
+	c.playback_clock = Callable()
+	c.clock = func() -> float: return clock_time
+	rush_holds_notes()
 	fresh()
 	n = note("normal", "air", 0.5)
 	var frozen_position := n.position

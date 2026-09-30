@@ -58,11 +58,12 @@ func _run() -> void:
 	check(arena.state == "waiting", "entry threshold excludes x 1183")
 	game.player.position.x = 1184
 	arena.step(0)
-	check(arena.state == "count_in" and arena.judge_label.text == "3" and not arena.conductor.running, "stage entry begins count-in")
+	check(arena.state == "count_in" and arena.judge_label.text == "3" and arena.conductor.running and arena.conductor.time < 0.0
+		and not arena.conductor.music.playing, "stage entry begins count-in; chart clock pre-rolls one bar so opening notes fly in from the boss")
 	for label in ["2", "1", "GO"]:
 		arena.step(arena.conductor.seconds(1))
 		check(arena.judge_label.text == label, "count-in " + label)
-	check(not arena.conductor.running, "GO still occupies fourth beat")
+	check(not arena.conductor.music.playing, "GO still occupies fourth beat (song not yet playing)")
 	arena.step(arena.conductor.seconds(1))
 	check(arena.state == "playing" and arena.conductor.time == 0 and not game.music.playing, "one bar starts boss song from zero and stops ambience")
 	arena.boss.take_reflected_hit(20)
