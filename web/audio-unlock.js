@@ -44,6 +44,18 @@
     });
   }
   document.addEventListener('pointerdown', unlock, true);
+  // 手机：第一次触摸时进入全屏并尝试锁定横屏（iOS Safari 不支持时静默忽略，游戏内另有竖屏提示）。
+  let immersive = false;
+  document.addEventListener('pointerdown', event => {
+    if (immersive || event.pointerType !== 'touch') return;
+    immersive = true;
+    const root = document.documentElement;
+    const request = root.requestFullscreen || root.webkitRequestFullscreen;
+    if (!request) return;
+    Promise.resolve(request.call(root, { navigationUI: 'hide' }))
+      .then(() => screen.orientation && screen.orientation.lock ? screen.orientation.lock('landscape') : null)
+      .catch(() => {});
+  }, true);
   document.addEventListener('keydown', unlock, true);
   document.addEventListener('DOMContentLoaded', () => {
     button = document.createElement('button');
