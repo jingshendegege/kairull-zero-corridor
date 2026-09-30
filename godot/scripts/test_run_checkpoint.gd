@@ -1,5 +1,5 @@
 extends SceneTree
-## 三关真实入口→解锁中段点→死亡短回放→change_scene重建；局部摆位只用于设置测试条件。
+## 四关真实入口→解锁中段点→死亡短回放→change_scene重建；局部摆位只用于设置测试条件。
 const SESSION := preload("res://scripts/run_session.gd")
 const SNAPSHOT := preload("res://scripts/run_checkpoint.gd")
 var passed := 0
@@ -36,9 +36,9 @@ func _run() -> void:
 	SESSION.begin_run("invalid")
 	check(SESSION.difficulty == "easy" and SESSION.max_health() == 5, "无效难度安全回简单")
 	for index in SESSION.LEVEL_SCENES.size():
-		await _test_map(index, SESSION.DIFFICULTIES[index])
+		await _test_map(index, SESSION.DIFFICULTIES[index % SESSION.DIFFICULTIES.size()])
 	SESSION.reset_for_tests()
-	check(CorridorLevel.active_checkpoints.is_empty(), "三入口卸载都清active_checkpoints静态量")
+	check(CorridorLevel.active_checkpoints.is_empty(), "五入口卸载都清active_checkpoints静态量")
 	print("RUN_CHECKPOINT_RESULT: %d PASS / %d FAIL" % [passed, failed])
 	quit(int(failed > 0))
 
@@ -67,6 +67,9 @@ func _test_map(index: int, mode: String) -> void:
 	root.add_child(boot)
 	current_scene = boot
 	_prepare()
+	if scene.contains("m07_beat_tower"):
+		await _test_beat_checkpoint(scene)
+		return
 	var prefix := "M%d/%s " % [index + 1, mode]
 	var entrance: Vector2 = game.level.spawn
 	check(game.player.hp == SESSION.max_health(), prefix + "真实入口5/3/1生命正确")
@@ -89,7 +92,8 @@ func _test_map(index: int, mode: String) -> void:
 			to_clear.append(enemy)
 		elif later_enemy == null:
 			later_enemy = enemy
-	check(to_clear.size() == [10,22,24][index], prefix + "解锁前置是半程10/22/24敌")
+	check(to_clear.size() == {"m06": 14, "m01": 10, "m04": 22}[scene.get_file().substr(0, 3)],
+			prefix + "解锁前置是半程14/10/22敌")
 	for enemy in to_clear:
 		enemy.dead = true
 	to_clear[-1].dead = false
@@ -247,6 +251,60 @@ func _test_map(index: int, mode: String) -> void:
 	# 明确新开局/退出清存点，不把另一次挑战接到旧半程。
 	SESSION.leave_run()
 	check(SESSION.checkpoint.is_empty(), prefix + "返回菜单语义清空本次检查点")
+	current_scene.free()
+	current_scene = null
+	await create_timer(.15).timeout
+	SESSION.reset_for_tests()
+
+
+func _test_beat_checkpoint(scene: String) -> void:
+	# M07 has only the two backstage guards, one cargo and no smoke/future minions.
+	var point: Vector2 = game._checkpoint_beacons[1].position
+	check(game.minions.size() == 2 and game.props.size() == 1, "M07 only backstage guards and one cargo")
+	check(game.smoke_tactics == null or game.smoke_tactics.pickups.is_empty(), "M07 has no smoke pickup fixture")
+	check(game._checkpoint_beacons.size() == 1 and game._checkpoint_index == -1, "M07 one inactive green-room checkpoint")
+	_at(point)
+	game.player.hp = 1
+	game._update_campaign_progress(0)
+	check(SESSION.checkpoint.is_empty(), "M07 backstage guards gate checkpoint")
+	game.minions[0].dead = true
+	game._update_campaign_progress(0)
+	check(SESSION.checkpoint.is_empty(), "M07 final guard still gates checkpoint")
+	game.minions[1].dead = true
+	game.props[0].dead = true
+	var prop_key: String = game.props[0].get_meta("checkpoint_key")
+	game._run_elapsed = 88.0
+	game._update_campaign_progress(0)
+	var saved := SESSION.checkpoint_for(scene)
+	check(saved.get("id") == "m07_green_room" and saved.get("defeated", []).size() == 2, "M07 saves both cleared guards")
+	check(saved.signature == SNAPSHOT.signature() and saved.spent_props.has(prop_key), "M07 saves map signature and spent single cargo")
+	check(game.player.hp == SESSION.max_health() and game.time_charge.energy == 2, "M07 checkpoint refills health and time-stop")
+	var music_id: int = game.music.get_instance_id()
+	for cycle in 2:
+		_at(Vector2(1200, 736))
+		var arena: BeatArena = game.beat_arena
+		arena.step(0)
+		check(arena.state == "count_in", "M07 retry starts with count-in")
+		arena.step(arena.conductor.seconds(4))
+		arena.boss.take_reflected_hit(40)
+		arena.spawn_note({"kind": "heavy", "lane": "ground", "time": 2.0})
+		check(not game.music.playing and arena.conductor.music.playing, "M07 boss song replaces backstage music")
+		var old_id: int = current_scene.get_instance_id()
+		game.player.force_death(2000)
+		check(arena.boss.hp == arena.boss.max_hp and arena.notes.is_empty() and not arena.conductor.music.playing, "M07 death discards partial chart and HP")
+		game._begin_rewind()
+		game._advance_rewind(game.REWIND_DURATION + game.INTERFERENCE_DURATION + .01)
+		for frame in 4:
+			await process_frame
+		_prepare()
+		check(current_scene.get_instance_id() != old_id and game._checkpoint_index == 1, "M07 real reload restores checkpoint")
+		check(game.player.position.distance_to(point) < 1 and game.player.hp == SESSION.max_health() and game.time_charge.energy == 2, "M07 retry restores position health and charge")
+		check(_dead_count() == 2 and game.props[0].dead and not game.props[0].visible, "M07 cleared guards and spent cargo stay cleared")
+		check(game.beat_arena.state == "waiting" and game.beat_arena.boss.hp == game.beat_arena.boss.max_hp and game.beat_arena.conductor.time == 0, "M07 retries never restore partial boss progress")
+		check(game.music.get_instance_id() == music_id and game.music.playing and not game.beat_arena.conductor.music.playing, "M07 retry resumes ambience without two songs")
+		check(SESSION.attempt == cycle + 2 and SESSION.checkpoint_for(scene).elapsed == 88, "M07 attempt increments without changing checkpoint")
+	SESSION.leave_run()
+	check(SESSION.checkpoint.is_empty(), "M07 leaving clears checkpoint")
 	current_scene.free()
 	current_scene = null
 	await create_timer(.15).timeout

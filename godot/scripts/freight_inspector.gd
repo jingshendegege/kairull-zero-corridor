@@ -2,13 +2,14 @@ extends Node2D
 class_name FreightInspector
 ## 货运巡检员：主线基础近战兵，正式 M01 与后续货运区均可复用。
 ## 伤害只来自可读的攻击有效帧，身体接触不扣血。
-## 用户透明母表经 Python 隔离串格毛边/统一基线，运行时使用 37 张像素帧。
+## 2026-09-28 美术替换为"重载装卸工"：原创 Blender 基本体模型 3D→像素（tools/art/enemy3d/loader.py →
+## build_enemy.py），1:1 世界像素，7 行 37 帧；旧 AI 母表图集保留在 assets/enemy/freight_inspector/ 未删除。
 
-const ATLAS_PATH := "res://assets/enemy/freight_inspector/atlas.png"
-const META_PATH := "res://assets/enemy/freight_inspector/atlas.json"
-const SCALE := 1.15
-const CELL := Vector2i(128, 96)
-const BASELINE_Y := 90.0
+const ATLAS_PATH := "res://assets/enemy/loader/atlas.png"
+const META_PATH := "res://assets/enemy/loader/atlas.json"
+const SCALE := 1.0              ## 原生 1:1 世界像素，整数缩放不糊
+const CELL := Vector2i(160, 128)  ## 挥钩前伸/举过头顶需要更大画布
+const BASELINE_Y := 121.0       ## 脚底像素下沿
 const BODY_W := 42.0
 const BODY_H := 96.0
 const AGGRO_RANGE := 360.0

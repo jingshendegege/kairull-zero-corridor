@@ -225,6 +225,8 @@ var db: AtlasDB
 var level: CorridorLevel
 var death_obstacles: Array = [] ## 宿主传入关卡门列表；死亡惯性也必须受独立门体阻挡。
 var moving_platforms: Array = [] ## 动态货梯只扩展脚底支撑，不改变22×52通行盒与受击框。
+var glass_panels: Array = [] ## Independent dynamic walls; burst previews never shatter them.
+var glass_interactions_enabled := true
 var auto_input := true
 var debug_hotkeys_enabled := false ## 默认关K测试自杀；force_death仍供真实伤害/测试调用。
 var _pause_blocked_inputs: Dictionary = {} ## 菜单里新按住的动作必须松开再用，避免继续按钮投烟/挥棒。
@@ -474,7 +476,7 @@ func _physics_process(dt: float) -> void:
 
 func _collect_input() -> void:
 	keys.clear()
-	for k in [KEY_A, KEY_D, KEY_W, KEY_S, KEY_SHIFT, KEY_CTRL, KEY_K, KEY_R]:
+	for k in [KEY_A, KEY_D, KEY_W, KEY_SPACE, KEY_S, KEY_SHIFT, KEY_CTRL, KEY_K, KEY_R]:
 		if Input.is_key_pressed(k):
 			keys[k] = true
 	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
@@ -500,7 +502,7 @@ func sync_input_after_pause(before: Dictionary) -> void:
 	if auto_input:
 		_collect_input()
 	# 连续方向可直接继续；菜单期间新按的跳/滚/冲/瞄准/鼠标动作要释放，已有动作时序不清空。
-	for code in [KEY_W, KEY_S, KEY_SHIFT, KEY_CTRL, KEY_R, MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]:
+	for code in [KEY_W, KEY_SPACE, KEY_S, KEY_SHIFT, KEY_CTRL, KEY_R, MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]:
 		if keys.has(code) and not before.has(code):
 			_pause_blocked_inputs[code] = true
 	for code in _pause_blocked_inputs:
@@ -1014,6 +1016,9 @@ func step(dt: float) -> void:
 		_snap_walk_to_stair(horizontal_from_x)
 
 	var was_air := not on_ground
+	position = _sweep_glass_motion(Vector2(horizontal_from_x, position.y), position,
+			dashing() or rolling())
+	var glass_vertical_origin := position
 	if dash_was_active:
 		# 冲刺期间冻结竖直积分：空中保持高度，地面则由 2px 路径主动贴阶。
 		if _dash_follow_ground:
@@ -1064,6 +1069,11 @@ func step(dt: float) -> void:
 			# 空中翻滚落地后可继续贴阶；滚出平台则下一帧保持空中下落。
 			_roll_follow_ground = on_ground
 
+	var glass_resolved := _sweep_glass_motion(glass_vertical_origin, position, dashing() or rolling())
+	if not is_equal_approx(glass_resolved.y, position.y):
+		on_ground = position.y > glass_vertical_origin.y
+		vy = 0.0
+	position = glass_resolved
 	if was_air and on_ground and not dead:
 		air_bat_used = false   ## 落地重置空中挥棍次数
 		_play_land_fx()
@@ -1234,14 +1244,17 @@ func _handle_edges() -> void:
 		else:
 			_try_bat()
 	if reloading:
-		if keys.has(KEY_W) and not _prev_keys.has(KEY_W) and (sliding() or on_ground):
+		var jump_pressed := (keys.has(KEY_W) and not _prev_keys.has(KEY_W)) \
+				or (keys.has(KEY_SPACE) and not _prev_keys.has(KEY_SPACE))
+		if jump_pressed and (sliding() or on_ground):
 			_finish_reload_interruption()
 			vy = JUMP          ## 与普通跳跃同速，不能换状态不跳起来
 			on_ground = false
 			set_state("gun_jump_air")
 			return
 
-	var w_pressed := keys.has(KEY_W) and not _prev_keys.has(KEY_W)
+	var w_pressed := (keys.has(KEY_W) and not _prev_keys.has(KEY_W)) \
+			or (keys.has(KEY_SPACE) and not _prev_keys.has(KEY_SPACE))
 	if just.call(KEY_SHIFT):
 		_try_dash()
 		if dashing():
@@ -1320,7 +1333,7 @@ func _try_dash() -> void:
 
 
 func _dash_end_x(dir: int, follow_ground: bool) -> float:
-	return _sweep_burst_path(position, dir, DASH_DISTANCE, follow_ground).x
+	return _sweep_burst_path(position, dir, DASH_DISTANCE, follow_ground, true).x
 
 
 ## Ctrl 翻滚：六帧长位移、短暂无敌；地面贴阶、空中随重力下落。
@@ -1335,7 +1348,7 @@ func _try_roll() -> void:
 	elif keys.has(KEY_D) and not keys.has(KEY_A):
 		dir = 1
 	var follow_ground := on_ground
-	var to_x := _sweep_burst_path(position, dir, ROLL_DISTANCE, follow_ground).x
+	var to_x := _sweep_burst_path(position, dir, ROLL_DISTANCE, follow_ground, true).x
 	if absf(to_x - position.x) < DASH_SWEEP_STEP:
 		return
 	if batting():
@@ -1476,7 +1489,7 @@ func _standing_on_stair() -> bool:
 
 ## 冲刺/翻滚/挥棒带步共用路径：地面态贴阶，空中态保持当前 Y。
 func _sweep_burst_path(origin: Vector2, dir: int, dist: float,
-		follow_ground: bool) -> Vector2:
+		follow_ground: bool, preview_burst := false) -> Vector2:
 	if level == null:
 		return origin
 	var target_x := clampf(origin.x + dist * dir, 20.0, level.world_w - 20.0)
@@ -1498,6 +1511,36 @@ func _sweep_burst_path(origin: Vector2, dir: int, dist: float,
 					break
 		if blocked:
 			break
+		if _glass_blocks(candidate, preview_burst or dashing() or rolling(), not preview_burst):
+			break
+		safe = candidate
+	return safe
+
+
+func _glass_blocks(feet: Vector2, burst: bool, apply_contact: bool) -> bool:
+	var body := Rect2(feet - Vector2(w * 0.5, h), Vector2(w, h))
+	for panel in glass_panels:
+		if not is_instance_valid(panel) or not panel.locked or not panel.body_rect().intersects(body):
+			continue
+		if burst and glass_interactions_enabled and not dead:
+			if apply_contact:
+				panel.take_hit(position.x)
+			continue
+		return true
+	return false
+
+
+func _sweep_glass_motion(from: Vector2, to: Vector2, burst: bool) -> Vector2:
+	if glass_panels.is_empty():
+		return to
+	var steps := maxi(1, ceili(from.distance_to(to) / 2.0))
+	var safe := from
+	for index in range(1, steps + 1):
+		var candidate := from.lerp(to, float(index) / steps)
+		if _glass_blocks(candidate, burst, true):
+			if not is_equal_approx(from.x, to.x):
+				vx = 0.0
+			return safe
 		safe = candidate
 	return safe
 
@@ -1828,8 +1871,9 @@ func _apply_sprite(clip_name: String, f: int) -> void:
 	_sprite.region_enabled = true
 	_sprite.region_rect = db.frame_rect(clip_name, f)
 	_sprite.centered = false
-	# H3 原片逐剪辑缩放归一化（以 aim 的角色源高 234px 实测对齐）；预处理素材系数 1.0
-	var eff_scale: float = CHAR_SCALE * float(RAW_SCALE.get(clip_name, 1.0))
+	# H3 原片逐剪辑缩放归一化（以 aim 的角色源高 234px 实测对齐）；预处理素材系数 1.0。
+	# 像素复刻图集（hero_px）在元数据里带 raw_scale = 1/CHAR_SCALE → 以 1.0 整数缩放显示。
+	var eff_scale: float = CHAR_SCALE * float(act.get("raw_scale", RAW_SCALE.get(clip_name, 1.0)))
 	_sprite.scale = Vector2.ONE * eff_scale
 	var fw: float = act["fw"]
 	var bcx: float = act["body_cx"]
@@ -1858,6 +1902,9 @@ func _sync_readability() -> void:
 		_outline.flip_h = _sprite.flip_h
 		_outline.scale = _sprite.scale
 		_outline.global_position = _sprite.global_position
+		# 描边保持屏幕约 1px：步长（texel）随当前缩放换算，0.4 缩放时仍为原 2.5
+		_outline_mat.set_shader_parameter("texel_step",
+				OUTLINE_TEXEL_STEP * CHAR_SCALE / maxf(0.01, _sprite.scale.x))
 		_outline.modulate.a = _sprite.modulate.a   ## 受击闪烁同步
 		var ts := Vector2(_sprite.texture.get_size())
 		var rr: Rect2 = _sprite.region_rect

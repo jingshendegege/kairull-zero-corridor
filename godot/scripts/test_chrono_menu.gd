@@ -27,18 +27,22 @@ func _run() -> void:
 	root.add_child(menu)
 	current_scene = menu
 	await process_frame
-	check(menu.selected_level == 0 and SESSION.selected_scene().contains("m01_protocol"), "菜单保留第一关默认入口")
+	check(menu.selected_level == 0 and SESSION.selected_scene().contains("m06_exhaust"), "菜单默认入口为新第一关排风脊线")
 	menu._handle_keycode(KEY_DOWN)
-	check(menu.selected_level == 1 and SESSION.selected_scene().contains("m04_chrono"), "开始页向下键选择第二长关")
+	check(menu.selected_level == 1 and SESSION.selected_scene().contains("m07_beat"), "开始页向下键选择第一关结尾Boss")
 	check(current_scene == menu and not SESSION.timeline_enabled, "选关本身不立即开局")
-	menu._handle_mouse_click(screen_point(menu, Vector2(160, 240)))
-	check(menu.selected_level == 0, "3D左卡片准确选择原第一关")
-	menu._handle_mouse_click(screen_point(menu, Vector2(310, 240)))
+	menu._handle_mouse_click(screen_point(menu, menu.level_card_rect(0).get_center()))
+	check(menu.selected_level == 0, "3D左卡片准确选择第一关")
+	menu._handle_mouse_click(screen_point(menu, menu.level_card_rect(1).get_center()))
 	check(menu.selected_level == 1 and current_scene == menu, "3D右卡片准确选择新关而不误开始")
-	menu._handle_mouse_click(screen_point(menu, Vector2(500, 240)))
-	check(menu.selected_level == 2 and SESSION.selected_scene().contains("m05_vertical"), "第三张卡片选择真正纵向货运井")
+	menu._handle_mouse_click(screen_point(menu, menu.level_card_rect(2).get_center()))
+	check(menu.selected_level == 2 and SESSION.selected_scene().contains("m01_protocol"), "第三张卡片选择第二关协议检疫站")
+	menu._handle_keycode(KEY_DOWN)
+	check(menu.selected_level == 3 and SESSION.selected_scene().contains("m04_chrono"), "向下键选择第三关时差货运场")
+	menu._handle_keycode(KEY_DOWN)
+	check(menu.selected_level == 0, "最后一关继续向下循环回第一关")
 	menu._handle_keycode(KEY_UP)
-	check(menu.selected_level == 1, "上下选关遍历三张卡，能返回第二关")
+	check(menu.selected_level == 3 and SESSION.selected_scene().contains("m04_chrono"), "第一关向上循环回时差货运场")
 	await snapshot("菜单-02-选择时差货运场.png")
 	menu._select_page(2, true)
 	await snapshot("菜单-R烟雾弹操作说明.png")
@@ -83,7 +87,7 @@ func _run() -> void:
 	voice_index = game._sfx_idx
 	game._on_tactical_sound(&"sniper_lock")
 	check(game._sfx_pool[voice_index].stream.resource_path == "res://assets/sfx/gun/10_gunshot_empty.wav",
-			"最后半秒锁定有独立机械卡扣，与开枪分离")
+			"最后0.35秒锁定有独立机械卡扣，与开枪分离")
 	await create_timer(0.20).timeout
 	var boot := current_scene
 	current_scene = null

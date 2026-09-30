@@ -26,6 +26,10 @@ const M04_CHRONO_DATA := preload("res://generated/m04_chrono_freight_data.gd")
 const MAP_M04_CHRONO_FREIGHT := M04_CHRONO_DATA.MAP_TEXT
 const M05_VERTICAL_DATA := preload("res://generated/m05_vertical_freight_data.gd")
 const MAP_M05_VERTICAL_FREIGHT := M05_VERTICAL_DATA.MAP_TEXT
+const M06_DATA := preload("res://generated/m06_exhaust_ridge_data.gd")
+const MAP_M06_EXHAUST_RIDGE := M06_DATA.MAP_TEXT
+const M07_DATA := preload("res://generated/m07_beat_tower_data.gd")
+const MAP_M07_BEAT_TOWER := M07_DATA.MAP_TEXT
 
 const TS := 32
 
@@ -320,6 +324,7 @@ static var active_next_scene := ""
 static var active_campaign_mode := false
 static var active_restart_scene := ""
 static var active_tactical_objects: Array = [] ## 烟雾补给/机关/稀疏狙击，均来自地图元数据。
+static var active_kill_refresh_dash := false ## Opt-in level rule; game exit clears it with boot lifetime.
 static var active_checkpoints: Array = [] ## 每关唯一中段点及前置清房条件；与遭遇唤醒边界分开。
 static var active_encounter_boundaries: Array = [] ## 只隔离敌人唤醒区，不创建记录点或补血。
 static var active_encounter_policy := "" ## 第三关自由上下探索，用本层邻近唤醒，不套横向房序门槛。
@@ -415,6 +420,10 @@ func _parse_markers() -> void:
 				"x":
 					enemy_spawns.append(feet)
 					enemy_spawn_kinds.append("")
+					grid[r] = grid[r].substr(0, c) + "." + grid[r].substr(c + 1)
+				"h":
+					enemy_spawns.append(feet)
+					enemy_spawn_kinds.append("hound")
 					grid[r] = grid[r].substr(0, c) + "." + grid[r].substr(c + 1)
 				"m":
 					enemy_spawns.append(feet)

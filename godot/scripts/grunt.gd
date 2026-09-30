@@ -1,6 +1,7 @@
 extends Node2D
 class_name GruntGunner
-## 货运枪手杂兵：使用 8×6 透明图集，保持现有子弹、门、彩血与球棒击退协议。
+## 货运枪手杂兵（2026-09-28 美术替换为"检疫步枪兵"）：8×6 透明图集，1:1 世界像素，
+## 保持现有子弹、门、彩血与球棒击退协议。美术源：tools/art/enemy3d/rifleman.py → build_enemy.py。
 ## 帧窗口仍按 60fps 逻辑 tick 驱动；新增动画态不会拉长旧版约 50 tick 的出弹预警。
 ##   idle    —— 站岗，玩家进入 480px 且视线无遮挡 → alert
 ##   alert   —— 品红警示灯亮起，明确告诉玩家敌人已发现目标
@@ -15,11 +16,11 @@ class_name GruntGunner
 
 signal shoot_orb(from_pos: Vector2, velocity: Vector2)
 
-const ATLAS_PATH := "res://assets/enemy/grunt/atlas.png"
-const META_PATH := "res://assets/enemy/grunt/atlas.json"
-const CELL := Vector2i(256, 256)
-const BASELINE_Y := 224.0
-const SCALE := 96.0 / 152.0     ## 站姿最高 152px，缩放后仍为 96px，与旧玩法碰撞预算一致。
+const ATLAS_PATH := "res://assets/enemy/rifleman/atlas.png"
+const META_PATH := "res://assets/enemy/rifleman/atlas.json"
+const CELL := Vector2i(128, 112)
+const BASELINE_Y := 105.0       ## 脚底像素下沿（最低像素行 + 1）
+const SCALE := 1.0              ## 原生 1:1 世界像素，站高 96px 与旧玩法碰撞预算一致；整数缩放不糊像素。
 const BODY_W := 44.0            ## 世界坐标碰撞宽度；不随新美术源像素尺寸变化。
 const BODY_H := 96.0            ## 世界坐标碰撞高度；保持现有关卡和球棒判定不漂移。
 const AGGRO_RANGE := 480.0
@@ -34,11 +35,11 @@ const RECOVER_TICKS := 18       ## 出弹后剩余 fire 12 tick + recover 18 tic
 const DEATH_TICKS := 54         ## 倒地六帧约 6.7fps；仅表现时长，不改死亡结算。
 const IDLE_VISUAL_FPS := 2.0    ## 日常再降速：只改显示，移动/攻击/死亡逻辑时钟不变。
 const RUN_VISUAL_FPS := 6.0
-const MUZZLE := Vector2(44.0, -64.0)   ## 按新图集枪口焰中心校准（随 face 镜像）。
+const MUZZLE := Vector2(36.0, -62.0)   ## 取自 build_enemy.py 输出的出膛帧枪口（atlas.json muzzle_world，随 face 镜像）。
 
 ## 深色描边（近黑紫）：与玩家描边同款做法——背后叠一张膨胀剪影。
-## 新图集会缩小显示，采样 2 个源 texel 才能稳定读作约 1 个世界像素。
-const OUTLINE_TEXEL_STEP := 2.0
+## 新图集按 1:1 显示，1 texel 即 1 世界像素。
+const OUTLINE_TEXEL_STEP := 1.0
 const OUTLINE_SHADER_CODE := """
 shader_type canvas_item;
 render_mode unshaded;
@@ -101,16 +102,16 @@ void fragment() {
 
 ## 本体微提亮（self_modulate，与瞄准品红闪用的 modulate 通道相乘叠合，互不覆盖）
 const SELF_LIFT := Color(1.12, 1.12, 1.18)
-## 尸体归一化：death 末帧是横躺 sprawl（素材内容约 240×63），
-## 独立缩放因子把最长边压到 ≈ 站立身高 96px——尸体不应比活人更抢画面。
+## 尸体归一化：death 末帧侧躺，最长边本就不超过站高 96px 时以 1:1 显示（不放大、避免像素变糊）；
+## 只有超过 96px 才缩到 96px——尸体不应比活人更抢画面。
 ## 同时摘掉亮青轮廓光（rim 是活体威胁的可读性辅助，尸体要往后退）。
-const CORPSE_LONGEST := 96.0    ## 尸体最长边目标（px，世界坐标）
+const CORPSE_LONGEST := 96.0    ## 尸体最长边上限（px，世界坐标）
 ## 接触阴影：脚下软椭圆（KZ 式角色落地锚定），程序生成径向渐变
 const SHADOW_ALPHA := 0.35
 const SHADOW_TEX_W := 32
 const SHADOW_TEX_H := 12
 const SHADOW_SCALE := Vector2(1.7, 1.2)         ## ≈54×14px，略宽于 44px 碰撞体
-const CORPSE_SHADOW_SCALE := Vector2(3.1, 1.3)  ## ≈99×16px，跟随横躺尸体宽度
+const CORPSE_SHADOW_SCALE := Vector2(2.8, 1.3)  ## ≈90×16px，跟随侧躺尸体宽度
 
 var state := "idle"
 var frame := 0                  ## 当前状态已进行的 tick（帧窗口计数器）
@@ -132,8 +133,8 @@ var _atlas: Texture2D
 var _anims: Dictionary = {}
 var _anim_clock := 0.0
 var _shot_fired := false
-var _standing_content_height := 152.0
-var _death_used_rect := Rect2i(8, 161, 240, 63)
+var _standing_content_height := 96.0
+var _death_used_rect := Rect2i(10, 66, 87, 39)
 var _sprite: Sprite2D
 var _outline: Sprite2D
 var _rim: Sprite2D       ## 亮青轮廓光环（画在本体上，只显剪影外沿）
@@ -268,7 +269,7 @@ func corpse_used_rect() -> Rect2i:
 ## 尸体缩放因子：最长边压到 CORPSE_LONGEST（与站姿 SCALE 解耦）
 func corpse_scale() -> float:
 	var u := _death_used_rect
-	return CORPSE_LONGEST / maxf(float(u.size.x), float(u.size.y))
+	return minf(SCALE, CORPSE_LONGEST / maxf(float(u.size.x), float(u.size.y)))
 
 
 ## 尸体最长边（世界 px），尸体不占画面验收用

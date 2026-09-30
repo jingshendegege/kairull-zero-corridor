@@ -1,7 +1,8 @@
 extends SceneTree
 ## 真实出口接入胜利白字/慢黑幕，完成后Enter必须清存点重新开局，音乐仍连续。
 const SESSION := preload("res://scripts/run_session.gd")
-const SCENE := "res://scenes/m05_vertical_freight.tscn" # 最终关才保留Enter重玩，前两关另验自动接续。
+# 最终关才保留Enter重玩，前面各关另验自动接续；新增第四关后取菜单关卡表的最后一关，不写死场景。
+var SCENE: String = SESSION.LEVEL_SCENES[SESSION.LEVEL_SCENES.size() - 1]
 var passed := 0
 var failed := 0
 var game: Node2D
@@ -50,6 +51,13 @@ func _run() -> void:
 	check(not SESSION.checkpoint.is_empty(), "通关fixture先实际激活中段检查点")
 	for enemy: Node2D in game.minions:
 		enemy.dead = true
+	if game.beat_arena != null:
+		# M07 fixture must defeat its independent boss before the exit can open.
+		game.player.position = Vector2(1200, 736)
+		game.beat_arena.step(0.0)
+		game.beat_arena.step(game.beat_arena.conductor.seconds(4))
+		game.beat_arena.boss.take_reflected_hit(game.beat_arena.boss.max_hp)
+		game.beat_arena.step(0.5)
 	game.player.position = game.level.exit_point
 	game.player.on_ground = true
 	await create_timer(.12).timeout

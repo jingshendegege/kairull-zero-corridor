@@ -1,0 +1,38 @@
+[
+  {
+    "id": "events.observe",
+    "name": "读取游戏事件",
+    "description": "通过 KairullMods.on 订阅开局、过关、受伤、死亡、节奏判定、击败 Boss 等只读事件，可用于成就提示、统计、字幕或自定义特效。不能修改事件内容，也不能借此改变游戏判定。",
+    "multiplayer": "local"
+  },
+  {
+    "id": "ui.overlay",
+    "name": "网页覆盖层界面",
+    "description": "通过 KairullMods.createOverlay 在游戏画面上方获得一个属于自己的 HTML 容器，可绘制提示、计分板、装饰或滤镜。默认不接收点击；不能修改或隐藏游戏原有界面、VibeHub 登录按钮和其他 Mod 的容器。",
+    "multiplayer": "local"
+  },
+  {
+    "id": "appearance.player_tint",
+    "name": "主角色调",
+    "description": "通过 KairullMods.registerPlayerTint 给主角凯露尔叠加一种颜色（#rrggbb，强度 0–1），即时生效，只改变本地画面。不能替换角色贴图、动画或受击判定。",
+    "multiplayer": "local"
+  },
+  {
+    "id": "rules.difficulty_health",
+    "name": "难度生命值",
+    "description": "通过 KairullMods.registerDifficultyHealth 修改简单 / 困难 / 武士零三档的生命上限（1–9 格），下一次开局或进入关卡时生效。会改变游戏难度；不能直接回血、改受伤数值或跳关。",
+    "multiplayer": "blocked"
+  },
+  {
+    "id": "tuning.time_stop",
+    "name": "时停调校",
+    "description": "通过 KairullMods.registerTimeStopTuning 调整右键时停的最长时长倍率和充满所需时间倍率（各 0.25–4 倍）。会改变战斗节奏；不能改变时停对敌人、子弹的作用方式。",
+    "multiplayer": "blocked"
+  },
+  {
+    "id": "tuning.boss_health",
+    "name": "节奏 Boss 血量",
+    "description": "通过 KairullMods.registerBossTuning 调整节拍广播塔 Boss 的血量倍率（0.25–4 倍），下一次进入 Boss 关时生效。不能修改谱面、判定窗口、音乐或 Boss 招式。",
+    "multiplayer": "blocked"
+  }
+]

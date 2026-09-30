@@ -30,12 +30,17 @@ var _last_kill_at := -INF
 var _kill_streak := 0
 var _loaded_streams := 0
 var _bus_registered := false
+var _web_audio := false
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_web_audio = OS.has_feature("web")
 	_rng.randomize()
-	_register_bus()
+	# Web 使用低延迟 Sample 播放；自定义 AudioEffect 总线会让浏览器混音路径
+	# 增加延迟并产生卡顿，因此 Web 音效直接送入 Master。
+	if not _web_audio:
+		_register_bus()
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(MANIFEST))
 	if not parsed is Dictionary:
 		push_error("独立动作音效清单缺失或格式错误: " + MANIFEST)
@@ -54,7 +59,7 @@ func _ready() -> void:
 	for index in MAX_VOICES:
 		var voice := AudioStreamPlayer.new()
 		voice.name = "ActionVoice%02d" % index
-		voice.bus = BUS_NAME
+		voice.bus = &"Master" if _web_audio else BUS_NAME
 		add_child(voice)
 		_voices.append(voice)
 		_voice_events.append("")

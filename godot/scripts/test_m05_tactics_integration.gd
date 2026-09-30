@@ -57,13 +57,8 @@ func _run() -> void:
 	check(menu.monitor_count == 1 and menu.subviewport_count == 1 and menu._monitor_nodes.size() == 1,
 			"第三关开局也使用单台CRT，不依赖旧四台屏幕索引")
 	menu._select_page(menu.PAGE_START, true)
-	var select_level := InputEventMouseButton.new()
-	select_level.button_index = MOUSE_BUTTON_LEFT
-	select_level.pressed = true
-	select_level.position = menu.canvas_to_screen(0, menu.level_card_rect(2).get_center())
-	menu._unhandled_input(select_level)
-	check(menu.selected_level == 2 and SESSION.selected_scene() == SCENE,
-			"同一CRT真实第三关卡片点击选择垂直货运井")
+	# 2026-09-30 垂直货运井已移出战役菜单：用菜单确认难度后，以与菜单相同的会话入口直接进入独立场景。
+	check(not SESSION.LEVEL_SCENES.has(SCENE), "垂直货运井不再出现在关卡卡片中")
 	menu._unhandled_input(_event(KEY_RIGHT))
 	menu._unhandled_input(_event(KEY_DOWN))
 	menu._unhandled_input(_event(KEY_DOWN))
@@ -72,7 +67,11 @@ func _run() -> void:
 			"武士零难度确认仅返回同台开始频道，不抢先开局")
 	var request_modes: Array[String] = []
 	menu.run_requested.connect(func(mode: String): request_modes.append(mode))
+	menu.suppress_external_actions = true
 	menu._unhandled_input(_event(KEY_ENTER))
+	check(request_modes == ["zero"], "开始按钮仍发出武士零开局请求")
+	SESSION.begin_run("zero")
+	change_scene_to_file(SCENE)
 	for _i in 12:
 		await process_frame
 		if is_instance_valid(current_scene) and current_scene.has_node("Game"):
@@ -80,7 +79,7 @@ func _run() -> void:
 			break
 	check(request_modes == ["zero"] and is_instance_valid(current_scene) \
 			and current_scene.scene_file_path == SCENE and current_scene.has_node("Game"),
-			"确认开始通过菜单生产change_scene真正进入M05而非M04")
+			"以菜单同款会话入口真正进入独立 M05 场景")
 	if game == null:
 		quit(1)
 		return
@@ -122,7 +121,7 @@ func _supplies() -> int:
 
 
 func _test_structure() -> void:
-	check(SESSION.start_level == 2 and SESSION.difficulty == "zero" and player.hp == 1 \
+	check(SESSION.difficulty == "zero" and player.hp == 1 \
 			and game.timeline_enabled, "第三关武士零档保持1血和原时间循环")
 	check(game.level.map_w == 144 and game.level.map_h == 114 and game.level.rooms.size() == 20,
 			"真实第三关144×114/20房，不是改名的第二长走廊")
@@ -143,8 +142,8 @@ func _test_structure() -> void:
 	check(CorridorLevel.active_encounter_policy == "same_floor_nearby" \
 			and game._campaign_boundaries.is_empty() and game._checkpoint_beacons.size() == 1 \
 			and game._checkpoint_index == -1, "纵向空间唤醒独立于单一未激活记录台，不套线性关卡解锁")
-	check(CorridorLevel.active_restart_scene == SCENE and SESSION.selected_scene() == SCENE,
-			"会话选择和地图重开入口同时指向M05")
+	check(CorridorLevel.active_restart_scene == SCENE and SESSION.next_scene_after(SCENE).is_empty(),
+			"地图重开入口指向M05；已移出战役，通关不自动接关")
 
 
 func _place(point: Vector2) -> void:
@@ -282,23 +281,23 @@ func _test_smoke_and_sniper() -> void:
 	enemy.position = saved_position
 	enemy._sync_sprite()
 	game._step_tactics(DT)
-	game._step_tactics(1.51)
-	check(sniper.state == "locked" and sniper.shot_count == 0, "井底炮离烟后重新跟踪完整1.5秒才锁定")
+	game._step_tactics(TacticalHazard.SNIPER_TRACK_TIME + 0.01)
+	check(sniper.state == "locked" and sniper.shot_count == 0, "井底炮离烟后重新跟踪完整跟踪时长才锁定")
 	smoke.deploy_cloud(player.position)
 	game._step_tactics(0.2)
 	check(sniper.state == "idle" and sniper.last_target == Vector2.ZERO \
 			and sniper.shot_count == 0 and game.enemy_bullets.is_empty(),
-			"井底炮已锁定的最后半秒也会被烟立即取消，不补发子弹")
+			"井底炮已锁定的最后0.35秒也会被烟立即取消，不补发子弹")
 	smoke.clear_effects()
 	game._step_tactics(DT)
-	game._step_tactics(1.49)
-	check(sniper.state == "warning" and sniper.shot_count == 0, "M05重新出烟1.49秒还未偷锁/偷射")
+	game._step_tactics(TacticalHazard.SNIPER_TRACK_TIME - 0.01)
+	check(sniper.state == "warning" and sniper.shot_count == 0, "M05重新出烟跟踪阈值前0.01秒还未偷锁/偷射")
 	game._step_tactics(0.02)
-	game._step_tactics(0.49)
-	check(sniper.state == "locked" and sniper.shot_count == 0, "新1.5秒结束后还要足额半秒锁向")
+	game._step_tactics(TacticalHazard.SNIPER_LOCK_TIME - 0.01)
+	check(sniper.state == "locked" and sniper.shot_count == 0, "新跟踪结束后还要足额锁向")
 	game._step_tactics(0.02)
 	check(sniper.shot_count == 1 and game.enemy_bullets.size() == 1,
-			"重新完整1.5秒+半秒才经第三关宿主发出一颗高速弹")
+			"重新完整跟踪与锁向才经第三关宿主发出一颗高速弹")
 	game.enemy_bullets.clear()
 
 
@@ -399,7 +398,7 @@ func _test_retry() -> void:
 			break
 	check(current_scene.scene_file_path == SCENE and current_scene.get_instance_id() != old_scene_id,
 			"生产死亡回溯真正重载第三关，不退回M04或电视菜单")
-	check(SESSION.start_level == 2 and SESSION.attempt == 2 and player.hp == 1 and not player.dead,
+	check(SESSION.attempt == 2 and player.hp == 1 and not player.dead,
 			"新轮恢复第三关选择、武士零1血和轮次，不继承fixture五血")
 	check(game.minions.size() == 52 and game._enemies().size() == 52 and _cargo_count() == 26,
 			"新轮重建52敌/26箱，不沿用已清房和碎箱")

@@ -6,10 +6,14 @@ static var timeline_enabled := false
 static var attempt := 1
 static var start_level := 0 ## 菜单保留旧关，新增第二关；仅选择起始场景，不是中途记录点。
 const DIFFICULTIES := ["easy", "hard", "zero"]
+## VibeHub 创意工坊（ModBridge 写入）：难度 → 生命上限覆盖；空 = 原值。
+static var hp_overrides: Dictionary = {}
 static var checkpoint: Dictionary = {} ## 仅当前挑战的内存快照；返回菜单/新开局清空，不跨关串档。
-const LEVEL_SCENES := ["res://scenes/m01_protocol_quarantine.tscn", "res://scenes/m04_chrono_freight.tscn",
-		"res://scenes/m05_vertical_freight.tscn"]
-const LEVEL_NAMES := ["01 协议检疫站", "02 时差货运场", "03 垂直货运井"]
+## 2026-09-30 用户要求：原第四关排风脊线改为第一关，节拍广播塔 Boss 接在第一关结尾；其余关依次顺延。
+## 同日用户要求删除第四关（垂直货运井 M05）：只移出战役/菜单，场景与资源保留可单独运行。
+const LEVEL_SCENES := ["res://scenes/m06_exhaust_ridge.tscn", "res://scenes/m07_beat_tower.tscn",
+		"res://scenes/m01_protocol_quarantine.tscn", "res://scenes/m04_chrono_freight.tscn"]
+const LEVEL_NAMES := ["01 排风脊线", "01 BOSS 节拍塔", "02 协议检疫站", "03 时差货运场"]
 
 
 static func selected_scene() -> String:
@@ -38,7 +42,10 @@ static func normalize_difficulty(mode: String) -> String:
 	return mode if mode in DIFFICULTIES else "easy"
 
 static func health_for_difficulty(mode: String) -> int:
-	match normalize_difficulty(mode):
+	var key := normalize_difficulty(mode)
+	if hp_overrides.has(key):
+		return clampi(int(hp_overrides[key]), 1, 9)
+	match key:
 		"zero": return 1
 		"hard": return 3
 		_: return 5

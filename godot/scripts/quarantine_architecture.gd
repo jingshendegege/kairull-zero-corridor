@@ -65,6 +65,7 @@ var stair_semantic_cell_count := 0
 var stair_semantics_valid := false
 
 var _phase := 0.0
+var _web_anim_accum := 0.0
 ## 语义层在setup中深复制，运行时只有灯/屏_phase变化；边界和行合并可安全复用整关。
 ## 缓存完整几何而非裁掉离屏房间，避免换镜头后前景缺失或暗边/设备外延被截断。
 var _value_bounds_cache: Dictionary = {}
@@ -108,6 +109,11 @@ func setup(p_level: CorridorLevel, p_layers: Dictionary, p_ids: Dictionary,
 
 func _process(dt: float) -> void:
 	# 只有告警灯轻微明灭；几何与墙板保持静止，避免整张地图闪烁。
+	if OS.has_feature("web"):
+		_web_anim_accum += dt
+		if _web_anim_accum < 1.0 / 30.0:
+			return
+		_web_anim_accum = fmod(_web_anim_accum, 1.0 / 30.0)
 	_phase = fmod(_phase + dt, TAU)
 	queue_redraw()
 
@@ -130,6 +136,8 @@ func has_visible_backdrop_at(wx: float, wy: float) -> bool:
 		return false
 	var cell := Vector2i(floori(wx / TS), floori(wy / TS))
 	for room: Dictionary in level.rooms:
+		if _is_open_sky(room):
+			continue   # 露天没有墙面，血迹不贴墙
 		var rect: Rect2i = room["rect"]
 		var interior := Rect2i(rect.position + Vector2i(0, 1),
 				Vector2i(rect.size.x, maxi(0, rect.size.y - 2)))
@@ -138,14 +146,27 @@ func has_visible_backdrop_at(wx: float, wy: float) -> bool:
 	return false
 
 
+## 室外关卡（04 排风脊线）由 boot 声明哪些 decor_profile 是露天房间：不画墙壳与边界过渡，
+## 露出 GameBackground 夜空；默认空数组 → 其他关卡行为不变。boot 的 _exit_tree 负责清空。
+static var open_sky_profiles: Array = []
+
+
+func _is_open_sky(room: Dictionary) -> bool:
+	return open_sky_profiles.has(String(room.get("decor_profile", "")))
+
+
 func _draw_room_shells() -> void:
 	# 先把墙色向地图外黑暗递减四档，再画实心房间；相邻房间会覆盖彼此的外沿，
 	# 因此只有真正暴露在虚空中的地图边界保留过渡。
 	for room: Dictionary in level.rooms:
+		if _is_open_sky(room):
+			continue
 		var transition_rect := _room_shell_rect(room)
 		_draw_room_boundary_transition(transition_rect,
 				_profile_color(String(room.get("decor_profile", ""))))
 	for room: Dictionary in level.rooms:
+		if _is_open_sky(room):
+			continue
 		var rect: Rect2i = room["rect"]
 		var profile := String(room.get("decor_profile", ""))
 		var shell := _room_shell_rect(room)

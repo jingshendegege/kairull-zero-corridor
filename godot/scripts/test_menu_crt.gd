@@ -27,7 +27,7 @@ func _run() -> void:
 	root.add_child(menu)
 	menu.set_process(false)
 	check(menu.monitor_count == 1 and menu.subviewport_count == 1, "唯一真实3D CRT和唯一640×360纹理")
-	check(SESSION.LEVEL_SCENES.size() == 3, "保留三关选择，不改变已完成地图")
+	check(SESSION.LEVEL_SCENES.size() == 4 and not SESSION.LEVEL_SCENES.has("res://scenes/m05_vertical_freight.tscn"), "四张关卡卡片，垂直货运井已删除")
 	for index in 4:
 		var monitor: Node3D = menu._monitor_nodes[0]
 		var screen: MeshInstance3D = monitor.get_node("Screen")
@@ -47,11 +47,14 @@ func _run() -> void:
 	var frame_point := menu._camera.unproject_position(menu._monitor_nodes[0].to_global(Vector3(1.62, .65, .58)))
 	menu._handle_mouse_click(frame_point)
 	check(starts == 0 and menu.selected_page == 0, "点击当前机壳旋钮只聚焦，不触发开始")
-	for index in 3:
+	for index in SESSION.LEVEL_SCENES.size():
+		var card: Rect2 = menu.level_card_rect(index)
+		check(Rect2(Vector2.ZERO, Vector2(MENU.SCREEN_SIZE)).encloses(card)
+			and not card.intersects(MENU.START_BUTTON), "第%d关卡完整位于屏幕内且不覆盖开始按钮" % (index + 1))
 		menu._handle_mouse_click(menu.canvas_to_screen(0, menu.level_card_rect(index).get_center()))
 		check(menu.selected_level == index and starts == 0, "第%d关卡卡片完整可点且不立即开始" % (index + 1))
 	menu._handle_mouse_click(menu.canvas_to_screen(0, MENU.START_BUTTON.get_center()))
-	check(starts == 1 and menu.selected_level == 2, "精确开始按钮才请求进入当前第三关")
+	check(starts == 1 and menu.selected_level == SESSION.LEVEL_SCENES.size() - 1, "精确开始按钮才请求进入当前最后一张卡")
 	for index in 4:
 		menu._handle_mouse_click(menu._navigation.tab_rect(index).get_center())
 		check(menu.selected_page == index and starts == 1 and quits == 0, "底部第%d导航标签真正可点击且只换页" % (index + 1))

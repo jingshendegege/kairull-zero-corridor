@@ -16,7 +16,7 @@ func _ready() -> void:
 	CorridorLevel.active_hide_rows_from = -1
 	CorridorLevel.active_minion = "grunt"   # x=枪手；m 由地图标记强制为近战巡检员。
 	CorridorLevel.active_boss = "none"
-	CorridorLevel.active_title = "M01 协议检疫站"
+	CorridorLevel.active_title = "02 协议检疫站"
 	CorridorLevel.active_tile_style = {"name": "quarantine"}
 	CorridorLevel.active_tileset_path = "res://assets/maps/quarantine/tileset_quarantine.png"
 	CorridorLevel.active_bgm = "res://assets/bgm/m02_oldtown.mp3"   # 先复用低音量主线曲，后续可独立换曲。

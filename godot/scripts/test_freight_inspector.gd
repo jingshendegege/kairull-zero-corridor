@@ -23,23 +23,36 @@ func _init() -> void:
 
 func _run() -> void:
 	print("== 货运巡检员素材 ==")
-	var source := Image.load_from_file("res://assets/enemy/freight_inspector/ai_reference.png")
-	var atlas := Image.load_from_file("res://assets/enemy/freight_inspector/atlas.png")
-	ok(source.get_format() in [Image.FORMAT_RGBA8, Image.FORMAT_RGBAF,
-		Image.FORMAT_RGBAH, Image.FORMAT_RGBA4444], "母表含 Alpha 通道")
-	ok(atlas.get_size() == Vector2i(1024, 672), "图集为 8x7 个 128x96 正方形格",
+	var atlas := Image.load_from_file(FREIGHT_SCRIPT.ATLAS_PATH)
+	var cell: Vector2i = FREIGHT_SCRIPT.CELL
+	ok(atlas.get_format() in [Image.FORMAT_RGBA8, Image.FORMAT_RGBAF,
+		Image.FORMAT_RGBAH, Image.FORMAT_RGBA4444], "图集含 Alpha 通道")
+	ok(atlas.get_size() == Vector2i(8 * cell.x, 7 * cell.y), "图集为 8x7 个 %dx%d 格" % [cell.x, cell.y],
 		str(atlas.get_size()))
-	var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(
-		"res://assets/enemy/freight_inspector/atlas.json"))
+	var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(FREIGHT_SCRIPT.META_PATH))
 	var expected := {"idle": 4, "alert": 5, "run": 8, "windup": 4,
 		"attack": 6, "recover": 4, "death": 6}
 	var counts_ok := true
 	for name in expected:
 		counts_ok = counts_ok and int(meta["animations"][name]["frames"]) == expected[name]
 	ok(counts_ok, "实际使用帧为 4/5/8/4/6/4/6")
-	ok(int(meta["source_frames"]["death"]) == 7
-		and int(meta["animations"]["death"]["frames"]) == 6,
-		"第七行保留 7 帧但排除最后一帧")
+	# 新美术：每张有效帧都贴同一脚底线，挥击有效画面帧与逻辑窗对应（tick 2–6 → 画面第 1–5 帧）。
+	var grounded := true
+	for record: Dictionary in meta["frames"]:
+		var bbox: Array = record["cell_bbox"]
+		grounded = grounded and int(bbox[1]) + int(bbox[3]) == int(FREIGHT_SCRIPT.BASELINE_Y)
+	ok(grounded and int(meta["baseline_y"]) == int(FREIGHT_SCRIPT.BASELINE_Y), "37 帧脚底统一贴地")
+	var active_frames: Array = []
+	for value in meta.get("attack_active_frames", []):
+		active_frames.append(int(value))   # JSON 数字解析为 float，按整数比较
+	var expected_active: Array = []
+	for tick in range(FREIGHT_SCRIPT.ATTACK_ACTIVE_FROM, FREIGHT_SCRIPT.ATTACK_ACTIVE_TO + 1):
+		var progress := float(tick) / float(FREIGHT_SCRIPT.ATTACK_TICKS - 1)
+		var visual := mini(int(meta["animations"]["attack"]["frames"]) - 1,
+				floori(progress * int(meta["animations"]["attack"]["frames"])))
+		if not expected_active.has(visual):
+			expected_active.append(visual)
+	ok(active_frames == expected_active, "挥击有效画面帧标注与逻辑有效窗一致", str(active_frames))
 
 	print("== 货运巡检员状态机 ==")
 	CorridorLevel.active_map = CorridorLevel.MAP_M03_ZERO_FREIGHT
@@ -80,7 +93,7 @@ func _run() -> void:
 	ok(enemy.state == "recover" and not enemy.attack_active(), "挥击后进入无伤害硬直")
 	ok(enemy.take_hit(player.position.x, 1) and enemy.dead and enemy.state == "dead",
 		"球棒一击击倒并播放死亡行")
-	ok(enemy._sprite.region_rect.position.y == 6 * 96,
+	ok(enemy._sprite.region_rect.position.y == 6 * FREIGHT_SCRIPT.CELL.y,
 		"死亡状态实际切到第七行动画", str(enemy._sprite.region_rect))
 	ok(not enemy.take_hit(player.position.x, 1), "死亡后不会重复结算")
 

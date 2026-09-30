@@ -147,6 +147,10 @@ func _rider_clear_at(rider: Node2D, feet: float) -> bool:
 	return true
 
 
+## 2026-09-28 货梯台面改为像素精灵（tools/art/hazards/build_hazard_sprites.py），导轨与指示灯仍由代码画。
+const DECK_TEX := preload("res://assets/maps/hazards/lift_deck.png")
+
+
 func _draw() -> void:
 	var rail_top := top_y - position.y - 78.0
 	var rail_bottom := bottom_y - position.y + height
@@ -157,11 +161,7 @@ func _draw() -> void:
 		for y in range(int(rail_top) + 6, int(rail_bottom), 32):
 			draw_rect(Rect2(x - 5, y, 10, 3), Color("#3a505b"))
 		draw_rect(Rect2(x - 5, -3, 10, height + 5), Color("#4c646f"))
-	draw_rect(Rect2(-width * 0.5, 0, width, height), Color("#0e1c24"))
-	draw_rect(Rect2(-width * 0.5 + 2, 3, width - 4, height - 5), Color("#405863"))
-	draw_line(Vector2(-width * 0.5, 0), Vector2(width * 0.5, 0), Color("#b4d5d7"), 2.0)
-	for x in range(int(-width * 0.5) + 8, int(width * 0.5) - 8, 20):
-		draw_line(Vector2(x, 5), Vector2(x + 6, height - 2), Color("#b4935f"), 2.0)
+	draw_texture_rect(DECK_TEX, Rect2(-width * 0.5, 0, width, 16), false)
 	var lamp := Color("#e1bc75") if stalled else Color("#8ce2ce")
 	var sign_y := -18.0
 	var dir := 1.0 if state == "down" else -1.0

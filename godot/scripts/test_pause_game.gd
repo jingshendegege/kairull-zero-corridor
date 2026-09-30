@@ -55,7 +55,7 @@ func _prepare() -> void:
 
 func _boot() -> void:
 	SESSION.begin_run("hard")
-	SESSION.start_level = 1
+	SESSION.start_level = 3
 	var scene: Node2D = load(SCENE).instantiate()
 	root.add_child(scene)
 	current_scene = scene

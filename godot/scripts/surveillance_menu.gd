@@ -8,6 +8,7 @@ signal quit_requested
 
 const SESSION := preload("res://scripts/run_session.gd")
 const CRT_SHADER := preload("res://shaders/menu_crt_fault.gdshader")
+const WALL_SHADER := preload("res://shaders/menu_wall_screen.gdshader")
 
 const PAGE_START := 0
 const PAGE_DIFFICULTY := 1
@@ -15,7 +16,7 @@ const PAGE_CONTROLS := 2
 const PAGE_EXIT := 3
 const PAGE_COUNT := 4
 const SCREEN_SIZE := Vector2i(640, 360)
-const START_BUTTON := Rect2(178, 286, 284, 47)
+const START_BUTTON := Rect2(426, 282, 198, 56)
 const DIFFICULTY_CONFIRM := Rect2(130, 291, 380, 42)
 const CONTROLS_RETURN := Rect2(444, 326, 172, 27)
 const EXIT_CONFIRM := Rect2(132, 281, 376, 47)
@@ -55,25 +56,40 @@ var _fault_elapsed := 0.0
 var _fault_duration := 0.20
 var _fault_page := -1
 var _fault_serial := 0
+var _idle_time := 0.0
+var _wall_screens: Array[ShaderMaterial] = []
 
 
 class MenuGuide extends Control:
 	## 独立于CRT故障的持续导航；屏幕内文字变形时也不会失去操作提示。
+	## 2026-09-30 重做：左上故障风大标题（RGB 分离 + 间歇切片抖动）、霓虹斜切频道标签、右上状态芯片。
 	var menu: Node3D
 	var font: SystemFont
-	const TITLES := ["01  开始", "02  难度", "03  操作", "04  退出"]
+	var bold: SystemFont
+	var elapsed := 0.0
+	const TITLES := ["开始", "难度", "操作", "退出"]
+	const CODES := ["01", "02", "03", "04"]
 	const ACCENTS := [Color("#55dcd5"), Color("#e7bc78"), Color("#91d1a4"), Color("#e89196")]
+	const NEON_PINK := Color("#ff3d8b")
+	const NEON_CYAN := Color("#3df2ff")
 
 	func _ready() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 		font = SystemFont.new()
 		font.font_names = PackedStringArray(["Microsoft YaHei", "Segoe UI"])
 		font.fallbacks = [preload("res://NotoSansCJKsc-Regular.otf")]
-		set_process(false)
+		bold = SystemFont.new()
+		bold.font_names = PackedStringArray(["Microsoft YaHei", "Segoe UI"])
+		bold.font_weight = 900
+		bold.fallbacks = [preload("res://NotoSansCJKsc-Regular.otf")]
+
+	func _process(delta: float) -> void:
+		elapsed += delta
+		queue_redraw()
 
 	func tab_rect(index: int) -> Rect2:
 		var view := get_viewport_rect().size
-		return Rect2(view.x * .5 - 310.0 + index * 158.0, view.y - 104.0, 146.0, 34.0)
+		return Rect2(view.x * .5 - 330.0 + index * 166.0, view.y - 100.0, 154.0, 38.0)
 
 	func tab_at(point: Vector2) -> int:
 		for index in 4:
@@ -81,34 +97,77 @@ class MenuGuide extends Control:
 				return index
 		return -1
 
+	func _glitch_text(at: Vector2, text: String, size: int, color: Color, use_font: Font) -> void:
+		# 每 3.1 秒一次 0.12 秒的强故障：横向抖动 + 更大 RGB 分离；平时只有 1~2px 的色差。
+		var phase := fmod(elapsed, 3.1)
+		var hit := phase < 0.12
+		var split := 5.0 if hit else 1.6 + sin(elapsed * 3.0) * 0.6
+		var jitter := Vector2((sin(elapsed * 97.0) * 7.0) if hit else 0.0, 0)
+		draw_string(use_font, at + jitter + Vector2(-split, 0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(NEON_PINK, 0.75))
+		draw_string(use_font, at - jitter + Vector2(split, 0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(NEON_CYAN, 0.75))
+		draw_string(use_font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color)
+
 	func _draw() -> void:
 		if font == null or menu == null:
 			return
 		var view := get_viewport_rect().size
-		draw_string(font, Vector2(34, 41), "凯露尔 · 零号回廊", HORIZONTAL_ALIGNMENT_LEFT, -1, 21, Color("#c9d5ce"))
-		draw_string(font, Vector2(35, 62), "监控接入  /  SURVEILLANCE ARCHIVE", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("#829393"))
-		var context: String = SESSION.LEVEL_NAMES[menu.selected_level] + "  ·  " + SESSION.name_for_difficulty(menu.selected_difficulty) \
-			+ " / %d HP" % SESSION.health_for_difficulty(menu.selected_difficulty)
+		var accent: Color = ACCENTS[menu.selected_page]
+		# 四周暗角：把视线收拢到中央 CRT，标题和标签压在暗底上更清楚
+		for i in 14:
+			var a := 0.055 * (14 - i) / 14.0
+			draw_rect(Rect2(0, i * 7, view.x, 7), Color(0, 0, 0, a * 2.4))
+			draw_rect(Rect2(0, view.y - (i + 1) * 7, view.x, 7), Color(0, 0, 0, a * 2.0))
+			draw_rect(Rect2(i * 9, 0, 9, view.y), Color(0, 0, 0, a * 1.6))
+			draw_rect(Rect2(view.x - (i + 1) * 9, 0, 9, view.y), Color(0, 0, 0, a * 1.6))
+		draw_rect(Rect2(20, 16, 360, 76), Color(0.01, 0.02, 0.03, 0.55))
+		# 左上标题块
+		draw_rect(Rect2(28, 22, 5, 64), NEON_PINK)
+		_glitch_text(Vector2(44, 62), "凯露尔", 44, Color("#f2f7f5"), bold)
+		var zc := "ZERO  CORRIDOR"
+		draw_string(bold, Vector2(214, 50), zc, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, NEON_CYAN)
+		draw_string(font, Vector2(214, 70), "零号回廊 · 监控网络接入", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("#9fb3b1"))
+		var line_w := 170.0 + 30.0 * sin(elapsed * 1.7)
+		draw_rect(Rect2(44, 78, line_w, 2), Color(NEON_CYAN, 0.8))
+		draw_rect(Rect2(44 + line_w + 6, 78, 18, 2), Color(NEON_PINK, 0.9))
+		# 右上状态芯片：当前关卡 / 难度 / 生命
+		var context: String = SESSION.LEVEL_NAMES[menu.selected_level] + "   " + SESSION.name_for_difficulty(menu.selected_difficulty) 			+ " · %d HP" % SESSION.health_for_difficulty(menu.selected_difficulty)
 		var context_w := font.get_string_size(context, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
-		draw_string(font, Vector2(view.x - context_w - 34, 39), context, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("#a7b4ac"))
+		var chip := Rect2(view.x - context_w - 74, 26, context_w + 44, 30)
+		draw_rect(chip, Color("#071217d8"))
+		draw_rect(chip, Color(accent, 0.7), false, 1.5)
+		var blink := 1.0 if fmod(elapsed, 1.2) < 0.8 else 0.25
+		draw_circle(chip.position + Vector2(15, 15), 4, Color("#ff4060", blink))
+		draw_string(font, chip.position + Vector2(28, 20), context, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("#dfe9e6"))
+		# 底部斜切霓虹频道标签
 		for index in 4:
 			var rect := tab_rect(index)
 			var active: bool = index == menu.selected_page
-			draw_rect(rect, Color("#18242a") if active else Color("#0d151bcc"))
-			draw_line(rect.position + Vector2(0, rect.size.y - 1), rect.end,
-				ACCENTS[index] if active else Color("#405157"), 2.0 if active else 1.0)
-			var text_w := font.get_string_size(TITLES[index], HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x
-			draw_string(font, rect.position + Vector2((rect.size.x - text_w) * .5, 23), TITLES[index],
-				HORIZONTAL_ALIGNMENT_LEFT, -1, 15, ACCENTS[index] if active else Color("#92a2a3"))
+			var col: Color = ACCENTS[index]
+			var slant := 12.0
+			var poly := PackedVector2Array([rect.position + Vector2(slant, 0), Vector2(rect.end.x, rect.position.y),
+				rect.end - Vector2(slant, 0), Vector2(rect.position.x, rect.end.y)])
+			draw_colored_polygon(poly, Color(col, 0.22) if active else Color("#081015d0"))
+			var outline := poly.duplicate()
+			outline.append(poly[0])
+			draw_polyline(outline, Color(col, 0.95) if active else Color(col, 0.28), 2.0 if active else 1.0)
+			if active:
+				# 选中标签：下方发光条 + 呼吸光晕
+				var glow := 0.35 + 0.25 * sin(elapsed * 4.0)
+				draw_rect(Rect2(rect.position.x + slant, rect.end.y + 4, rect.size.x - slant * 2, 3), Color(col, 0.9))
+				draw_rect(Rect2(rect.position.x + slant, rect.end.y + 7, rect.size.x - slant * 2, 4), Color(col, glow * 0.4))
+			var code_color: Color = col if active else Color("#5d7073")
+			draw_string(bold, rect.position + Vector2(26, 25), CODES[index], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, code_color)
+			draw_string(bold, rect.position + Vector2(56, 26), TITLES[index], HORIZONTAL_ALIGNMENT_LEFT, -1, 17,
+				Color("#f4faf8") if active else Color("#8a9c9d"))
 		var hints := [
-			"A/D 或 ←→ 换频道    ↑↓ 选择关卡    ENTER 开始    鼠标点击明确按钮",
+			"A/D ←→ 换频道    ↑↓ 选择关卡    ENTER 开始    鼠标点击按钮",
 			"A/D 换频道    ↑↓ 循环选择三档难度    ENTER 确认并返回（不会开局）",
 			"A/D 换频道    ENTER / ESC 返回开始    游戏内 Esc 暂停 / 再按原地继续",
 			"A/D 换频道    ENTER 确认退出    ESC 返回开始"]
 		var hint: String = hints[menu.selected_page]
-		var hint_w := font.get_string_size(hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
-		draw_string(font, Vector2((view.x - hint_w) * .5, view.y - 36), hint,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("#b1c0bb"))
+		var hint_w := font.get_string_size(hint, HORIZONTAL_ALIGNMENT_LEFT, -1 , 13).x
+		draw_string(font, Vector2((view.x - hint_w) * .5, view.y - 30), hint,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("#9fb1ad"))
 
 
 class MonitorCanvas extends Control:
@@ -121,6 +180,10 @@ class MonitorCanvas extends Control:
 	var elapsed := 0.0
 	var notice_time := 0.0
 	var font: SystemFont
+	var bold: SystemFont
+	var previews := {}          ## 场景前缀 → 关卡实拍（assets/menu/preview_*.png，由游戏内截图生成）
+	var _shown_level := -1
+	var _switch_t := 9.0        ## 切换关卡后的故障过渡计时
 
 	const INK := Color("#071116")
 	const PAPER := Color("#d8f3ee")
@@ -135,11 +198,34 @@ class MonitorCanvas extends Control:
 		font = SystemFont.new()
 		font.font_names = PackedStringArray(["Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI"])
 		font.fallbacks = [preload("res://NotoSansCJKsc-Regular.otf")]
+		bold = SystemFont.new()
+		bold.font_names = PackedStringArray(["Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI"])
+		bold.font_weight = 900
+		bold.fallbacks = [preload("res://NotoSansCJKsc-Regular.otf")]
+		for scene: String in SESSION.LEVEL_SCENES:
+			var key := scene.get_file().substr(0, 3)
+			var path := "res://assets/menu/preview_%s.png" % key
+			if ResourceLoader.exists(path):
+				previews[key] = load(path)
 
 	func _process(delta: float) -> void:
 		elapsed += delta
 		notice_time = maxf(0.0, notice_time - delta)
+		if level_choice != _shown_level:
+			_shown_level = level_choice
+			_switch_t = 0.0
+		_switch_t += delta
 		queue_redraw()
+
+	static func level_meta(index: int) -> Dictionary:
+		var key: String = SESSION.LEVEL_SCENES[index].get_file().substr(0, 3)
+		var table := {"m06": {"tag": "夜间屋顶 · 高空跑酷", "boss": false},
+			"m07": {"tag": "节奏 BOSS · BEAT WARDEN", "boss": true},
+			"m01": {"tag": "检疫设施 · 协议清剿", "boss": false},
+			"m04": {"tag": "时差货运 · 时停解谜", "boss": false}}
+		var meta: Dictionary = table.get(key, {"tag": "", "boss": false}).duplicate()
+		meta["key"] = key
+		return meta
 
 	func _draw() -> void:
 		var accent := _accent()
@@ -178,62 +264,160 @@ class MonitorCanvas extends Control:
 		draw_rect(Rect2(0, sweep_y, size.x, 4), Color(accent, 0.010))
 
 	func _draw_header(accent: Color) -> void:
-		draw_rect(Rect2(0, 0, size.x, 45), Color("#0d1b20"))
-		draw_rect(Rect2(0, 43, size.x, 2), Color(accent, 0.65 if focused else 0.23))
+		draw_rect(Rect2(0, 0, size.x, 44), Color("#081418"))
+		draw_rect(Rect2(0, 42, size.x, 2), Color(accent, 0.75 if focused else 0.3))
+		for i in 6:
+			var x := 330.0 + i * 9.0
+			draw_colored_polygon(PackedVector2Array([Vector2(x, 42), Vector2(x + 5, 42), Vector2(x + 13, 30), Vector2(x + 8, 30)]),
+				Color(accent, 0.25))
 		var rec_alpha := 1.0 if fmod(elapsed, 1.0) < 0.62 else 0.28
-		draw_circle(Vector2(23, 21), 5, Color(RED, rec_alpha))
-		_text(Vector2(36, 28), "REC", 15, PAPER)
-		_text(Vector2(92, 27), "K-00 / SURVEILLANCE", 13, MUTED)
-		_text(Vector2(354, 27), "CH %02d/04 · A/D" % (page + 1), 12, MUTED)
+		draw_circle(Vector2(22, 21), 6, Color(RED, rec_alpha))
+		draw_circle(Vector2(22, 21), 10, Color(RED, rec_alpha * 0.18))
+		_text(Vector2(36, 28), "REC", 15, PAPER, true)
+		_text(Vector2(84, 27), "K-00 // ZERO CORRIDOR NET", 12, MUTED)
+		_text(Vector2(400, 27), "CH %02d/04" % (page + 1), 12, accent, true)
 		var frames := int(fposmod(elapsed * 24.0, 24.0))
 		var seconds := int(elapsed) % 60
 		var minutes := (int(elapsed) / 60) % 60
-		var code := "00:%02d:%02d:%02d" % [minutes, seconds, frames]
-		_text(Vector2(498, 27), code, 13, accent)
+		var code := "23:%02d:%02d:%02d" % [47 + minutes, seconds, frames]
+		_text(Vector2(506, 27), code, 13, accent, true)
 
 	func _draw_start(accent: Color) -> void:
-		# 监控画面只画关卡剪影，不加载正式 Game/Boot。
-		var feed := Rect2(28, 63, 584, 205)
-		draw_rect(feed, Color("#07151a"))
-		draw_rect(Rect2(feed.position, Vector2(feed.size.x, 3)), Color(accent, 0.42))
-		for i in range(6):
-			var x := feed.position.x + i * 104.0
-			draw_rect(Rect2(x, 83, 88, 112), Color("#10272c"))
-			draw_line(Vector2(x + 8, 101), Vector2(x + 80, 101), Color("#24464b"), 2)
-			draw_line(Vector2(x + 44, 105), Vector2(x + 44, 188), Color("#1b3940"), 2)
-		# 维护步道和地板被画成有功能层次的监控剪影。
-		draw_rect(Rect2(28, 194, 584, 12), Color("#29464b"))
-		for x in range(34, 606, 28):
-			draw_line(Vector2(x, 197), Vector2(x + 10, 203), Color("#5b7775"), 2)
-		draw_rect(Rect2(28, 235, 584, 22), Color("#17282d"))
-		for x in range(36, 606, 42):
-			draw_rect(Rect2(x, 242, 18, 4), Color("#315159"))
-		# 白发角色与敌对传感点仅作动态剪影，防止菜单改写关卡状态。
-		var bob := roundf(sin(elapsed * 2.3) * 2.0)
-		var hero := Vector2(324, 225 + bob)
-		draw_circle(hero + Vector2(0, -27), 9, Color("#eef5f0"))
-		draw_colored_polygon(PackedVector2Array([
-			hero + Vector2(-12, -18), hero + Vector2(11, -18),
-			hero + Vector2(8, 1), hero + Vector2(-8, 1)]), Color("#c9ebe8"))
-		draw_line(hero + Vector2(9, -12), hero + Vector2(28, -20), AMBER, 5)
-		for enemy_x in [124.0, 458.0, 548.0]:
-			draw_circle(Vector2(enemy_x, 226), 10, Color("#111c22"))
-			draw_circle(Vector2(enemy_x, 213), 3, Color(RED, 0.85))
-		_text(Vector2(42, 86), "CAM / " + SESSION.LEVEL_NAMES[level_choice], 15, PAPER)
-		_text(Vector2(430, 86), "SIGNAL  87%", 12, accent)
-		# 三张关卡卡片都在开始频道内；切关卡和切频道是两套明确导航。
+		# 左：所选关卡的实拍监控画面（慢摇镜 + 切换故障）；右：纵向关卡卡片 + 开始按钮。
+		var meta := level_meta(level_choice)
+		var boss: bool = meta.boss
+		var feed_accent := RED if boss else accent
+		var feed := Rect2(16, 54, 400, 225)
+		draw_rect(feed.grow(2), Color(feed_accent, 0.55))
+		draw_rect(feed, Color("#02080a"))
+		var tex: Texture2D = previews.get(meta.key)
+		if tex != null:
+			var zoom := 1.14
+			var src_size := Vector2(tex.get_size()) / zoom
+			var span := Vector2(tex.get_size()) - src_size
+			var src := Rect2(Vector2(span.x * (0.5 + 0.5 * sin(elapsed * 0.16)), span.y * (0.5 + 0.5 * sin(elapsed * 0.11))), src_size)
+			if _switch_t < 0.35:
+				# 切换关卡：画面切成横条错位 + 红青分离 + 雪花，0.35 秒内收敛
+				var k := 1.0 - _switch_t / 0.35
+				var strips := 9
+				for i in strips:
+					var h := feed.size.y / strips
+					var off := sin(i * 12.9 + elapsed * 60.0) * 26.0 * k
+					var dst := Rect2(feed.position.x, feed.position.y + i * h, feed.size.x, h)
+					var sub := Rect2(src.position + Vector2(off, i * src.size.y / strips), Vector2(src.size.x, src.size.y / strips))
+					draw_texture_rect_region(tex, dst, sub, Color(1, 1, 1, 1.0 - k * 0.3))
+					draw_texture_rect_region(tex, Rect2(dst.position + Vector2(6 * k, 0), dst.size), sub, Color(1, 0.2, 0.3, 0.35 * k))
+					draw_texture_rect_region(tex, Rect2(dst.position - Vector2(6 * k, 0), dst.size), sub, Color(0.2, 0.9, 1, 0.35 * k))
+				for n in int(90 * k):
+					var nx := fposmod(sin(n * 91.7 + elapsed * 40.0) * 999.0, feed.size.x - 6)
+					var ny := fposmod(cos(n * 47.3 + elapsed * 33.0) * 999.0, feed.size.y - 3)
+					draw_rect(Rect2(feed.position + Vector2(nx, ny), Vector2(6, 2)), Color(1, 1, 1, 0.5 * k))
+			else:
+				draw_texture_rect_region(tex, feed, src)
+		# 监控调色：整体偏冷 + 暗角
+		draw_rect(feed, Color(feed_accent, 0.07))
+		for i in 8:
+			var a := 0.07 * (8 - i) / 8.0
+			draw_rect(Rect2(feed.position.x, feed.position.y + i * 3, feed.size.x, 3), Color(0, 0, 0, a * 3))
+			draw_rect(Rect2(feed.position.x + i * 3, feed.position.y, 3, feed.size.y), Color(0, 0, 0, a * 2))
+			draw_rect(Rect2(feed.end.x - (i + 1) * 3, feed.position.y, 3, feed.size.y), Color(0, 0, 0, a * 2))
+		# 底部信息带：大号关卡编号 + 名称 + 标签
+		var band := Rect2(feed.position.x, feed.end.y - 62, feed.size.x, 62)
+		for i in 12:
+			draw_rect(Rect2(band.position.x, band.position.y + i * 5.2, band.size.x, 5.2), Color(0.0, 0.02, 0.03, 0.06 + i * 0.055))
+		var title: String = SESSION.LEVEL_NAMES[level_choice]
+		_text(band.position + Vector2(14, 46), title.substr(0, 2), 36, feed_accent, true)
+		_text(band.position + Vector2(68, 31), title.substr(3), 21, PAPER, true)
+		_text(band.position + Vector2(69, 51), String(meta.tag), 12, Color(PAPER, 0.75))
+		# 取景框：四角括号 + 中央准星 + 录制信息
+		var c := 16.0
+		for corner: Vector2 in [feed.position + Vector2(8, 8), Vector2(feed.end.x - 8, feed.position.y + 8),
+				Vector2(feed.position.x + 8, feed.end.y - 8), feed.end - Vector2(8, 8)]:
+			var sx := 1.0 if corner.x < feed.get_center().x else -1.0
+			var sy := 1.0 if corner.y < feed.get_center().y else -1.0
+			draw_line(corner, corner + Vector2(c * sx, 0), Color(PAPER, 0.8), 2)
+			draw_line(corner, corner + Vector2(0, c * sy), Color(PAPER, 0.8), 2)
+		var mid := feed.get_center() + Vector2(0, -20)
+		draw_arc(mid, 13, 0, TAU, 24, Color(PAPER, 0.28), 1)
+		for dir: Vector2 in [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
+			draw_line(mid + dir * 8, mid + dir * 19, Color(PAPER, 0.35), 1)
+		var live := 1.0 if fmod(elapsed, 1.0) < 0.6 else 0.3
+		draw_circle(feed.position + Vector2(24, 25), 4, Color(RED, live))
+		_text(feed.position + Vector2(34, 30), "CAM-%02d  LIVE" % (level_choice + 1), 12, PAPER, true)
+		_text(Vector2(feed.end.x - 70, feed.position.y + 30), "SIG %d%%" % (82 + int(6 * sin(elapsed * 2.1))), 12, feed_accent, true)
+		if boss:
+			# Boss 关：危险斜纹条滚动闪烁
+			var warn := 0.55 + 0.45 * sin(elapsed * 6.0)
+			var strip := Rect2(feed.position.x, feed.position.y + 42, feed.size.x, 18)
+			draw_rect(strip, Color(0.3, 0.0, 0.03, 0.7 * warn))
+			for i in 30:
+				var x := strip.position.x + i * 14.0 + fposmod(elapsed * 30.0, 14.0) - 14.0
+				if x > strip.position.x - 2 and x < strip.end.x - 12:
+					draw_colored_polygon(PackedVector2Array([Vector2(x, strip.end.y), Vector2(x + 6, strip.end.y),
+						Vector2(x + 12, strip.position.y), Vector2(x + 6, strip.position.y)]), Color(RED, 0.55 * warn))
+			_text(Vector2(feed.get_center().x - 64, strip.end.y - 3), "WARNING · BOSS", 13, Color(1, 0.92, 0.92, warn), true)
+		# 右：关卡卡片
 		for index in SESSION.LEVEL_SCENES.size():
-			var card := Rect2(38 + index * 188, 219, 176, 43)
+			var card := SurveillanceMenu.level_card_rect(index)
 			var chosen := index == level_choice
-			draw_rect(card, Color("#122830") if chosen else Color("#09191f"))
-			draw_rect(card, Color(accent, 0.9 if chosen else 0.3), false, 2)
-			_text(card.position + Vector2(8, 27), SESSION.LEVEL_NAMES[index], 15, PAPER if chosen else MUTED)
+			var card_meta := level_meta(index)
+			var col: Color = RED if card_meta.boss else accent
+			var level_name: String = SESSION.LEVEL_NAMES[index]
+			if chosen:
+				draw_rect(card, Color(col, 0.20))
+				draw_rect(card, Color(col, 0.95), false, 2)
+				draw_rect(Rect2(card.position, Vector2(5, card.size.y)), col)
+				var sweep := fposmod(elapsed * 160.0, card.size.x + 60.0) - 30.0
+				if sweep > 0 and sweep < card.size.x - 12:
+					draw_rect(Rect2(card.position.x + sweep, card.position.y + 1, 10, card.size.y - 2), Color(1, 1, 1, 0.07))
+				_text(Vector2(card.end.x - 20, card.position.y + card.size.y * 0.5 + 5), "◀", 12, col)
+			else:
+				draw_rect(card, Color("#08161b"))
+				draw_rect(card, Color(col, 0.28), false, 1)
+			_text(card.position + Vector2(13, card.size.y * 0.5 + 9), level_name.substr(0, 2), 22, col if chosen else Color(col, 0.45), true)
+			_text(card.position + Vector2(48, card.size.y * 0.5 - 2), level_name.substr(3), 15, PAPER if chosen else MUTED, chosen)
+			_text(card.position + Vector2(49, card.size.y * 0.5 + 13), String(card_meta.tag).get_slice(" · ", 0), 10,
+				Color(col, 0.85) if chosen else Color(MUTED, 0.7))
+		# 开始按钮：扫光 + 呼吸描边
 		var button := START_BUTTON
-		draw_rect(button, Color(accent, 0.18 if focused else 0.08))
-		draw_rect(button, Color(accent, 0.95 if focused else 0.35), false, 3)
-		_text(Vector2(246, 318), "开始行动  /  ENTER", 19, PAPER if focused else MUTED)
-		_text(Vector2(28, 350), "↑↓ 选择关卡  /  当前协议：%s · %d HP" % [
-			SESSION.name_for_difficulty(difficulty), SESSION.health_for_difficulty(difficulty)], 12, accent)
+		var pulse := 0.6 + 0.4 * sin(elapsed * 3.4)
+		draw_rect(button, Color(accent, 0.30 if focused else 0.12))
+		draw_rect(button.grow(3), Color(accent, 0.25 * pulse), false, 2)
+		draw_rect(button, Color(accent, 0.95), false, 2)
+		var shine := fposmod(elapsed * 220.0, button.size.x + 120.0) - 60.0
+		if shine > 12 and shine < button.size.x - 20:
+			draw_colored_polygon(PackedVector2Array([button.position + Vector2(shine, 0), button.position + Vector2(shine + 20, 0),
+				button.position + Vector2(shine + 8, button.size.y), button.position + Vector2(shine - 12, button.size.y)]),
+				Color(1, 1, 1, 0.14))
+		_text(button.position + Vector2(22, 35), "▶ 开始行动", 20, PAPER, true)
+		_text(button.position + Vector2(140, 35), "ENTER", 11, accent, true)
+		# 左下：生存协议芯片 + 滚动字幕
+		var chip := Rect2(16, 290, 400, 24)
+		draw_rect(chip, Color("#0a1a20"))
+		var diff_col: Color = {"easy": GREEN, "hard": AMBER, "zero": RED}.get(difficulty, accent)
+		draw_rect(Rect2(chip.position, Vector2(4, chip.size.y)), diff_col)
+		_text(chip.position + Vector2(14, 17), "生存协议", 12, MUTED)
+		_text(chip.position + Vector2(76, 17), SESSION.name_for_difficulty(difficulty), 13, diff_col, true)
+		for i in SESSION.health_for_difficulty(difficulty):
+			draw_rect(Rect2(chip.position.x + 136 + i * 14, chip.position.y + 7, 10, 10), diff_col)
+		_text(Vector2(chip.end.x - 128, chip.position.y + 17), "↑↓ 选关  ·  ←→ 换频道", 11, MUTED)
+		var ticker := "   //  时间操控已授权  //  球棒近战协议  //  排风脊线夜间封锁  //  BEAT WARDEN 占领广播塔  //  回廊信号不稳定  "
+		var ticker_w := font.get_string_size(ticker, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
+		var tx := 16.0 - fposmod(elapsed * 38.0, ticker_w)
+		var done := false
+		for _loop in 3:
+			for ch in ticker:
+				var w := font.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
+				if tx >= 16.0 and tx + w <= 416.0:
+					draw_string(font, Vector2(tx, 338), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(accent, 0.8))
+				tx += w
+				if tx > 416.0:
+					done = true
+					break
+			if done:
+				break
+		draw_line(Vector2(16, 322), Vector2(416, 322), Color(accent, 0.25), 1)
+		draw_line(Vector2(16, 345), Vector2(416, 345), Color(accent, 0.25), 1)
 
 	func _draw_difficulty(accent: Color) -> void:
 		_text(Vector2(30, 76), "生存协议 / DIFFICULTY", 20, PAPER)
@@ -256,14 +440,20 @@ class MonitorCanvas extends Control:
 	func _draw_difficulty_card(rect: Rect2, mode: String, title: String,
 			hp: String, detail: String, color: Color) -> void:
 		var selected := difficulty == mode
-		draw_rect(rect, Color("#0d1b20"))
-		draw_rect(rect, Color(color, 0.95 if selected else 0.22), false, 4 if selected else 2)
+		draw_rect(rect, Color(color, 0.14) if selected else Color("#0a171c"))
+		draw_rect(Rect2(rect.position, Vector2(rect.size.x, 26)), Color(color, 0.85 if selected else 0.22))
+		_text(rect.position + Vector2(12, 19), mode.to_upper(), 13, INK if selected else Color(color, 0.8), true)
+		draw_rect(rect, Color(color, 0.95 if selected else 0.3), false, 3 if selected else 1)
 		if selected:
-			draw_rect(Rect2(rect.position + Vector2(8, 8), Vector2(6, rect.size.y - 16)), color)
-		_text(rect.position + Vector2(24, 38), title, 23, PAPER if selected else MUTED)
-		_text(rect.position + Vector2(24, 77), hp, 20, color)
-		_text(rect.position + Vector2(22, 111), detail, 11, PAPER if selected else MUTED)
-		_text(rect.position + Vector2(24, 137), "● 已选" if selected else "○ 待命", 12, color if selected else MUTED)
+			draw_rect(rect.grow(4), Color(color, 0.25 + 0.15 * sin(elapsed * 4.0)), false, 2)
+		_text(rect.position + Vector2(16, 62), title, 25, PAPER if selected else MUTED, true)
+		var hp_count := SESSION.health_for_difficulty(mode)
+		for i in 5:
+			var pip := Rect2(rect.position.x + 16 + i * 20, rect.position.y + 76, 14, 14)
+			draw_rect(pip, color if i < hp_count else Color(color, 0.12))
+		_text(rect.position + Vector2(118, 89), hp, 12, color)
+		_text(rect.position + Vector2(16, 116), detail, 11, PAPER if selected else MUTED)
+		_text(rect.position + Vector2(16, 142), "▶ 已选择" if selected else "○ 待命", 12, color if selected else MUTED, selected)
 
 	func _draw_controls(accent: Color) -> void:
 		_text(Vector2(30, 76), "操作归档 / CONTROL TAPE", 20, PAPER)
@@ -327,8 +517,8 @@ class MonitorCanvas extends Control:
 		var border := Color(_accent(), 0.88 if focused else (0.45 if hovered else 0.18))
 		draw_rect(Rect2(3, 3, size.x - 6, size.y - 6), border, false, 3)
 
-	func _text(at: Vector2, value: String, font_size: int, color: Color) -> void:
-		draw_string(font, at.round(), value, HORIZONTAL_ALIGNMENT_LEFT, -1,
+	func _text(at: Vector2, value: String, font_size: int, color: Color, heavy := false) -> void:
+		draw_string(bold if heavy else font, at.round(), value, HORIZONTAL_ALIGNMENT_LEFT, -1,
 				font_size, color)
 
 
@@ -363,6 +553,9 @@ func _process(delta: float) -> void:
 	_camera.global_transform = _camera.global_transform.interpolate_with(desired, weight)
 	camera_motion_distance += before.distance_to(_camera.global_position)
 	_difficulty_notice_time = maxf(0.0, _difficulty_notice_time - delta)
+	_idle_time += delta
+	_camera.h_offset = sin(_idle_time * 0.37) * 0.035
+	_camera.v_offset = sin(_idle_time * 0.53 + 1.2) * 0.022
 	_update_focus_lighting(delta)
 	_advance_crt_fault(delta)
 
@@ -469,6 +662,11 @@ func _request_run() -> void:
 
 func _request_quit() -> void:
 	quit_requested.emit()
+	# 浏览器 iframe 没有安全的“退出应用”语义；Godot Web quit 可能让宿主
+	# 把游戏视为已关闭，表现为标签页突然消失。Web 端返回开始频道即可。
+	if OS.has_feature("web"):
+		_select_page(PAGE_START)
+		return
 	if not suppress_external_actions:
 		get_tree().quit()
 
@@ -510,8 +708,10 @@ func _handle_mouse_click(screen_position: Vector2) -> void:
 		_activate_page()
 
 
+## 关卡卡片在监控画面右侧纵向排列（2026-09-30 重做）；左侧是所选关卡的实拍监控画面。
 static func level_card_rect(index: int) -> Rect2:
-	return Rect2(38 + index * 188, 219, 176, 43)
+	var step := minf(56.0, 216.0 / maxf(1.0, SESSION.LEVEL_SCENES.size()))
+	return Rect2(426, 54 + index * step, 198, step - 8.0)
 
 
 static func difficulty_card_rect(index: int) -> Rect2:
@@ -668,8 +868,18 @@ func _build_dark_room() -> void:
 	environment.background_mode = Environment.BG_COLOR
 	environment.background_color = Color("#020406")
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color("#7b918b")
-	environment.ambient_light_energy = 0.65
+	environment.ambient_light_color = Color("#6a7f8c")
+	environment.ambient_light_energy = 0.5
+	# 2026-09-30 开始界面重做：辉光让霓虹灯条和监控墙发光；深蓝距离雾拉开纵深。
+	environment.glow_enabled = true
+	environment.glow_intensity = 0.9
+	environment.glow_strength = 1.1
+	environment.glow_bloom = 0.04
+	environment.glow_hdr_threshold = 1.05
+	environment.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
+	environment.fog_enabled = true
+	environment.fog_light_color = Color("#0b1a2a")
+	environment.fog_density = 0.035
 	world_environment.environment = environment
 	add_child(world_environment)
 	# 正面局部柔光照出灰绿机壳，环境仍暗；不把黑框问题伪装成全屏提曝光。
@@ -694,6 +904,9 @@ func _build_dark_room() -> void:
 		_box(self, "ConsoleDesk", Vector3(3.68, 0.18, 1.15), Vector3(x, 0.62, 0.7), Color("#263333"), 0.72)
 		_box(self, "DeskFootL", Vector3(0.16, 0.85, 0.65), Vector3(x - 1.2, 0.18, 0.55), Color("#0c1418"), 0.8)
 		_box(self, "DeskFootR", Vector3(0.16, 0.85, 0.65), Vector3(x + 1.2, 0.18, 0.55), Color("#0c1418"), 0.8)
+	_build_monitor_wall()
+	_build_neon()
+	_build_dust()
 	for x in [-7.2, 0.0, 7.2]:
 		var lamp := OmniLight3D.new()
 		lamp.position = Vector3(x, 4.6, 2.0)
@@ -702,6 +915,121 @@ func _build_dark_room() -> void:
 		lamp.light_color = Color("#7fa8aa") if x == 0.0 else Color("#b88755")
 		lamp.shadow_enabled = false
 		add_child(lamp)
+
+
+## 监控墙：主 CRT 两侧与上方堆叠的小监视器，轮播关卡实拍 / 雪花 / 彩条；自发光进辉光。
+func _build_monitor_wall() -> void:
+	var feeds: Array[Texture2D] = []
+	for scene: String in SESSION.LEVEL_SCENES:
+		var path := "res://assets/menu/preview_%s.png" % scene.get_file().substr(0, 3)
+		if ResourceLoader.exists(path):
+			feeds.append(load(path))
+	var tints := [Color("#3df2ff"), Color("#ff3d8b"), Color("#9dffb0"), Color("#ffb347")]
+	var slots: Array[Vector3] = []
+	for x in [-4.55, -3.3, 3.3, 4.55]:
+		for y in [0.95, 1.95, 2.95, 3.95]:
+			slots.append(Vector3(x + (0.08 if int(y) % 2 == 0 else -0.05), y, -0.28))
+	for x in [-1.5, 0.0, 1.5]:
+		slots.append(Vector3(x, 4.35, -0.42))
+	var serial := 0
+	for at in slots:
+		serial += 1
+		var unit := Node3D.new()
+		unit.name = "WallMonitor%d" % serial
+		unit.position = at
+		unit.rotation_degrees.y = clampf(-at.x * 3.2, -14.0, 14.0)
+		add_child(unit)
+		_box(unit, "Case", Vector3(1.14, 0.86, 0.5), Vector3(0, 0, -0.1), Color("#15191d"), 0.55)
+		_box(unit, "Bezel", Vector3(1.02, 0.74, 0.04), Vector3(0, 0, 0.16), Color("#07090b"), 0.8)
+		var quad := QuadMesh.new()
+		quad.size = Vector2(0.92, 0.62)
+		var screen := MeshInstance3D.new()
+		screen.name = "WallScreen"
+		screen.mesh = quad
+		screen.position = Vector3(0, 0, 0.185)
+		var material := ShaderMaterial.new()
+		material.shader = WALL_SHADER
+		var mode := 0
+		if serial % 7 == 3:
+			mode = 1
+		elif serial % 11 == 5:
+			mode = 2
+		material.set_shader_parameter("mode", mode)
+		material.set_shader_parameter("seed", float(serial) * 1.37)
+		material.set_shader_parameter("tint", tints[serial % tints.size()])
+		material.set_shader_parameter("energy", 0.95 if mode == 0 else 0.7)
+		if not feeds.is_empty():
+			material.set_shader_parameter("feed", feeds[serial % feeds.size()])
+		screen.material_override = material
+		unit.add_child(screen)
+		_wall_screens.append(material)
+
+
+## 霓虹灯条：桌沿粉色、墙面青色横条和两侧竖条；发光强度 > 1 触发辉光。
+func _build_neon() -> void:
+	var strips := [
+		[Vector3(3.9, 0.04, 0.04), Vector3(0, 0.73, 1.28), Color("#ff3d8b")],
+		[Vector3(18.0, 0.05, 0.05), Vector3(0, 4.88, -0.3), Color("#3df2ff")],
+		[Vector3(18.0, 0.04, 0.04), Vector3(0, 0.3, -0.3), Color("#ff3d8b")],
+		[Vector3(0.05, 4.2, 0.05), Vector3(-5.35, 2.6, -0.3), Color("#3df2ff")],
+		[Vector3(0.05, 4.2, 0.05), Vector3(5.35, 2.6, -0.3), Color("#ff3d8b")]]
+	for item in strips:
+		var mesh := BoxMesh.new()
+		mesh.size = item[0]
+		var strip := MeshInstance3D.new()
+		strip.name = "NeonStrip"
+		strip.mesh = mesh
+		strip.position = item[1]
+		var material := StandardMaterial3D.new()
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.albedo_color = Color(item[2]) * 2.6
+		strip.material_override = material
+		add_child(strip)
+	# 侧面彩色轮廓光：左粉右青，勾出 CRT 机壳边缘
+	for spec in [[Vector3(-3.6, 1.6, 2.2), Color("#ff3d8b")], [Vector3(3.8, 3.6, 2.0), Color("#3df2ff")]]:
+		var rim := OmniLight3D.new()
+		rim.name = "NeonRim"
+		rim.position = spec[0]
+		rim.omni_range = 6.5
+		rim.light_energy = 1.6
+		rim.light_color = spec[1]
+		rim.shadow_enabled = false
+		add_child(rim)
+
+
+## 空气中缓慢漂浮的发光尘埃。
+func _build_dust() -> void:
+	var dust := CPUParticles3D.new()
+	dust.name = "Dust"
+	dust.amount = 45
+	dust.lifetime = 9.0
+	dust.preprocess = 9.0
+	dust.position = Vector3(0, 2.4, 2.4)
+	dust.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	dust.emission_box_extents = Vector3(4.5, 2.4, 1.6)
+	dust.direction = Vector3(0.2, 1, 0)
+	dust.spread = 40.0
+	dust.gravity = Vector3(0, 0.015, 0)
+	dust.initial_velocity_min = 0.02
+	dust.initial_velocity_max = 0.08
+	dust.scale_amount_min = 0.5
+	dust.scale_amount_max = 1.4
+	var quad := QuadMesh.new()
+	quad.size = Vector2(0.008, 0.008)
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = Color(0.7, 0.95, 1.0, 0.4)
+	quad.material = material
+	dust.mesh = quad
+	var fade := Gradient.new()
+	fade.set_color(0, Color(1, 1, 1, 0))
+	fade.add_point(0.2, Color(1, 1, 1, 1))
+	fade.add_point(0.8, Color(1, 1, 1, 1))
+	fade.set_color(fade.get_point_count() - 1, Color(1, 1, 1, 0))
+	dust.color_ramp = fade
+	add_child(dust)
 
 
 func _build_monitors() -> void:
@@ -727,18 +1055,18 @@ func _build_monitors() -> void:
 
 
 func _build_monitor_case(monitor: Node3D, page: int, accent: Color) -> void:
-	_box(monitor, "Housing", Vector3(3.76, 2.34, 0.84), Vector3(0, 0, -0.12), Color("#586762"), 0.70)
+	_box(monitor, "Housing", Vector3(3.76, 2.34, 0.84), Vector3(0, 0, -0.12), Color("#3a4448"), 0.55)
 	_box(monitor, "InnerBezel", Vector3(3.22, 1.90, 0.10), Vector3(-.22, .16, .35), Color("#111b1b"), 0.88)
 	for x in [-1.84, 1.84]:
-		_box(monitor, "SideGuard", Vector3(0.13, 2.38, .32), Vector3(x, 0, .41), Color("#75847b"), .62)
-	_box(monitor, "TopGuard", Vector3(3.60, .13, .32), Vector3(0, 1.14, .41), Color("#8c978a"), .60)
-	_box(monitor, "BottomGuard", Vector3(3.60, .25, .36), Vector3(0, -1.08, .40), Color("#485953"), .72)
+		_box(monitor, "SideGuard", Vector3(0.13, 2.38, .32), Vector3(x, 0, .41), Color("#56626a"), .5)
+	_box(monitor, "TopGuard", Vector3(3.60, .13, .32), Vector3(0, 1.14, .41), Color("#6c7880"), .5)
+	_box(monitor, "BottomGuard", Vector3(3.60, .25, .36), Vector3(0, -1.08, .40), Color("#2c3438"), .6)
 	# 前唇凸出到z=.58，而玻璃z=.415，靠真实几何形成内凹，不能用平面黑框替代。
 	for x in [-1.78, 1.34]:
 		_box(monitor, "RecessSide", Vector3(.10, 1.88, .22), Vector3(x, .16, .47), Color("#30423e"), .78)
 	for y in [-.75, 1.08]:
 		_box(monitor, "RecessEdge", Vector3(3.08, .09, .22), Vector3(-.22, y, .47), Color("#354941"), .76)
-	_box(monitor, "ControlPanel", Vector3(.37, 1.94, .25), Vector3(1.60, .08, .44), Color("#626f64"), .66)
+	_box(monitor, "ControlPanel", Vector3(.37, 1.94, .25), Vector3(1.60, .08, .44), Color("#434d52"), .55)
 	_knob(monitor, "TuningKnob", Vector3(1.61, .57, .65), .105, .12)
 	_knob(monitor, "VolumeKnob", Vector3(1.61, .22, .65), .075, .11)
 	for index in 6:

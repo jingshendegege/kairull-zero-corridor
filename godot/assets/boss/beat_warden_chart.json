@@ -1,0 +1,2812 @@
+{
+ "bpm": 150.02,
+ "offset_sec": 0.6985,
+ "beats_per_bar": 4,
+ "note_speed_px": 520,
+ "sections": [
+  {
+   "name": "intro",
+   "from_beat": 0
+  },
+  {
+   "name": "verse",
+   "from_beat": 96
+  },
+  {
+   "name": "build",
+   "from_beat": 192
+  },
+  {
+   "name": "drop",
+   "from_beat": 208
+  },
+  {
+   "name": "build",
+   "from_beat": 224
+  },
+  {
+   "name": "drop",
+   "from_beat": 240
+  },
+  {
+   "name": "verse",
+   "from_beat": 272
+  },
+  {
+   "name": "drop",
+   "from_beat": 304
+  },
+  {
+   "name": "build",
+   "from_beat": 336
+  },
+  {
+   "name": "finale",
+   "from_beat": 352
+  }
+ ],
+ "notes": [
+  {
+   "beat": 0.0206,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 0.4125,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 1.0203,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 5.0644,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 6.5757,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 7.5155,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 7.989,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 8.5152,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 8.5152,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 12.4631,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 12.4631,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 13.9671,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 15.522,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 15.981,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 18.0185,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 19.0109,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 19.5207,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 20.0813,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 20.0813,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 23.5104,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 23.9385,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 25.996,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 27.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 29.405,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 30.0963,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 30.9073,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 31.9995,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 34.5758,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 35.5537,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 37.0668,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 38.6961,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 38.9972,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 40.9948,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 42.0961,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 42.0961,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 42.996,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 44.0537,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 46.0494,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 46.0494,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 46.9965,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 48.9922,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 50.0917,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 50.5017,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 52.0511,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 52.0511,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 52.9909,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 54.5476,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 56.9915,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 58.0492,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 58.9872,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 59.546,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 60.9811,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 62.5868,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 63.5411,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 64.9871,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 66.5891,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 66.9865,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 67.5834,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 68.5885,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 70.0798,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 70.987,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 71.5567,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 72.9845,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 73.9806,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 74.9821,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 75.5772,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 76.9814,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 78.0573,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 78.5798,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 78.9808,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 81.5807,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 82.4824,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 82.4824,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 83.9828,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 85.0406,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 85.9876,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 86.9873,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 88.0977,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 88.9848,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 90.576,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 90.9842,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 92.0982,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 92.9854,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 94.5729,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 94.992,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 96.0788,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 96.9895,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 97.5393,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 98.0781,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 98.9889,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 99.5386,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 100.9846,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 101.5761,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 101.9898,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 102.9858,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 103.4866,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 103.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 104.4536,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 104.9888,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 105.4859,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 106.5763,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 106.9863,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 108.0749,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 108.9857,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 110.4843,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 110.9923,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 111.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 111.5947,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 113.0751,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 114.0748,
+   "lane": "ground",
+   "kind": "missile"
+  },
+  {
+   "beat": 114.4903,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 115.49,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 116.9886,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 117.9864,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 118.5852,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 119.0,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 119.4923,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 120.0747,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 120.9855,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 120.9855,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 121.5171,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 121.5171,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 122.9903,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 124.9842,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 125.4868,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 126.0329,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 126.9818,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 127.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 128.0903,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 128.9884,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 130.5922,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 130.9859,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 131.9856,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 132.9835,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 133.5913,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 134.4857,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 135.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 136.915,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 136.915,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 137.5501,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 138.5497,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 138.9797,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 139.5512,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 140.0937,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 140.0937,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 141.5687,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 141.5687,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 142.4813,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 143.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 144.9832,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 145.5711,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 145.9793,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 146.5907,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 146.9826,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 147.9841,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 148.5701,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 150.0742,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 150.5096,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 151.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 152.0953,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 152.9825,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 153.4851,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 153.4851,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 154.9746,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 155.5896,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 156.0686,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 156.9758,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 158.9769,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 159.9784,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 160.9799,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 161.4843,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 162.0032,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 162.5693,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 162.9757,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 164.565,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 164.975,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 165.9801,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 165.9801,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 166.9726,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 167.4806,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 167.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 168.063,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 168.9719,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 169.5634,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 169.5634,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 170.9695,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 172.0417,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 172.9725,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 173.9721,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 173.9721,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 174.9773,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 175.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 176.0423,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 176.5612,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 177.4719,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 178.0616,
+   "lane": "ground",
+   "kind": "missile"
+  },
+  {
+   "beat": 178.9724,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 179.4731,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 180.5218,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 181.4725,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 181.9714,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 182.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 183.0872,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 183.0872,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 184.0415,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 184.9759,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 185.9737,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 186.9789,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 187.9767,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 189.4699,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 189.9743,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 190.9721,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 191.9736,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 192.9878,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 192.9878,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 193.9712,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 193.9712,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 194.9836,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 194.9836,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 196.5674,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 196.7235,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 197.4782,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 198.5632,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 198.9714,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 199.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 200.8147,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 201.0161,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 202.2734,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 202.5655,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 202.9719,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 203.5416,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 216.8169,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 216.9711,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 217.5662,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 218.5658,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 218.9704,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 220.0445,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 220.9734,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 221.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 221.5649,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 222.4811,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 223.5243,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 223.5243,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 224.9758,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 225.5654,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 226.5651,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 226.9751,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 227.9748,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 228.3159,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 228.7241,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 229.0253,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 229.976,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 231.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 232.0661,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 232.9823,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 233.5665,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 234.0745,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 234.4791,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 234.9744,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 235.9777,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 236.776,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 236.9774,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 237.977,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 237.977,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 238.5667,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 238.9749,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 239.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 240.0671,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 240.0671,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 240.8182,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 240.9761,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 241.4768,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 242.5273,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 242.9718,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 244.0277,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 244.5666,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 244.9766,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 245.9781,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 246.5278,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 247.0449,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 247.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 247.7289,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 248.0464,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 248.979,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 249.5269,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 250.0276,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 250.0276,
+   "lane": "ground",
+   "kind": "missile"
+  },
+  {
+   "beat": 250.5683,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 250.982,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 252.0288,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 252.9741,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 253.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 253.5274,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 254.0282,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 254.0282,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 255.4796,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 256.5283,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 257.0689,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 257.479,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 258.0287,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 258.9776,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 258.9776,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 259.9791,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 260.5288,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 260.9806,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 261.9784,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 261.9784,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 262.5282,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 263.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 263.9851,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 264.5693,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 266.0316,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 266.9786,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 267.9783,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 269.0705,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 269.2302,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 270.0702,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 270.0702,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 271.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 271.9843,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 273.4884,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 274.9779,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 275.573,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 276.9936,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 277.9407,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 278.4777,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 278.9857,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 279.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 279.9763,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 280.5569,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 281.5094,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 282.5,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 283.4924,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 284.4994,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 285.4918,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 286.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 287.4839,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 287.9883,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 289.4814,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 290.4793,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 291.479,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 291.479,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 291.9852,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 293.4947,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 293.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 294.0607,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 294.0607,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 295.0423,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 295.0423,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 296.0401,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 296.0401,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 297.4843,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 297.9905,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 299.4855,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 299.4855,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 299.9862,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 312.768,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 312.768,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 313.5245,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 314.4916,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 314.9905,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 315.9884,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 315.9884,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 316.5381,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 316.8102,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 317.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 318.5411,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 318.9838,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 319.9871,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 320.789,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 320.9849,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 321.4929,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 321.4929,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 322.9843,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 324.0239,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 324.2797,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 324.9837,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 325.488,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 325.987,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 326.4895,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 326.9921,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 327.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 328.0952,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 328.8136,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 328.986,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 329.4886,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 329.4886,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 330.0002,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 331.4879,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 331.9887,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 331.9887,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 333.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 333.529,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 334.0316,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 334.9859,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 335.532,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 335.532,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 336.7367,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 337.0252,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 337.9849,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 338.4893,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 339.2368,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 339.9897,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 340.5322,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 340.993,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 342.5316,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 342.5316,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 343.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 343.9866,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 344.4874,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 345.048,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 345.9824,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 347.0075,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 347.989,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 360.7345,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 360.7345,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 361.4928,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 361.99,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 362.5361,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 362.5361,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 362.9969,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 363.4922,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 363.9911,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 364.3123,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 364.9926,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 365.3101,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 365.595,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 365.9941,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 366.3116,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 366.9956,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 367.3131,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 367.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 367.988,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 368.5795,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 368.741,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 368.9913,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 369.327,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 369.4885,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 370.9889,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 371.994,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 372.9901,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 372.9901,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 373.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 374.0024,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 374.0024,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 374.7427,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 374.7427,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 374.9967,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 375.492,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 375.492,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 376.4935,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 376.6622,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 376.9888,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 377.9921,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 377.9921,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 378.3459,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 378.4946,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 378.9918,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 379.4925,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 379.9933,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 380.7789,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 380.7789,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 380.9929,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 381.9944,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 381.9944,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 382.7764,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 382.7764,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 382.9923,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 383.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 383.5602,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 383.9956,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 384.4927,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 384.9971,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 385.4924,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 385.8045,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 385.995,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 386.2417,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 386.8241,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 386.9928,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 387.3267,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 387.998,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 388.7799,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 388.7799,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 388.9976,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 389.4948,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 389.9937,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 390.4999,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 390.9934,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 390.9934,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 391.4959,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 391.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 391.993,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 393.0,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 393.996,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 393.996,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 394.3045,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 394.5022,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 394.9921,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 395.3277,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 395.4965,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 395.8248,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 395.9954,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 396.4943,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 396.9951,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 397.3253,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 397.9948,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 398.4937,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 398.8239,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 398.9981,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 399.3283,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 399.5,
+   "lane": "air",
+   "kind": "bomb"
+  },
+  {
+   "beat": 399.9996,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 400.3279,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 400.4949,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 400.7452,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 400.9938,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 401.3258,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 401.4927,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 401.8066,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 402.0007,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 402.9986,
+   "lane": "air",
+   "kind": "missile"
+  },
+  {
+   "beat": 403.9946,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 404.4918,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 404.9907,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 404.9907,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 405.4951,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 405.4951,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 406.522,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 406.9955,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 406.9955,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 407.4981,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 407.5,
+   "lane": "ground",
+   "kind": "bomb"
+  },
+  {
+   "beat": 407.9988,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 408.2202,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 408.4996,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 408.7209,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 408.7209,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 409.0765,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 409.1654,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 409.9129,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 409.9129,
+   "lane": "ground",
+   "kind": "missile"
+  },
+  {
+   "beat": 411.0015,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 412.0901,
+   "lane": "ground",
+   "kind": "heavy"
+  },
+  {
+   "beat": 412.7994,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 412.9137,
+   "lane": "air",
+   "kind": "normal"
+  },
+  {
+   "beat": 412.9137,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 413.556,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 414.0713,
+   "lane": "ground",
+   "kind": "normal"
+  },
+  {
+   "beat": 415.5,
+   "lane": "air",
+   "kind": "bomb"
+  }
+ ],
+ "rushes": [
+  208.0,
+  304.0,
+  352.0
+ ],
+ "loop_from_beat": 208,
+ "loop_to_beat": 416,
+ "song_seconds": 167.614,
+ "boss_hp": 734,
+ "note_damage": {
+  "normal": 1,
+  "heavy": 3,
+  "bomb": 0
+ },
+ "finale_core_multiplier": 2,
+ "music": "res://assets/bgm/final_stand.ogg",
+ "source": "tools/audio/chart_from_audio.py 由 final_stand.ogg 自动生成（节拍/段落/音符均来自音频分析）"
+}
