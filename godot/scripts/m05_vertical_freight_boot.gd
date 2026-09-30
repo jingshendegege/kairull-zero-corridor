@@ -19,7 +19,7 @@ func _ready() -> void:
 	CorridorLevel.active_hide_rows_from = -1
 	CorridorLevel.active_minion = "grunt"
 	CorridorLevel.active_boss = "none"
-	CorridorLevel.active_title = "04 垂直货运井"
+	CorridorLevel.active_title = "垂直货运井"
 	CorridorLevel.active_tile_style = {"name": "quarantine"}
 	CorridorLevel.active_tileset_path = "res://assets/maps/quarantine/tileset_quarantine.png"
 	# 第三关明确使用第一关同曲；从第二关进入时换回，死亡重开仍保持本曲进度。

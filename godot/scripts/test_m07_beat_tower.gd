@@ -95,7 +95,7 @@ func _run() -> void:
 	current_scene.free()
 	current_scene = null
 	check(GameBackground.active_cfg.is_empty() and QuarantineArchitecture.open_sky_profiles.is_empty() and not CorridorLevel.active_exit_requires_boss, "boot cleans backdrop and gate statics")
-	check(SESSION.LEVEL_SCENES.size() == 5 and SESSION.LEVEL_NAMES[1] == "01 BOSS 节拍塔", "session lists the boss right after level 1")
+	check(SESSION.LEVEL_SCENES.size() == 4 and SESSION.LEVEL_NAMES[1] == "01 BOSS 节拍塔", "session lists the boss right after level 1")
 	check(SESSION.LEVEL_SCENES[0] == "res://scenes/m06_exhaust_ridge.tscn" and SESSION.next_scene_after(SESSION.LEVEL_SCENES[0]) == SCENE 			and SESSION.next_scene_after(SCENE) == "res://scenes/m01_protocol_quarantine.tscn", "M06 is level 1, its end leads into the M07 boss, then level 2")
 	SESSION.reset_for_tests()
 	var menu: Node3D = load("res://scenes/surveillance_menu.tscn").instantiate()
@@ -105,11 +105,14 @@ func _run() -> void:
 	await process_frame
 	menu._handle_keycode(KEY_DOWN)
 	check(menu.selected_level == 1 and SESSION.selected_scene() == SCENE, "menu keyboard selects the level-1 boss card")
-	var card: Rect2 = menu.level_card_rect(4)
-	check(card.end.x <= 602 and card.position.x > menu.level_card_rect(3).end.x, "five menu cards fit without overlap")
-	for index in 4:
+	var cards_ok := true
+	for index in SESSION.LEVEL_SCENES.size():
+		var card: Rect2 = menu.level_card_rect(index)
+		cards_ok = cards_ok and Rect2(Vector2.ZERO, Vector2(menu.SCREEN_SIZE)).encloses(card) 			and (index == 0 or not card.intersects(menu.level_card_rect(index - 1)))
+	check(cards_ok, "menu level cards fit on screen without overlap")
+	for index in SESSION.LEVEL_SCENES.size() - 1:
 		menu._handle_keycode(KEY_DOWN)
-	check(menu.selected_level == 0, "fifth menu entry wraps to first")
+	check(menu.selected_level == 0, "last menu entry wraps to first")
 	menu.free()
 	current_scene = null
 	SESSION.reset_for_tests()

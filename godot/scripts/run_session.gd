@@ -8,10 +8,10 @@ static var start_level := 0 ## 菜单保留旧关，新增第二关；仅选择�
 const DIFFICULTIES := ["easy", "hard", "zero"]
 static var checkpoint: Dictionary = {} ## 仅当前挑战的内存快照；返回菜单/新开局清空，不跨关串档。
 ## 2026-09-30 用户要求：原第四关排风脊线改为第一关，节拍广播塔 Boss 接在第一关结尾；其余关依次顺延。
+## 同日用户要求删除第四关（垂直货运井 M05）：只移出战役/菜单，场景与资源保留可单独运行。
 const LEVEL_SCENES := ["res://scenes/m06_exhaust_ridge.tscn", "res://scenes/m07_beat_tower.tscn",
-		"res://scenes/m01_protocol_quarantine.tscn", "res://scenes/m04_chrono_freight.tscn",
-		"res://scenes/m05_vertical_freight.tscn"]
-const LEVEL_NAMES := ["01 排风脊线", "01 BOSS 节拍塔", "02 协议检疫站", "03 时差货运场", "04 垂直货运井"]
+		"res://scenes/m01_protocol_quarantine.tscn", "res://scenes/m04_chrono_freight.tscn"]
+const LEVEL_NAMES := ["01 排风脊线", "01 BOSS 节拍塔", "02 协议检疫站", "03 时差货运场"]
 
 
 static func selected_scene() -> String:

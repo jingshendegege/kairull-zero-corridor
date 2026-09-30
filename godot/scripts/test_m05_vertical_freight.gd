@@ -32,7 +32,7 @@ func _run() -> void:
 	check(game.level.map_w == 144 and game.level.map_h == 114, "第三关真实装载144×114纵向图")
 	check(game.level.spawn == Vector2(74 * 32 + 16, 105 * 32 - .1), "最底层安全桥出生")
 	check(game.level.exit_point == Vector2(74 * 32 + 16, 15 * 32 - .1), "出口在塔顶而非地图最右端")
-	check(CorridorLevel.active_title == "04 垂直货运井", "菜单与HUD显示第四关正式名")
+	check(CorridorLevel.active_title == "垂直货运井", "已移出战役：HUD 只显示关名不带序号")
 	check(CorridorLevel.active_map == DATA.MAP_TEXT, "地图常量消费同一LDtk生成数据")
 	check(CorridorLevel.active_encounter_policy == "same_floor_nearby" and game._campaign_boundaries.is_empty(),
 		"自由上下探索采用空间唤醒，不套线性前进记录点")

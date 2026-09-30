@@ -41,12 +41,12 @@ func _run() -> void:
 		check(game.player.hp == 1 and SESSION.difficulty == "zero", "跨关保留武士零1血难度")
 		var expected_music := "res://assets/bgm/m04_chrono_freight_0906.mp3" if index in [0, 3] else "res://assets/bgm/m02_oldtown.mp3"
 		check(game.music.stream.resource_path == expected_music and game.music.get_meta("track_path") == expected_music,
-				"五关音乐依次为9月6日/旧城区(Boss后台)/旧城区/9月6日/旧城区")
+				"四关音乐依次为9月6日/旧城区(Boss后台)/旧城区/9月6日")
 		check(game._checkpoint_index == -1 and SESSION.checkpoint.is_empty(),"新关检查点未激活，不继承旧关存档")
 		var count := 0
 		for enemy: Node2D in game.minions:
 			count += int(not enemy.dead)
-		check(count == [30,2,20,38,52][index],"新关完整生成自己的敌人")
+		check(count == [30,2,20,38][index],"新关完整生成自己的敌人")
 		# 激活当前关中段点，验证自动换关只清这份旧存档。
 		var config: Dictionary = CorridorLevel.active_checkpoints[0]
 		for enemy: Node2D in game.minions:
@@ -132,7 +132,7 @@ func _run() -> void:
 		else:
 			game.victory_transition.advance(10.0)
 			game._process(0.0)
-			check(not game._transitioning and game.victory_next_scene().is_empty(),"第五关不跳回第一关或旧试作")
+			check(not game._transitioning and game.victory_next_scene().is_empty(),"最终关不跳回第一关或旧试作")
 			check(game.victory_transition.prompt_text().contains("重新挑战") \
 					and game._can_restart_campaign(),"最终关保留重玩和暂停菜单")
 	current_scene.free()
