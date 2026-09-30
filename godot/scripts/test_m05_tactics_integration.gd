@@ -60,10 +60,10 @@ func _run() -> void:
 	var select_level := InputEventMouseButton.new()
 	select_level.button_index = MOUSE_BUTTON_LEFT
 	select_level.pressed = true
-	select_level.position = menu.canvas_to_screen(0, menu.level_card_rect(2).get_center())
+	select_level.position = menu.canvas_to_screen(0, menu.level_card_rect(4).get_center())
 	menu._unhandled_input(select_level)
-	check(menu.selected_level == 2 and SESSION.selected_scene() == SCENE,
-			"同一CRT真实第三关卡片点击选择垂直货运井")
+	check(menu.selected_level == 4 and SESSION.selected_scene() == SCENE,
+			"同一CRT真实第四关卡片点击选择垂直货运井")
 	menu._unhandled_input(_event(KEY_RIGHT))
 	menu._unhandled_input(_event(KEY_DOWN))
 	menu._unhandled_input(_event(KEY_DOWN))
@@ -122,7 +122,7 @@ func _supplies() -> int:
 
 
 func _test_structure() -> void:
-	check(SESSION.start_level == 2 and SESSION.difficulty == "zero" and player.hp == 1 \
+	check(SESSION.start_level == 4 and SESSION.difficulty == "zero" and player.hp == 1 \
 			and game.timeline_enabled, "第三关武士零档保持1血和原时间循环")
 	check(game.level.map_w == 144 and game.level.map_h == 114 and game.level.rooms.size() == 20,
 			"真实第三关144×114/20房，不是改名的第二长走廊")
@@ -399,7 +399,7 @@ func _test_retry() -> void:
 			break
 	check(current_scene.scene_file_path == SCENE and current_scene.get_instance_id() != old_scene_id,
 			"生产死亡回溯真正重载第三关，不退回M04或电视菜单")
-	check(SESSION.start_level == 2 and SESSION.attempt == 2 and player.hp == 1 and not player.dead,
+	check(SESSION.start_level == 4 and SESSION.attempt == 2 and player.hp == 1 and not player.dead,
 			"新轮恢复第三关选择、武士零1血和轮次，不继承fixture五血")
 	check(game.minions.size() == 52 and game._enemies().size() == 52 and _cargo_count() == 26,
 			"新轮重建52敌/26箱，不沿用已清房和碎箱")

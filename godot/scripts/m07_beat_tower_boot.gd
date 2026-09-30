@@ -1,5 +1,5 @@
 extends Node2D
-## 第五关：后台、候场检查点与双轨节拍舞台。
+## 第一关结尾 Boss（2026-09-30 由原第五关提前）：后台、候场检查点与双轨节拍舞台。
 
 const DATA := preload("res://generated/m07_beat_tower_data.gd")
 
@@ -18,7 +18,7 @@ func _ready() -> void:
 	CorridorLevel.active_hide_rows_from = -1
 	CorridorLevel.active_minion = "grunt"
 	CorridorLevel.active_boss = "none"
-	CorridorLevel.active_title = "05 节拍广播塔"
+	CorridorLevel.active_title = "01 BOSS 节拍广播塔"
 	CorridorLevel.active_tile_style = {"name": "quarantine"}
 	CorridorLevel.active_tileset_path = "res://assets/maps/quarantine/tileset_quarantine.png"
 	# 后台与候场室使用低音量旧城区曲目。

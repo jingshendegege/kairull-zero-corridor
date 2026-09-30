@@ -2043,6 +2043,9 @@ func _setup_music() -> void:
 			music = previous
 			music.pitch_scale = 1.0
 			music.volume_db = CorridorLevel.active_bgm_db
+			if not music.playing and not music.stream_paused:
+				# 节拍 Boss 开打会停掉后台曲；Boss 关（第一关结尾）接第二关同曲时要重新响起，否则整关无声。
+				music.play()
 			return
 	var stream: AudioStream = load(path)
 	if stream == null:

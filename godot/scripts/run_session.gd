@@ -7,10 +7,11 @@ static var attempt := 1
 static var start_level := 0 ## 菜单保留旧关，新增第二关；仅选择起始场景，不是中途记录点。
 const DIFFICULTIES := ["easy", "hard", "zero"]
 static var checkpoint: Dictionary = {} ## 仅当前挑战的内存快照；返回菜单/新开局清空，不跨关串档。
-const LEVEL_SCENES := ["res://scenes/m01_protocol_quarantine.tscn", "res://scenes/m04_chrono_freight.tscn",
-		"res://scenes/m05_vertical_freight.tscn", "res://scenes/m06_exhaust_ridge.tscn",
-		"res://scenes/m07_beat_tower.tscn"]
-const LEVEL_NAMES := ["01 协议检疫站", "02 时差货运场", "03 垂直货运井", "04 排风脊线", "05 节拍广播塔"]
+## 2026-09-30 用户要求：原第四关排风脊线改为第一关，节拍广播塔 Boss 接在第一关结尾；其余关依次顺延。
+const LEVEL_SCENES := ["res://scenes/m06_exhaust_ridge.tscn", "res://scenes/m07_beat_tower.tscn",
+		"res://scenes/m01_protocol_quarantine.tscn", "res://scenes/m04_chrono_freight.tscn",
+		"res://scenes/m05_vertical_freight.tscn"]
+const LEVEL_NAMES := ["01 排风脊线", "01 BOSS 节拍塔", "02 协议检疫站", "03 时差货运场", "04 垂直货运井"]
 
 
 static func selected_scene() -> String:

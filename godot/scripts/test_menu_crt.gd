@@ -54,7 +54,7 @@ func _run() -> void:
 		menu._handle_mouse_click(menu.canvas_to_screen(0, menu.level_card_rect(index).get_center()))
 		check(menu.selected_level == index and starts == 0, "第%d关卡卡片完整可点且不立即开始" % (index + 1))
 	menu._handle_mouse_click(menu.canvas_to_screen(0, MENU.START_BUTTON.get_center()))
-	check(starts == 1 and menu.selected_level == 4, "精确开始按钮才请求进入当前第五关")
+	check(starts == 1 and menu.selected_level == 4, "精确开始按钮才请求进入当前第五张卡（第四关）")
 	for index in 4:
 		menu._handle_mouse_click(menu._navigation.tab_rect(index).get_center())
 		check(menu.selected_page == index and starts == 1 and quits == 0, "底部第%d导航标签真正可点击且只换页" % (index + 1))

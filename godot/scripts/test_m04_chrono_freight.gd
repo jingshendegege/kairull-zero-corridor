@@ -38,7 +38,7 @@ func _run() -> void:
 	check(level.spawn == Vector2(144.0, 1023.9), "新关唯一出生点c4/r31")
 	check(level.exit_point == Vector2(14544.0, 863.9), "新关唯一出口c454/r26")
 	check(level.rooms.size() == 14 and level.stairs.size() == 5, "十四房与五楼梯接入运行时")
-	check(CorridorLevel.active_title == "02 时差货运场", "显示第二关名，不暴露避让历史试作的技术编号")
+	check(CorridorLevel.active_title == "03 时差货运场", "显示第三关名，不暴露避让历史试作的技术编号")
 	check(CorridorLevel.active_restart_scene == "res://scenes/m04_chrono_freight.tscn", "死亡/重开回到新关自身")
 	check(CorridorLevel.active_next_scene.is_empty(), "不会自动跳入旧M02/M03试作")
 	check(CorridorLevel.active_campaign_mode and game.timeline_enabled, "正式时间循环模式启用")

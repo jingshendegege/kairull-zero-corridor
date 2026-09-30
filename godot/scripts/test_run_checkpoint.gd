@@ -67,7 +67,7 @@ func _test_map(index: int, mode: String) -> void:
 	root.add_child(boot)
 	current_scene = boot
 	_prepare()
-	if index == 4:
+	if scene.contains("m07_beat_tower"):
 		await _test_beat_checkpoint(scene)
 		return
 	var prefix := "M%d/%s " % [index + 1, mode]

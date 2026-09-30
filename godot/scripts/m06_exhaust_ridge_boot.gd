@@ -1,5 +1,5 @@
 extends Node2D
-## 第四关：线性屋顶跑酷，最终泵站由清场房门封锁。
+## 第一关：线性屋顶跑酷（2026-09-30 由原第四关提前；通关后接节拍广播塔 Boss），最终泵站由清场房门封锁。
 
 const DATA := preload("res://generated/m06_exhaust_ridge_data.gd")
 
@@ -18,7 +18,7 @@ func _ready() -> void:
 	CorridorLevel.active_hide_rows_from = -1
 	CorridorLevel.active_minion = "grunt"
 	CorridorLevel.active_boss = "none"
-	CorridorLevel.active_title = "04 排风脊线"
+	CorridorLevel.active_title = "01 排风脊线"
 	CorridorLevel.active_tile_style = {"name": "quarantine"}
 	CorridorLevel.active_tileset_path = "res://assets/maps/quarantine/tileset_quarantine.png"
 	# 复用时差货运场曲目，与上一关的旧城区曲目区分。

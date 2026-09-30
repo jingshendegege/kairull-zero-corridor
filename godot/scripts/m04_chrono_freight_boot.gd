@@ -18,7 +18,7 @@ func _ready() -> void:
 	CorridorLevel.active_hide_rows_from = -1
 	CorridorLevel.active_minion = "grunt"
 	CorridorLevel.active_boss = "none"
-	CorridorLevel.active_title = "02 时差货运场"
+	CorridorLevel.active_title = "03 时差货运场"
 	CorridorLevel.active_tile_style = {"name": "quarantine"}
 	CorridorLevel.active_tileset_path = "res://assets/maps/quarantine/tileset_quarantine.png"
 	# 延续已认可主线音乐；持久音乐总线在死亡重开时保持进度。

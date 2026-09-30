@@ -38,7 +38,7 @@ func _run() -> void:
 	check(CorridorLevel.active_checkpoints == DATA.CHECKPOINTS and game._checkpoint_beacons.size() == 1, "single green-room checkpoint")
 	check(DATA.BOSS_ARENA.floor_y == 736 and arena.config == DATA.BOSS_ARENA, "BOSS_ARENA delivered geometry used unchanged")
 	check(GameBackground.active_cfg == GameBackground.CFG_M07 and QuarantineArchitecture.open_sky_profiles == ["beat_stage"], "stage backdrop and open sky profile enabled")
-	check(CorridorLevel.active_title == "05 节拍广播塔" and game.timeline_enabled and game.red_boss == null, "campaign title and independent rhythm boss")
+	check(CorridorLevel.active_title == "01 BOSS 节拍广播塔" and game.timeline_enabled and game.red_boss == null, "campaign title and independent rhythm boss")
 	check(game.music.stream.resource_path.ends_with("m02_oldtown.mp3") and game.music.volume_db == -18, "backstage music at -18 dB")
 	arena.step(10)
 	check(arena.state == "waiting" and not arena.conductor.running and game._exit_gated(), "backstage cannot start fight or bypass exit")
@@ -91,24 +91,24 @@ func _run() -> void:
 	arena.step(0.5)
 	game.player.position = game.level.exit_point
 	game._physics_process(0)
-	check(game.level_cleared and game._victory_started and game.victory_next_scene().is_empty(), "boss death leads to normal final victory via actual exit")
+	check(game.level_cleared and game._victory_started and game.victory_next_scene() == "res://scenes/m01_protocol_quarantine.tscn", "boss death clears level 1 via actual exit and continues to level 2")
 	current_scene.free()
 	current_scene = null
 	check(GameBackground.active_cfg.is_empty() and QuarantineArchitecture.open_sky_profiles.is_empty() and not CorridorLevel.active_exit_requires_boss, "boot cleans backdrop and gate statics")
-	check(SESSION.LEVEL_SCENES.size() == 5 and SESSION.LEVEL_NAMES[4] == "05 节拍广播塔", "session contains five menu levels")
-	check(SESSION.next_scene_after("res://scenes/m06_exhaust_ridge.tscn") == SCENE and SESSION.next_scene_after(SCENE).is_empty(), "M06 advances to M07 and M07 is final")
+	check(SESSION.LEVEL_SCENES.size() == 5 and SESSION.LEVEL_NAMES[1] == "01 BOSS 节拍塔", "session lists the boss right after level 1")
+	check(SESSION.LEVEL_SCENES[0] == "res://scenes/m06_exhaust_ridge.tscn" and SESSION.next_scene_after(SESSION.LEVEL_SCENES[0]) == SCENE 			and SESSION.next_scene_after(SCENE) == "res://scenes/m01_protocol_quarantine.tscn", "M06 is level 1, its end leads into the M07 boss, then level 2")
 	SESSION.reset_for_tests()
 	var menu: Node3D = load("res://scenes/surveillance_menu.tscn").instantiate()
 	menu.suppress_external_actions = true
 	root.add_child(menu)
 	current_scene = menu
 	await process_frame
-	for index in 4:
-		menu._handle_keycode(KEY_DOWN)
-	check(menu.selected_level == 4 and SESSION.selected_scene() == SCENE, "menu keyboard selects fifth level")
+	menu._handle_keycode(KEY_DOWN)
+	check(menu.selected_level == 1 and SESSION.selected_scene() == SCENE, "menu keyboard selects the level-1 boss card")
 	var card: Rect2 = menu.level_card_rect(4)
 	check(card.end.x <= 602 and card.position.x > menu.level_card_rect(3).end.x, "five menu cards fit without overlap")
-	menu._handle_keycode(KEY_DOWN)
+	for index in 4:
+		menu._handle_keycode(KEY_DOWN)
 	check(menu.selected_level == 0, "fifth menu entry wraps to first")
 	menu.free()
 	current_scene = null

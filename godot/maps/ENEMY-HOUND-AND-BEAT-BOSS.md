@@ -139,3 +139,10 @@ Boss 大体积精灵（idle 呼吸随拍、发射、受击、降台露核、爆�
 - 击打音效统一为 `godot/assets/sfx/beat_hit.wav`（`tools/audio/beat_hit_sfx.py` 合成）；双键只降调加量，不换音色。
 - 旧合成曲 `beat_warden.ogg` 与 `beat_warden_synth_chart.json` 保留为测试夹具。
 
+
+## 关卡顺序调整（2026-09-30，用户要求）
+
+「把 boss 放在第一关结尾，第四关变成第一关」：`run_session.gd` 的 `LEVEL_SCENES` 改为
+排风脊线（M06，01）→ 节拍广播塔 Boss（M07，01 BOSS，第一关结尾）→ 协议检疫站（02）→ 时差货运场（03）→ 垂直货运井（04）。
+排风脊线出口自动接入 Boss 关；击破 Boss 后走出口自动进入第二关；最终关改为垂直货运井（保留 Enter 重玩）。
+菜单卡片、各关 `active_title` 与依赖关卡序号的测试同步更新。
