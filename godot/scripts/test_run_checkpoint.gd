@@ -92,7 +92,8 @@ func _test_map(index: int, mode: String) -> void:
 			to_clear.append(enemy)
 		elif later_enemy == null:
 			later_enemy = enemy
-	check(to_clear.size() == [10,22,24,14][index], prefix + "解锁前置是半程10/22/24/14敌")
+	check(to_clear.size() == {"m06": 14, "m01": 10, "m04": 22, "m05": 24}[scene.get_file().substr(0, 3)],
+			prefix + "解锁前置是半程14/10/22/24敌")
 	for enemy in to_clear:
 		enemy.dead = true
 	to_clear[-1].dead = false
